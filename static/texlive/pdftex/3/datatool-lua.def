@@ -1,0 +1,230 @@
+%%
+%% This is file `datatool-lua.def',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% datatool.dtx  (with options: `datatool-lua.def,package')
+%% 
+%%  datatool.dtx
+%%  Copyright 2025 Nicola Talbot
+%% 
+%%  This work may be distributed and/or modified under the
+%%  conditions of the LaTeX Project Public License, either version 1.3
+%%  of this license or (at your option) any later version.
+%%  The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%%  and version 1.3 or later is part of all distributions of LaTeX
+%%  version 2005/12/01 or later.
+%% 
+%%  This work has the LPPL maintenance status `maintained'.
+%% 
+%%  The Current Maintainer of this work is Nicola Talbot.
+%% 
+%%  This work consists of the files datatool.dtx and datatool.ins and the derived files datatool-base.sty, datatool-undetermined.ldf, datatool-latin1.ldf, datatool-utf8.ldf, datatool-l3fp.def, datatool-lua.def, datatool-fp.def, datatool-fp.sty, datatool-pgfmath.def, datatool-pgfmath.sty, datatool.sty, datagidx.sty, databib.sty, databar.sty, datapie.sty, dataplot.sty, person.sty, databib.bst, databar-2019-09-27.sty, databib-2019-09-27.sty, datagidx-2019-09-27.sty, datapie-2019-09-27.sty, dataplot-2019-09-27.sty, datatool-2019-09-27.sty, datatool-base-2019-09-27.sty, datatool-fp-2019-09-27.sty, datatool-pgfmath-2019-09-27.sty, person-2019-09-27.sty.
+%% 
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesFile{datatool-lua.def}[2025/12/04 v3.4.3 (NLCT)]
+\newcommand*{\dtlifnumeq}[4]{%
+  \ifnum\directlua{if #1==#2 then tex.print(1) else tex.print(0) end}=1
+   #3%
+  \else
+   #4%
+  \fi
+}
+\newcommand*{\dtlifnumlt}[4]{%
+  \ifnum\directlua{if #1<#2 then tex.print(1) else tex.print(0) end}=1
+   #3%
+  \else
+   #4%
+  \fi
+}
+\newcommand*{\dtlifnumgt}[4]{%
+  \ifnum\directlua{if #1>#2 then tex.print(1) else tex.print(0) end}=1
+   #3%
+  \else
+   #4%
+  \fi
+}
+\newcommand*{\dtlifnumopenbetween}[5]{%
+  \ifnum\directlua{if #2 < #1 and #1 < #3 then tex.print(1) else tex.print(0) end}=1
+   #4%
+  \else
+   #5%
+  \fi
+}
+\newcommand*{\dtlifnumclosedbetween}[5]{%
+  \ifnum\directlua{if #2 <= #1 and #1 <= #3 then tex.print(1) else tex.print(0) end}=1
+   #4%
+  \else
+   #5%
+  \fi
+}
+\NewDocumentCommand\dtladd{mmm}{%
+  \edef#1{\directlua{ tex.print(#2+(#3)) }}%
+}
+\NewDocumentCommand\dtladdall{mm}{%
+  \edef#1{\directlua{
+    x = 0;
+    array = { #2 };
+    for key,val in ipairs(array) do
+     x = x + val;
+    end
+    tex.print(x);
+  }}%
+}
+\NewDocumentCommand\dtlsub{mmm}{%
+  \edef#1{\directlua{ tex.print(#2-(#3)) }}%
+}
+\NewDocumentCommand\dtlmul{mmm}{%
+  \edef#1{\directlua{ tex.print(#2*#3) }}%
+}
+\NewDocumentCommand\dtldiv{mmm}{%
+  \edef#1{\directlua{ tex.print(#2/#3) }}%
+}
+\NewDocumentCommand\dtlsqrt{mm}{%
+  \edef#1{\directlua{ tex.print(math.sqrt(#2)) }}%
+}
+\NewDocumentCommand\dtlroot{mmm}{%
+  \edef#1{\directlua{ tex.print((#2)^(1/(#3))) }}%
+}
+\NewDocumentCommand\dtlround{mmm}{%
+  \edef#1{"\@percentchar0.\number#3f", #2}%
+  \edef#1{\directlua{ tex.print(string.format(#1)) }}%
+}
+\NewDocumentCommand\dtltrunc{mmm}{%
+ \edef#1{\directlua{
+   local m = 10^(#3);
+   tex.print(string.format("\@percentchar.#3f", math.floor(#2 * m)/m))
+ }}%
+}
+\NewDocumentCommand\dtlclip{mm}{%
+ \edef#1{\directlua{
+  local s = "#2";
+  tex.print(s:match("^(\@percentchar d*\@percentchar.?0?\@percentchar d-)0*$"))
+ }}%
+}
+\NewDocumentCommand\dtlmin{mmm}{%
+ \edef#1{\directlua{tex.print(math.min(#2,#3))}}%
+}
+\NewDocumentCommand\dtlminall{mm}{%
+ \edef#1{\directlua{tex.print(math.min(#2))}}%
+}
+\NewDocumentCommand\dtlmax{mmm}{%
+ \edef#1{\directlua{tex.print(math.max(#2,#3))}}%
+}
+\NewDocumentCommand\dtlmaxall{mm}{%
+ \edef#1{\directlua{tex.print(math.max(#2))}}%
+}
+\NewDocumentCommand\dtlabs{mm}{%
+ \edef#1{\directlua{tex.print(math.abs(#2))}}%
+}
+\NewDocumentCommand\dtlneg{mm}{%
+ \edef#1{\directlua{tex.print(-(#2))}}%
+}
+\NewDocumentCommand\dtlmeanforall{mm}{%
+  \edef#1{\directlua{
+    x = 0;
+    n = 0;
+    array = { #2 };
+    for key,val in ipairs(array) do
+     n = n + 1;
+     x = x + val;
+    end
+    tex.print(x/n);
+  }}%
+}
+\NewDocumentCommand \dtlvarianceforall { o m m }
+{%
+  \IfNoValueTF{#1}%
+  {%
+     \edef#2{\directlua{
+       n = 0;
+       mean = 0;
+       array = { #3 };
+       for key,val in ipairs(array) do
+        n = n + 1;
+        mean = mean + val;
+       end
+       mean = mean / n;
+       variance = 0;
+       for key,val in ipairs(array) do
+        x = val - mean;
+        variance = variance + x * x;
+       end
+       variance = variance / n;
+       tex.print(variance);
+     }}%
+  }%
+  {%
+     \edef#2{\directlua{
+       n = 0;
+       mean = #1;
+       array = { #3 };
+       variance = 0;
+       for key,val in ipairs(array) do
+        n = n + 1;
+        x = val - mean;
+        variance = variance + x * x;
+       end
+       variance = variance / n;
+       tex.print(variance);
+     }}%
+  }%
+}
+\NewDocumentCommand \dtlsdforall { o m m }
+{%
+  \IfNoValueTF{#1}%
+  {%
+     \edef#2{\directlua{
+       n = 0;
+       mean = 0;
+       array = { #3 };
+       for key,val in ipairs(array) do
+        n = n + 1;
+        mean = mean + val;
+       end
+       mean = mean / n;
+       variance = 0;
+       for key,val in ipairs(array) do
+        x = val - mean;
+        variance = variance + x * x;
+       end
+       variance = variance / n;
+       tex.print(math.sqrt(variance));
+     }}%
+  }%
+  {%
+     \edef#2{\directlua{
+       n = 0;
+       mean = #1;
+       array = { #3 };
+       variance = 0;
+       for key,val in ipairs(array) do
+        n = n + 1;
+        x = val - mean;
+        variance = variance + x * x;
+       end
+       variance = variance / n;
+       tex.print(math.sqrt(variance));
+     }}%
+  }%
+}
+\endinput
+%%
+%% End of file `datatool-lua.def'.

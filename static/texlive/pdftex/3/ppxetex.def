@@ -1,0 +1,229 @@
+%%
+%% This is file `ppxetex.def',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% pdfpages.dtx  (with options: `ppxetexdef')
+%% 
+%% This file is part of the pdfpages package.
+%% 
+%% Copyright (C) 2001-2025 Andreas MATTHIAS
+%%
+%% This work may be distributed and/or modified under the conditions
+%% of the LaTeX Project Public License, either version 1.3c
+%% of this license or (at your option) any later version.
+%% The latest version of this license is in
+%%   <http://www.latex-project.org/lppl.txt>.
+%%
+%% This work has the LPPL maintenance status `maintained'.
+%%
+%% The Current Maintainer of this work is
+%%   Andreas Matthias <andreas.matthias@gmail.com>.
+%%
+%% Please send error reports and suggestions for improvements to
+%%   Andreas MATTHIAS <andreas.matthias@gmail.com>.
+%%
+\def\AM@git@tag{v0.6g}
+\def\AM@git@date{2025/07/23}
+\def\AM@git@hash{b55a30b6b0}
+\ProvidesFile{ppxetex.def}
+   [\AM@git@date\space\AM@git@tag\space
+    Pdfpages driver for XeTeX (AM)]
+\begingroup
+\@ifundefined{ver@xetex.def}{%
+  \PackageError{pdfpages}
+         {The graphics package was loaded with driver\MessageBreak
+          `\Gin@driver', which cannot be used with XeTeX}
+         {Check the driver option of the graphics package.}
+  \global\let\AM@endinput\relax
+  \aftergroup\endinput}{}
+\endgroup
+{\catcode`\"=12
+ \gdef\AM@XeTeXquote{"}%
+}
+\def\AM@getpagecount{%
+  \expandafter\filename@parse\expandafter{\AM@currentdocname}%
+  \begingroup\edef\x{%
+    \lowercase{\endgroup
+      \def\noexpand\type@ext{\expandafter\scantokens\expandafter{\filename@ext\noexpand}}}}%
+  \x
+  \ifx\type@ext\AM@pdf@ext
+    \ifdefined\subfix
+      \let\AM@import@path\@empty
+    \else
+      \ifdefined\import@path
+        \let\AM@import@path\import@path
+      \else
+        \let\AM@import@path\@empty
+      \fi
+    \fi
+    \setbox\@tempboxa=\hbox{\includegraphics{\AM@currentdocname}}%
+    \edef\AM@pagecount{\the\XeTeXpdfpagecount\AM@XeTeXquote
+      \AM@import@path\AM@currentdocname\AM@XeTeXquote\relax}%
+  \else
+    \def\AM@pagecount{1}%
+  \fi
+}
+\def\AM@pdf@ext{pdf}
+\begingroup
+\def\gobble@nil#1\@nil{}
+\ifnum\XeTeXversion=0
+  \afterassignment\gobble@nil
+  \count@\expandafter\@gobble\XeTeXrevision.\@nil
+  \ifnum\count@<997
+    \PackageError{pdfpages}
+    {Package pdfpages requires at least XeTeX-0.997}
+    {Update your TeX distribution!}
+    \global\let\AM@endinput\relax
+    \aftergroup\endinput
+  \fi
+\fi
+\endgroup
+\def\AM@getpagedimen{%
+  \AM@pagewidth=\paperwidth
+  \AM@pageheight=\paperheight
+}
+\def\AM@setpagedimen{%
+  \pdfpagewidth\AM@pagewidth
+  \pdfpageheight\AM@pageheight
+}
+\def\AM@pagesize@boogie{%
+  \ifdim\AM@pagewidth=\z@
+    \ifdim\AM@pageheight=\z@
+      \let\AM@pagewidth\paperwidth
+      \let\AM@pageheight\paperheight
+    \fi
+  \fi
+}
+\let\AM@fitpaper@special\relax
+\def\AM@findfile#1{%
+  \AM@findfile@i{#1}{pdf}%
+  \AM@findfile@ii{#1}%
+}
+\long\def\AM@IfFileExists#1#2#3{%
+  \openin\@inputcheck=\AM@XeTeXquote#1\AM@XeTeXquote\relax
+  \ifeof\@inputcheck
+    \ifx\input@path\@undefined
+      \def\reserved@a{#3}%
+    \else
+      \def\reserved@a{\@iffileonpath{#1}{#2}{#3}}%
+    \fi
+  \else
+    \closein\@inputcheck
+    \edef\@filef@und{#1 }%
+    \def\reserved@a{#2}%
+  \fi
+  \reserved@a}
+\ExplSyntaxOn
+\@ifundefined{pdfmanagement_add:nnn}{%
+  \def\AM@setRotate{\PLS@Rotate{90}}%
+  \def\AM@resetRotate{\PLS@Rotate{0}}%
+}{%
+  \def\AM@setRotate{\pdfmanagement_add:nnn{ThisPage}{Rotate}{90}}%
+  \def\AM@resetRotate{}%
+}%
+\ExplSyntaxOff
+\def\AM@linktodoc@special@begin{%
+  \special{pdf: annot
+                width \the\wd\@tempboxa\space
+                height \the\ht\@tempboxa\space
+                depth \the\dp\@tempboxa\space
+                << /Type /Annot
+                   /Subtype /Link /Border [0 0 0]
+                   /A << /S /GoToR
+                         /F (\AM@linkfilename)
+                         /D [\AM@linktodoc@page@m@ne \AM@linktodocfit]
+                         \ifAM@newwindow/NewWindow true\fi >>
+                >>}%
+}
+\let\AM@linktodoc@special@end\relax
+\def\AM@survey@special@begin{%
+  \special{pdf: annot
+                width \the\wd\@tempboxa\space
+                height \the\ht\@tempboxa\space
+                depth \the\dp\@tempboxa\space
+                << /Type /Annot
+                   /Subtype /Link /Border [0 0 0]
+                   /A << /S /GoTo
+                         /D (pdfpages.\AM@linktodoc@page@m@ne) >>
+                >>}%
+}
+\let\AM@survey@special@end\relax
+\def\AM@thread@special@begin{%
+  \special{pdf: thread @\AM@threadname\space
+                width \the\wd\@tempboxa\space
+                height \the\ht\@tempboxa\space
+                depth \the\dp\@tempboxa\space
+                <<\threadinfodict>>
+              }%
+}
+\let\AM@thread@special@end\relax
+\def\AM@reset@view{%
+  \def\AM@view{/Fit}%
+  \def\AM@view@xpos{0}%
+  \def\AM@view@ypos{}}
+\def\AM@dest@special{%
+  \special{pdf: dest (\AM@linkname.\AM@page) [ @thispage \AM@view ]}}
+\def\AM@anchor@special{%
+  \special{pdf: dest (pdfpages.\the\count1) [ @thispage /Fit ]}}
+\def\AM@convert@dest#1{%
+  \AM@convert@dest@i #1 0 0 0\END}
+\def\AM@convert@dest@i#1 #2 #3 #4\END{%
+  \def\tag{#1}%
+  \def\x{FitH}%
+  \ifx\x\tag
+    \def\AM@view{/FitH @ypos}%
+    \def\AM@view@ypos{#2}%
+  \else
+    \def\x{FitBH}%
+    \ifx\x\tag
+      \def\AM@view{/FitBH @ypos}%
+      \def\AM@view@ypos{#2}%
+    \else
+      \def\x{FitV}%
+      \ifx\x\tag
+        \def\AM@view{/FitV @xpos}%
+        \def\AM@view@xpos{#2}%
+      \else
+        \def\x{FitBV}%
+        \ifx\x\tag
+          \def\AM@view{/FitBV @xpos}%
+          \def\AM@view@xpos{#2}%
+        \else
+          \def\x{fitr}%
+          \ifx\x\tag
+            \def\AM@view{/XYZ @xpos @ypos null}%
+            \PackageWarningNoLine{pdfpages}{%
+              `linkfit=FitR' is not supported.}%
+          \else
+            \def\x{FitB}%
+            \ifx\x\tag
+              \def\AM@view{/FitB}%
+            \else
+              \def\x{XYZ}%
+              \ifx\x\tag
+                \def\AM@view{/XYZ @xpos @ypos #4}%
+                \def\AM@view@xpos{#2}%
+                \def\AM@view@ypos{#3}%
+              \else
+                \def\x{Region}%
+                \ifx\x\tag
+                  \def\AM@view{/XYZ @xpos @ypos null}%
+                  \PackageWarningNoLine{pdfpages}{%
+                    `linkfit=Region' is not supported by XeTeX.}%
+                \else
+                  \def\AM@view{/Fit}%
+                \fi
+              \fi
+            \fi
+          \fi
+        \fi
+      \fi
+    \fi
+  \fi
+}
+\let\AM@disable@includegraphics\relax
+\endinput
+%%
+%% End of file `ppxetex.def'.

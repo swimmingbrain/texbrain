@@ -1,0 +1,108 @@
+%%
+%% This is file `caption-beamer.sto',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% caption-beamer.dtx  (with options: `package')
+%% 
+%% Copyright (C) 1994-2022 Axel Sommerfeldt (axel.sommerfeldt@f-m.fm)
+%% 
+%% https://gitlab.com/axelsommerfeldt/caption
+%% 
+%% --------------------------------------------------------------------------
+%% 
+%% This work may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License, either version 1.3
+%% of this license or (at your option) any later version.
+%% The latest version of this license is in
+%%   http://www.latex-project.org/lppl.txt
+%% and version 1.3 or later is part of all distributions of LaTeX
+%% version 2003/12/01 or later.
+%% 
+%% This work has the LPPL maintenance status "maintained".
+%% 
+%% This Current Maintainer of this work is Axel Sommerfeldt.
+%% 
+%% This work consists of the files
+%%   caption.ins, caption.dtx, caption-light.dtx, caption2.dtx, caption3.dtx,
+%%   caption-ams-smf.dtx, caption-beamer.dtx, caption-elsarticle.dtx,
+%%   caption-koma.dtx, caption-memoir.dtx, caption-ntg.dtx,
+%%   caption-thesis.dtx, bicaption.dtx, ltcaption.dtx, subcaption.dtx,
+%% the derived files
+%%   caption.sty, caption-light.sty, caption2.sty, caption3.sty,
+%%   caption-ams-smf.sto, caption-beamer.sto, caption-elsarticle.sto,
+%%   caption-koma.sto, caption-memoir.sto, caption-ntg.sto,
+%%   caption-thesis.sto, bicaption.sty, ltcaption.sty, subcaption.sty.
+%% 
+\NeedsTeXFormat{LaTeX2e}[1994/12/01]
+\ProvidesFile{caption-beamer.sto}[2022/01/06 v2.0c Adaption of the caption package to the beamer document classes (AR)]
+\newcommand*\caption@ifbeamertemplate[1]{%
+  \begingroup
+    \let\beamer@@tmpl@caption@ORI\beamer@@tmpl@caption
+    \@nameuse{beamer@@tmpop@caption@#1}%
+    \ifx\beamer@@tmpl@caption@ORI\beamer@@tmpl@caption
+      \endgroup\expandafter\@firstoftwo
+    \else
+      \endgroup\expandafter\@secondoftwo
+    \fi}
+\DeclareCaptionSinglelinecheck{default}{%
+  \caption@ifbeamertemplate{caption name own line}%
+    \@secondoftwo % \@secondoftwo -> singlelinecheck=off
+    \@firstoftwo} % \@firstoftwo  -> singlelinecheck=on
+\providecommand*\AtCaptionSingleLineCheck{\g@addto@macro\caption@prepareslc} % for caption v3.5
+\let\caption@footnote@ORI\footnote
+\AtCaptionSingleLineCheck{%
+  \def\footnote{%
+    \begingroup
+    \let\stepcounter\caption@l@stepcounter
+    \renewcommand<>\beamer@framefootnotetext[1]{%
+      \endgroup}%
+    \let\@footnotetext\beamer@framefootnotetext
+    \caption@footnote@ORI}}
+\DeclareCaptionLabelFormat{default}{%
+  \caption@ifbeamertemplate{numbered}%
+    \caption@labelformat@simple
+    \caption@labelformat@unnumbered
+  {#1}{#2}}
+\DeclareCaptionLabelFormat{simpleMagyar}{%
+  \caption@ifbeamertemplate{numbered}%
+    {#2.\bothIfSecond{\nobreakspace}{#1}}%
+    {\caption@labelformat@unnumbered{#1}{#2}}}
+\let\@@magyar@captionfix\relax
+\AtBeginDocument{\let\@@magyar@captionfix\relax}
+\DeclareCaptionLabelSeparator**{default}%
+  {\caption@ifbeamertemplate{caption name own line}}%
+  {\caption@ifbeamertemplate{caption name own line}%
+     {\\}%
+     {\usebeamertemplate{caption label separator}}}
+\DeclareCaptionFont{beamer@font}{%
+  \usebeamerfont*{caption}%
+  \usebeamercolor[fg]{caption}}
+\SetCaptionDefault{font}{beamer@font}
+\DeclareCaptionFont{beamer@labelfont}{%
+  \setbeamercolor*{caption}{}% avoid setting "caption" color additionally
+  \usebeamercolor[fg]{caption name}%
+  \setbeamerfont*{caption}{}% avoid setting "caption" font additionally
+  \usebeamerfont{caption name}}
+\SetCaptionDefault{labelfont}{beamer@labelfont}
+\DeclareCaptionFont{beamer@textfont}{}
+\SetCaptionDefault{textfont}{beamer@textfont}
+\SetCaptionDefault{justification}{raggedright}
+\captionsetup{list=off}
+\AfterCaptionPackage{%
+  \expandafter\let\expandafter\caption@beamer@figure
+    \csname\string\figure\endcsname
+  \@namedef{\string\figure}[#1]{%
+    \caption@beamer@figure[#1]% use original beamer code first
+    \caption@settype{figure}} % set "type=figure" afterwards
+  \expandafter\let\expandafter\caption@beamer@table
+    \csname\string\table\endcsname
+  \@namedef{\string\table}[#1]{%
+    \caption@beamer@table[#1]% use original beamer code first
+    \caption@settype{table}} % set "type=table" afterwards
+  \def\caption@nobreak{\nobreak}
+}
+\endinput
+%%
+%% End of file `caption-beamer.sto'.

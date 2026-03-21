@@ -1,0 +1,135 @@
+%%
+%% This is file `extramarks-v4.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% fancyhdr.dtx  (with options: `extramarks-v4')
+%% 
+%% This is a generated file.
+%% 
+%% This file may be distributed and/or modified under the conditions of
+%% the LaTeX Project Public License, either version 1.3 of this license
+%% or (at your option) any later version.  The latest version of this
+%% license is in:
+%% 
+%%    http://www.latex-project.org/lppl.txt
+%% 
+%% and version 1.3 or later is part of all distributions of LaTeX version
+%% 2005/12/01 or later.
+%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\NeedsTeXFormat{LaTeX2e}[2018-04-01]
+\ProvidesPackage{extramarks}
+           [2024/11/30 v4.5
+                 Legacy version of extramarks for LaTeX]
+% Copyright (C) 1994-2024 by Pieter van Oostrum <pieter@vanoostrum.org>
+%%
+%% This is a legacy version (v4) of extramarks.sty
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\ifx\@temptokenb\undefined \csname newtoks\endcsname\@temptokenb\fi
+\providecommand\unrestored@protected@xdef{%
+  \let\protect\@unexpandable@protect \xdef}
+\ifdefined\ExplSyntaxOn
+\ExplSyntaxOn
+\DeclareRobustCommand*\markboth[2]{%
+  \begingroup
+    \let\label\relax \let\index\relax \let\glossary\relax
+    \expandafter\@markboth\@themark{#1}{#2}%
+    \@temptokena \expandafter{\@themark}%
+    \ifdefined\mark_insert:nn
+    % 3 new lines to set the new marks
+      \mark_insert:nn{2e-left}{#1}
+      \mark_insert:nn{2e-right}{#2}
+      \tl_if_empty:nF{#2}{ \mark_insert:nn{2e-right-nonempty}{#2} }
+    \fi
+    \mark{\the\@temptokena}%
+  \endgroup
+  \if@nobreak\ifvmode\nobreak\fi\fi}
+\ExplSyntaxOff
+\else
+\def\markboth#1#2{%
+  \begingroup
+  \let\label\relax \let\index\relax \let\glossary\relax
+  \expandafter\@markboth\@themark{#1}{#2}%
+  \@temptokena \expandafter{\@themark}%
+  \mark{\the\@temptokena}%
+  \endgroup
+  \if@nobreak\ifvmode\nobreak\fi\fi}
+\fi
+\ifx\@mkboth\@gobbletwo\else\def\@mkboth{\protect\markboth}\fi
+\def\@markboth#1#2#3#4#5#6{\@temptokena{{#3}{#4}}%
+  \unrestored@protected@xdef\@themark{{#5}{#6}\the\@temptokena}}
+\def\@markright#1#2#3#4#5{\@temptokena{#1}\@temptokenb{{#3}{#4}}%
+  \unrestored@protected@xdef\@themark{{\the\@temptokena}{#5}\the\@temptokenb}}
+
+\def\@leftmark#1#2#3#4{#1}
+\def\@rightmark#1#2#3#4{#2}
+\providecommand\IfFormatAtLeastTF{\@ifl@t@r\fmtversion}
+\IfFormatAtLeastTF{2025-06-01}{}{%
+  \def\leftmark{\expandafter\@leftmark
+      \botmark\@empty\@empty\@empty\@empty}
+    \def\rightmark{\expandafter\@rightmark
+      \firstmark\@empty\@empty\@empty\@empty}
+}
+\def\firstleftmark{\expandafter\@leftmark
+      \firstmark\@empty\@empty\@empty\@empty}
+\def\lastrightmark{\expandafter\@rightmark
+      \botmark\@empty\@empty\@empty\@empty}
+\let\firstrightmark \rightmark
+\let\lastleftmark \leftmark
+
+\def\@themark{{}{}{}{}}
+
+\newcommand\extramarks[2]{%
+  \begingroup
+  \let\label\relax \let\index\relax \let\glossary\relax
+  \expandafter\@markextra\@themark{#1}{#2}%
+  \@temptokena \expandafter{\@themark}%
+  \mark{\the\@temptokena}%
+  \endgroup
+  \if@nobreak\ifvmode\nobreak\fi\fi}
+\def\@markextra#1#2#3#4#5#6{\@temptokena {{#1}{#2}}%
+  \unrestored@protected@xdef\@themark{\the\@temptokena{#5}{#6}}}
+\def\extramarksleft#1{%
+  \begingroup
+  \let\label\relax \let\index\relax \let\glossary\relax
+  \expandafter\@markextraleft\@themark{#1}%
+  \@temptokena \expandafter{\@themark}%
+  \mark{\the\@temptokena}%
+  \endgroup
+  \if@nobreak\ifvmode\nobreak\fi\fi}
+\def\@markextraleft#1#2#3#4#5{\@temptokena {{#1}{#2}}%
+  \@temptokenb {{#4}}%
+  \unrestored@protected@xdef\@themark{\the\@temptokena{#5}\the\@temptokenb}}
+\def\extramarksright#1{%
+  \begingroup
+  \let\label\relax \let\index\relax \let\glossary\relax
+  \expandafter\@markextraright\@themark{#1}%
+  \@temptokena \expandafter{\@themark}%
+  \mark{\the\@temptokena}%
+  \endgroup
+  \if@nobreak\ifvmode\nobreak\fi\fi}
+\def\@markextraright#1#2#3#4#5{\@temptokena {{#1}{#2}{#3}}%
+  \unrestored@protected@xdef\@themark{\the\@temptokena{#5}}}
+\def\firstleftxmark{\expandafter\@leftxmark
+      \firstmark\@empty\@empty\@empty\@empty}
+\def\firstrightxmark{\expandafter\@rightxmark
+      \firstmark\@empty\@empty\@empty\@empty}
+\def\topleftxmark{\expandafter\@leftxmark
+      \topmark\@empty\@empty\@empty\@empty}
+\def\toprightxmark{\expandafter\@rightxmark
+      \topmark\@empty\@empty\@empty\@empty}
+\def\lastleftxmark{\expandafter\@leftxmark
+      \botmark\@empty\@empty\@empty\@empty}
+\def\lastrightxmark{\expandafter\@rightxmark
+      \botmark\@empty\@empty\@empty\@empty}
+\let\firstxmark\firstleftxmark
+\let\lastxmark\lastrightxmark
+\let\topxmark\topleftxmark
+\def\@leftxmark#1#2#3#4{#3}
+\def\@rightxmark#1#2#3#4{#4}
+\endinput
+%%
+%% End of file `extramarks-v4.sty'.

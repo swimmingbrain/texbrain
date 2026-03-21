@@ -1,0 +1,172 @@
+%%
+%% This is file `caption-koma.sto',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% caption-koma.dtx  (with options: `package')
+%% 
+%% Copyright (C) 1994-2023 Axel Sommerfeldt (axel.sommerfeldt@f-m.fm)
+%% 
+%% https://gitlab.com/axelsommerfeldt/caption
+%% 
+%% --------------------------------------------------------------------------
+%% 
+%% This work may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License, either version 1.3
+%% of this license or (at your option) any later version.
+%% The latest version of this license is in
+%%   http://www.latex-project.org/lppl.txt
+%% and version 1.3 or later is part of all distributions of LaTeX
+%% version 2003/12/01 or later.
+%% 
+%% This work has the LPPL maintenance status "maintained".
+%% 
+%% This Current Maintainer of this work is Axel Sommerfeldt.
+%% 
+%% This work consists of the files
+%%   caption.ins, caption.dtx, caption-light.dtx, caption2.dtx, caption3.dtx,
+%%   caption-ams-smf.dtx, caption-beamer.dtx, caption-elsarticle.dtx,
+%%   caption-koma.dtx, caption-memoir.dtx, caption-ntg.dtx,
+%%   caption-thesis.dtx, bicaption.dtx, ltcaption.dtx, subcaption.dtx,
+%% the derived files
+%%   caption.sty, caption-light.sty, caption2.sty, caption3.sty,
+%%   caption-ams-smf.sto, caption-beamer.sto, caption-elsarticle.sto,
+%%   caption-koma.sto, caption-memoir.sto, caption-ntg.sto,
+%%   caption-thesis.sto, bicaption.sty, ltcaption.sty, subcaption.sty.
+%% 
+\NeedsTeXFormat{LaTeX2e}[1994/12/01]
+\ProvidesFile{caption-koma.sto}[2023/09/08 v2.0e Adaption of the caption package to the KOMA-Script document classes (AR)]
+\expandafter\let\expandafter\caption@koma@setcapwidth
+                \csname\string\setcapwidth\endcsname
+\@namedef{\string\setcapwidth}[#1]#2{%
+  \caption@koma@setcapwidth[{#1}]{#2}%
+  \caption@setcapwidth@opt{#1}%
+  \caption@setcapwidth}
+\newcommand*\caption@setcapwidth@opt[1]{}
+\AtCaptionPackage{\renewcommand*\caption@setcapwidth@opt[1]{%
+  \ifx\\#1\\\else
+    \caption@ifdefined\cap@margin{%
+      \def\@tempa{captionbeside}%
+      \ifx\@tempa\@currenvir\else\caption@Warning{%
+        Ignoring optional argument [#1] of \string\setcapwidth\MessageBreak}%
+      \fi}{}%
+  \fi}}
+\newcommand*\caption@setcapwidth{%
+  \captionsetup{width=\cap@width}}
+\def\caption@tempa{\hsize}%
+\ifx\caption@tempa\cap@width \else
+  \caption@setcapwidth
+\fi
+\expandafter\let\expandafter\caption@koma@setcapmargin
+                \csname\string\@setcapmargin\endcsname
+\@namedef{\string\@setcapmargin}[#1]#2{%
+  \caption@koma@setcapmargin[{#1}]{#2}%
+  \caption@setcapmargin}
+\expandafter\let\expandafter\caption@koma@@setcapmargin
+                \csname\string\@@setcapmargin\endcsname
+\@namedef{\string\@@setcapmargin}[#1]#2{%
+  \caption@koma@@setcapmargin[{#1}]{#2}%
+  \caption@setcapmargin}
+\newcommand*\caption@setcapmargin{%
+  \begingroup
+    \let\onelinecaptionsfalse\relax
+    \def\@twoside{0}%
+    \def\if@twoside{\def\@twoside{1}\iffalse}%
+    \cap@margin
+    \def\@tempa{\endgroup}%
+    \ifx\cap@left\hfill\else\ifx\cap@right\hfill\else
+      \def\hspace##1##{\@firstofone}%
+      \edef\@tempa{\endgroup
+        \noexpand\captionsetup{%
+          twoside=\@twoside,slc=0,%
+          margin={\cap@left,\cap@right}}}%
+    \fi\fi
+    \@tempa}
+\ifx\cap@margin\relax \else
+  \caption@setcapmargin
+\fi
+\let\caption@koma@setcapindent\@setcapindent
+\renewcommand*\@setcapindent[1]{%
+  \caption@koma@setcapindent{#1}%
+  \caption@setcapindent}
+\let\caption@koma@@setcapindent\@@setcapindent
+\renewcommand*\@@setcapindent[1]{%
+  \caption@koma@@setcapindent{#1}%
+  \caption@setcapindent}
+\newcommand*\caption@setcapindent{%
+  \captionsetup{indent=\ifdim\cap@indent<\z@\z@\else\cap@indent\fi}}
+\caption@ifdefined\cap@indent{\caption@setcapindent}{}
+\DeclareCaptionSinglelinecheck{koma}{%
+  \ifonelinecaptions
+    \expandafter\@firstoftwo
+  \else
+    \expandafter\@secondoftwo
+  \fi}
+\SetCaptionDefault{singlelinecheck}{koma}
+\g@addto@macro\onelinecaptionstrue{\caption@setsinglelinecheck{koma}}
+\g@addto@macro\onelinecaptionsfalse{\caption@setsinglelinecheck{koma}}
+\DeclareCaptionFormat{koma}[#1#2#3\par]{%
+  \ifdofullc@p
+    \caption@useformat{hang}{#1}{#2}{#3}%
+  \else
+    #1#2%
+    \ifdim\cap@indent<\z@
+      \par
+      \noindent\hspace*{-\cap@indent}%
+    \else\if@capbreak
+      \par
+    \fi\fi
+    #3\par
+  \fi}
+\SetCaptionDefault{format}{koma}
+\DeclareCaptionLabelFormat{koma}{\bothIfFirst{#1}{\nobreakspace}#2\autodot}
+\SetCaptionFallback{labelformat}{koma}
+\DeclareCaptionLabelSeparator{koma}{\captionformat}
+\SetCaptionDefault{labelseparator}{koma}
+\DeclareCaptionFont{scr@font}{\scr@fnt@caption}
+\DeclareCaptionFont{scr@labelfont}{\scr@fnt@captionlabel}
+\SetCaptionDefault{font}{scr@font}
+\SetCaptionDefault{labelfont}{scr@labelfont}
+\g@addto@macro\@captionabovetrue{\caption@setposition{t}}%
+\g@addto@macro\@captionabovefalse{\caption@setposition{b}}%
+\if@captionabove
+  \@captionabovetrue
+\else
+  \@captionabovefalse
+\fi
+\AfterCaptionPackage{\caption@AtBeginLongtable{%
+  \def\@captionabovetrue{\LT@captionsetup{position=t}}%
+  \def\@captionabovefalse{\LT@captionsetup{position=b}}}}
+\g@addto@macro\@tablecaptionabovetrue{\captionsetup*[table]{position=t}}%
+\g@addto@macro\@tablecaptionabovefalse{\captionsetup*[table]{position=b}}%
+\if@tablecaptionabove
+  \@tablecaptionabovetrue
+\else
+  \@tablecaptionabovefalse
+\fi
+\@ifundefined{@figurecaptionabovetrue}{}{%
+  \g@addto@macro\@figurecaptionabovetrue{\captionsetup*[figure]{position=t}}%
+  \g@addto@macro\@figurecaptionabovefalse{\captionsetup*[figure]{position=b}}%
+  \if@figurecaptionabove
+    \@figurecaptionabovetrue
+  \else
+    \@figurecaptionabovefalse
+  \fi}
+\AtCaptionPackage{%
+  \let\caption@koma@figureposition\KV@caption@figureposition
+  \DeclareCaptionOption{figureposition}{%
+    \caption@WarningNoLine{%
+      Option `figureposition=#1' has no effect\MessageBreak
+      when used with a KOMA-Script document class}%
+    \caption@koma@figureposition{#1}}
+  \let\caption@koma@tableposition\KV@caption@tableposition
+  \DeclareCaptionOption{tableposition}{%
+    \caption@WarningNoLine{%
+      Option `tableposition=#1' has no effect\MessageBreak
+      when used with a KOMA-Script document class}%
+    \caption@koma@tableposition{#1}}}
+\AtBeginDocument{\let\scr@caption\caption}
+\endinput
+%%
+%% End of file `caption-koma.sto'.

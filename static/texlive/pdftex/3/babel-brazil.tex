@@ -1,0 +1,20 @@
+% This file is part of babel. For further details see:
+% https://www.ctan.org/pkg/babel
+\ifx\BabelBeforeIni\undefined
+  \PackageError{babel}%
+    {This file is a component of babel and cannot\MessageBreak
+     be loaded directly. I'll stop immediately}%
+    {Just use babel as documented.}%
+  \stop
+\fi
+\BabelBeforeIni{pt-BR}{%
+  \expandafter\def\csname bbl@preini@brazil\endcsname{%
+    \csname bbl@error\endcsname{invalid-ini-name}{brazil}{brazilian}{}%
+    }%
+  \BabelDefinitionFile{0}{brazilian}{%
+    \PackageWarning{babel}{%
+      Name 'brazil' is deprecated.\MessageBreak
+      Use 'brazilian' instead.\MessageBreak
+      Reported}}%
+}
+\endinput

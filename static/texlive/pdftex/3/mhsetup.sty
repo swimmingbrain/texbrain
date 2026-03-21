@@ -1,0 +1,178 @@
+%%
+%% This is file `mhsetup.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% mhsetup.dtx  (with options: `package')
+%% 
+%% This is a generated file.
+%% 
+%% Copyright (C) 2002-2007,2010 by Morten Hoegholm
+%% Copyright (C) 2017-2019      by Lars Madsen
+%% Copyright (C) 2020-          by Lars Madsen, The LaTeX3 team
+%% 
+%% This work may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License, either
+%% version 1.3c of this license or (at your option) any later
+%% version. The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%% and version 1.3c or later is part of all distributions of
+%% LaTeX version 2008/05/04 or later.
+%% 
+%% This work has the LPPL maintenance status "maintained".
+%% 
+%% This Current Maintainer of this work is Lars Madsen
+%% <daleif@math.au.dk>, The LaTeX3 team https://github.com/latex3/mathtools
+%% 
+%% This work consists of the main source file mhsetup.dtx
+%% and the derived files
+%%    mhsetup.sty, mhsetup.pdf, mhsetup.ins, mhsetup.drv.
+%% 
+\ProvidesPackage{mhsetup}%
+  [2021/03/18 v1.4 programming setup (MH)]
+\def\MHInternalSyntaxOn{
+  \edef\MHInternalSyntaxOff{%
+  \catcode`\noexpand\~=\the\catcode`\~\relax
+  \catcode`\noexpand\ =\the\catcode`\ \relax
+  \catcode`\noexpand\^^I=\the\catcode`\^^I\relax
+  \catcode`\noexpand\@=\the\catcode`\@\relax
+  \catcode`\noexpand\:=\the\catcode`\:\relax
+  \catcode`\noexpand\_=\the\catcode`\_\relax
+  \endlinechar=\the\endlinechar\relax
+  }%
+  \catcode`\~=10\relax
+  \catcode`\ =9\relax
+  \catcode`\^^I=9\relax
+  \makeatletter
+  \catcode`\_=11\relax
+  \catcode`\:=11\relax
+  \endlinechar=` %
+  \relax
+}
+\MHInternalSyntaxOn
+\AtEndOfPackage{\MHInternalSyntaxOff}
+\let\MH_let:NwN \let
+\def\MH_let:cN #1#2{
+  \expandafter\MH_let:NwN \csname#1\endcsname#2}
+\def\MH_let:cc #1#2{
+  \expandafter\MH_let:NwN\csname#1\expandafter\endcsname
+  \csname#2\endcsname}
+\def\MH_new_boolean:n #1{
+  \expandafter\@ifdefinable\csname MH_if_boolean_#1:\endcsname{
+    \@namedef{MH_boolean_#1_true:}
+      {\MH_let:cN{MH_if_boolean_#1:}\iftrue}
+    \@namedef{MH_boolean_#1_false:}
+      {\MH_let:cN{MH_if_boolean_#1:}\iffalse}
+    \@nameuse{MH_boolean_#1_false:}%
+  }
+}
+\def\MH_set_boolean_F:n #1{ \@nameuse{MH_boolean_#1_false:} }
+\def\MH_set_boolean_T:n #1{ \@nameuse{MH_boolean_#1_true:} }
+\def\MH_if_boolean:nTF #1{
+  \@nameuse{MH_if_boolean_#1:}
+    \expandafter\@firstoftwo
+  \MH_else:
+    \expandafter\@secondoftwo
+  \MH_fi:
+}
+\def\MH_if_boolean:nT #1{
+  \@nameuse{MH_if_boolean_#1:}
+    \expandafter\@firstofone
+  \MH_else:
+    \expandafter\@gobble
+  \MH_fi:
+}
+\def\MH_if_boolean:nF #1{
+  \@nameuse{MH_if_boolean_#1:}
+    \expandafter\@gobble
+  \MH_else:
+    \expandafter\@firstofone
+  \MH_fi:
+}
+\@ifundefined{MH_if:w}{\MH_let:NwN \MH_if:w =\if}{}
+\@ifundefined{MH_if_meaning:NN}{\MH_let:NwN \MH_if_meaning:NN =\ifx}{}
+\@ifundefined{MH_else:}{\MH_let:NwN \MH_else:=\else}{}
+\@ifundefined{MH_fi:}{\MH_let:NwN \MH_fi:=\fi}{}
+\AtBeginDocument{
+  \@ifundefined{MH_if_num:w}{\MH_let:NwN \MH_if_num:w =\ifnum}{}
+  \@ifundefined{MH_if_dim:w}{\MH_let:NwN \MH_if_dim:w =\ifdim}{}
+  \@ifundefined{MH_if_case:w}{\MH_let:NwN \MH_if_case:w =\ifcase}{}
+}
+\@ifundefined{MH_or:}{\MH_let:NwN \MH_or:=\or}{}
+\def\MH_cs_to_str:N {\expandafter\@gobble\string}
+\@ifundefined{eTeXversion}
+  {
+    \MH_let:NwN \MH_protected:\relax
+    \def\MH_setlength:dn{\setlength}
+    \def\MH_addtolength:dn{\addtolength}
+  }
+  {
+    \MH_let:NwN \MH_protected:\protected
+    \def\MH_setlength:dn #1#2{#1=\dimexpr#2\relax\relax}
+    \def\MH_addtolength:dn #1#2{\advance#1 \dimexpr#2\relax\relax}
+  }
+
+\def\MH_keyval_alias_with_addon:nnnn #1#2#3#4{
+  \@namedef{KV@#1@#2}{\@nameuse{KV@#1@#3}#4}
+  \@namedef{KV@#1@#2@default}{\@nameuse{KV@#1@#3@default}#4}}
+\def\MH_keyval_alias:nnn #1#2#3{
+  \MH_keyval_alias_with_addon:nnnn {#1}{#2}{#3}{}}
+\def\MH_use_choice_i:nnnn #1#2#3#4{#1}
+\def\MH_use_choice_ii:nnnn #1#2#3#4{#2}
+\def\MH_use_choice_iii:nnnn #1#2#3#4{#3}
+\def\MH_use_choice_iv:nnnn #1#2#3#4{#4}
+\long\def\MH_nospace_ifnextchar:Nnn #1#2#3{
+  \MH_group_align_safe_begin: % added 2021/01/14
+  \MH_let:NwN\reserved@d=~#1
+  \def\reserved@a{\MH_group_align_safe_end: #2} % changed 2021/01/14
+  \def\reserved@b{\MH_group_align_safe_end: #3} % changed 2021/01/14
+  \futurelet\@let@token\MH_nospace_nextchar:
+}
+\def\MH_nospace_nextchar:{
+  \MH_if_meaning:NN \@let@token\reserved@d
+    \MH_let:NwN \reserved@b\reserved@a
+  \MH_fi:
+  \reserved@b
+}
+\long\def\MH_nospace_testopt:nn #1#2{
+  \MH_nospace_ifnextchar:Nnn[
+    {#1}
+    {#1[{#2}]}
+}
+\def\MH_nospace_protected_testopt:n #1{
+  \MH_if_meaning:NN \protect\@typeset@protect
+    \expandafter\MH_nospace_testopt:nn
+  \MH_else:
+    \@x@protect#1
+  \MH_fi:
+}
+\@ifundefined{kernel@ifnextchar}
+  {\MH_let:NwN \kernel@ifnextchar \@ifnextchar}
+  {}
+\MH_let:NwN \MH_kernel_xargdef:nwwn \@xargdef
+\long\def\MH_nospace_xargdef:nwwn #1[#2][#3]#4{
+  \@ifdefinable#1{
+     \expandafter\def\expandafter#1\expandafter{
+          \expandafter
+          \MH_nospace_protected_testopt:n
+          \expandafter
+          #1
+          \csname\string#1\endcsname
+          {#3}}
+       \expandafter\@yargdef
+          \csname\string#1\endcsname
+           \tw@
+           {#2}
+           {#4}}}
+\providecommand*\MHPrecedingSpacesOff{
+  \MH_let:NwN \@xargdef \MH_nospace_xargdef:nwwn
+}
+\providecommand*\MHPrecedingSpacesOn{
+  \MH_let:NwN \@xargdef \MH_kernel_xargdef:nwwn
+}
+\def \MH_group_align_safe_begin: {\iffalse{\fi\ifnum0=`}\fi}
+\def \MH_group_align_safe_end:   {\ifnum0=`{}\fi}
+\endinput
+%%
+%% End of file `mhsetup.sty'.

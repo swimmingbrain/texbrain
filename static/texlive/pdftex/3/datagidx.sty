@@ -1,0 +1,5021 @@
+%%
+%% This is file `datagidx.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% datatool.dtx  (with options: `datagidx.sty,package')
+%% 
+%%  datatool.dtx
+%%  Copyright 2025 Nicola Talbot
+%% 
+%%  This work may be distributed and/or modified under the
+%%  conditions of the LaTeX Project Public License, either version 1.3
+%%  of this license or (at your option) any later version.
+%%  The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%%  and version 1.3 or later is part of all distributions of LaTeX
+%%  version 2005/12/01 or later.
+%% 
+%%  This work has the LPPL maintenance status `maintained'.
+%% 
+%%  The Current Maintainer of this work is Nicola Talbot.
+%% 
+%%  This work consists of the files datatool.dtx and datatool.ins and the derived files datatool-base.sty, datatool-undetermined.ldf, datatool-latin1.ldf, datatool-utf8.ldf, datatool-l3fp.def, datatool-lua.def, datatool-fp.def, datatool-fp.sty, datatool-pgfmath.def, datatool-pgfmath.sty, datatool.sty, datagidx.sty, databib.sty, databar.sty, datapie.sty, dataplot.sty, person.sty, databib.bst, databar-2019-09-27.sty, databib-2019-09-27.sty, datagidx-2019-09-27.sty, datapie-2019-09-27.sty, dataplot-2019-09-27.sty, datatool-2019-09-27.sty, datatool-base-2019-09-27.sty, datatool-fp-2019-09-27.sty, datatool-pgfmath-2019-09-27.sty, person-2019-09-27.sty.
+%% 
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\NeedsTeXFormat{LaTeX2e}
+\DeclareRelease{v2.32}{2019-09-27}{datagidx-2019-09-27.sty}
+\DeclareCurrentRelease{v3.4.3}{2025-12-04}
+\ProvidesPackage{datagidx}[2025/12/04 v3.4.3 (NLCT)]
+\RequirePackage{etoolbox}
+\ExplSyntaxOn
+\int_new:N \l__datagidx_columns_int
+\int_set:Nn \l__datagidx_columns_int { 2 }
+\NewDocumentCommand \DTLgidxSetColumns { m }
+{
+  \int_compare:nNnTF
+    { #1 } < { \c_one_int }
+  {
+    \PackageError { datagidx }
+    {
+      \token_to_str:N \DTLgidxSetColumns \c_space_tl ~
+      invalid ~ number ~ of ~ columns ~ #1
+    }
+    {
+      The ~ number ~ of ~ columns ~ must ~ be ~
+      greater ~ than ~ 0
+    }
+  }
+  {
+    \int_set:Nn \l__datagidx_columns_int { #1 }
+  }
+}
+\newcommand*{\DTLgidxChildStyle}[1]{#1}
+\cs_new:Nn \__datagidx_set_child_style_named:
+{
+  \cs_set_eq:NN \DTLgidxChildStyle \use:n
+}
+\cs_new:Nn \__datagidx_set_child_style_noname:
+{
+  \renewcommand*{\DTLgidxChildStyle}[1]{
+    \DTLgidxChildCountLabel
+  }
+}
+\newcommand*{\DTLgidxPostName}{ ~ }
+\newcommand*{\DTLgidxPostChildName}{\DTLgidxPostName}
+\newcommand*{\DTLgidxNameCase}[1]{#1}
+\newcommand*{\DTLgidxNameFont}[1]{\textnormal{#1}}
+\newcommand*{\DTLgidxPostDescription}{}
+\newcommand*{\DTLgidxPreLocation}{\enspace}
+\newcommand*{\DTLgidxPostLocation}{ ~ }
+\newcommand*{\DTLgidxLocation}{\dtldolocationlist}
+\newcommand*{\DTLgidxSee}{
+  \datatool_if_null_or_empty:NF \See
+  {
+    \DTLgidxPreLocation
+    \DTLgidxFormatSee { \seename } { \See }
+  }
+}
+\newcommand*{\DTLgidxSeeAlso}{%
+  \datatool_if_null_or_empty:NF \SeeAlso
+  {
+    \DTLgidxFormatSeeAlso
+     { \seealsoname } { \SeeAlso }
+  }
+}
+\newcommand*{\DTLgidxChildrenSeeAlso}{%
+  \DTLgidxChildren
+  \DTLgidxSeeAlso
+}
+\newcommand*{\DTLgidxSymDescSep}{\space}
+\newcommand{\DTLgidxFormatDesc}[1]{#1}
+\newcommand*{\DTLgidxSymbolDescription}
+{
+  \DTLgidxSymbolDescLeft
+  \DTLgidxSymbolDescRight
+}
+\newcommand*{\DTLgidxSymbolDescLeft}
+{
+  \tl_if_empty:NF \Symbol
+    { ( \Symbol ) \DTLgidxSymDescSep }
+}
+\newcommand*{\DTLgidxSymbolDescRight}
+{
+  \tl_if_empty:NF \Description
+  {
+    \DTLgidxFormatDesc { \Description }
+    \DTLgidxPostDescription
+  }
+}
+\bool_new:N \l__datagidx_symbol_left_bool
+\bool_set_true:N \l__datagidx_symbol_left_bool
+\cs_new:Nn \__datagix_set_symbol_only:
+{
+  \tl_set:Nn \DTLgidxSymbolDescLeft
+   {
+     \tl_if_empty:NF \Symbol { \Symbol }
+   }
+  \tl_clear:N \DTLgidxSymbolDescRight
+  \bool_set_true:N \l__datagidx_symbol_left_bool
+}
+\cs_new:Nn \__datagix_set_desc_only:
+{
+  \tl_set:Nn \DTLgidxSymbolDescLeft
+   {
+     \tl_if_empty:NF \Description
+      {
+        \DTLgidxFormatDesc { \Description }
+        \DTLgidxPostDescription
+      }
+   }
+  \tl_clear:N \DTLgidxSymbolDescRight
+  \bool_set_false:N \l__datagidx_symbol_left_bool
+}
+\cs_new:Nn \__datagix_set_symbol_paren_desc:
+{
+  \tl_set:Nn \DTLgidxSymbolDescLeft
+   {
+     \tl_if_empty:NF \Symbol
+       { ( \Symbol ) \DTLgidxSymDescSep }
+   }
+  \tl_set:Nn \DTLgidxSymbolDescRight
+   {
+     \tl_if_empty:NF \Description
+       {
+         \DTLgidxFormatDesc { \Description }
+         \DTLgidxPostDescription
+       }
+   }
+  \bool_set_true:N \l__datagidx_symbol_left_bool
+}
+\cs_new:Nn \__datagix_set_desc_symbol_paren:
+{
+  \tl_set:Nn \DTLgidxSymbolDescLeft
+   {
+     \tl_if_empty:NF \Description
+      {
+        \DTLgidxFormatDesc { \Description }
+        \DTLgidxPostDescription
+        \DTLgidxSymDescSep
+      }
+   }
+  \tl_set:Nn \DTLgidxSymbolDescRight
+   {
+     \tl_if_empty:NF \Symbol
+      { (\Symbol) }
+   }
+  \bool_set_false:N \l__datagidx_symbol_left_bool
+}
+\cs_new:Nn \__datagix_set_symbol_desc:
+{
+  \tl_set:Nn \DTLgidxSymbolDescLeft
+   {
+     \tl_if_empty:NF \Symbol
+       { \Symbol \DTLgidxSymDescSep }
+   }
+  \tl_set:Nn \DTLgidxSymbolDescRight
+   {
+     \tl_if_empty:NF \Description
+      {
+        \DTLgidxFormatDesc { \Description }
+        \DTLgidxPostDescription
+      }
+   }
+  \bool_set_true:N \l__datagidx_symbol_left_bool
+}
+\cs_new:Nn \__datagix_set_desc_symbol:
+{
+  \tl_set:Nn \DTLgidxSymbolDescLeft
+   {
+     \tl_if_empty:NF \Description
+      {
+        \DTLgidxFormatDesc { \Description }
+        \DTLgidxPostDescription
+        \DTLgidxSymDescSep
+      }
+   }
+  \tl_set:Nn \DTLgidxSymbolDescRight
+   {
+     \tl_if_empty:NF \Symbol { \Symbol }
+   }
+  \bool_set_false:N \l__datagidx_symbol_left_bool
+}
+\tl_new:N \l__datagidx_compositor_tl
+\NewDocumentCommand \DTLgidxSetCompositor { m }
+{
+  \tl_set:Nn \l__datagidx_compositor_tl { #1 }
+}
+\DTLgidxSetCompositor{.}
+\newcommand*{\DTLgidxCounter}{page}
+\cs_new:Nn \__datagidx_set_counter:n
+{
+  \tl_if_empty:nTF { #1 }
+   {
+     \PackageError { datagidx }
+     { Missing ~ counter ~ name }
+     { The ~ argument ~ of ~ `counter' ~ must ~ be ~ a ~ counter ~ name }
+   }
+   {
+    \tl_if_exist:cTF { the#1 }
+     {
+       \tl_set:Nn \DTLgidxCounter { #1 }
+     }
+     {
+       \PackageError { datagidx }
+       { Invalid ~ counter ~ name ~ `#1' }
+       {
+         The ~ argument ~ of ~ `counter' ~ must ~ be ~ a ~
+         counter ~ name ~ (or ~ \token_to_str:N \the#1 \c_space_tl
+         must ~ be ~ defined)
+       }
+     }
+   }
+}
+\newcommand*{\datagidx@do@sort}{ \l__datagidx_sort_tl }
+\newcommand*{\datagidx@optimize@sort}{%
+  \ifdef\datagidx@do@optimize@sort
+  {
+    \l__datagidx_sort_tl
+  }
+  {
+    \protected@write\@auxout{}{%
+      \string\gdef\string\datagidx@do@optimize@sort{}%
+    }
+    \cs_gset_eq:NN
+      \@datagidx@dorerun@warn@sort
+      \@data@rerun@warn@sort
+  }
+}
+\seq_new:N \g__datagidx_refd_labels_seq
+\bool_new:N \l__datagidx_warn_bool
+\bool_set_true:N \l__datagidx_warn_bool
+\newcommand*\@datagidx@dorerun@warn{%
+  \seq_map_inline:Nn \g__datagidx_refd_labels_seq
+   {
+     \iftermexists { ##1 }
+     {
+       \DTLaction
+        [
+          name = { \__datagidx_term_database:n { ##1 } },
+          key = Label, value = { ##1 },
+          return =
+           {
+             \UnsafeLocation = UnsafeLocation,
+             \CurrentLocation = CurrentLocation
+           }
+        ]
+        { select ~ row }
+       \tl_set:Nx \UnsafeLocation
+         { \text_purify:n { \UnsafeLocation } }
+       \tl_set:Nx \CurrentLocation
+         { \text_purify:n { \CurrentLocation } }
+       \tl_remove_all:Nn  \UnsafeLocation { ~ }
+       \tl_remove_all:Nn  \CurrentLocation { ~ }
+       \tl_if_eq:NNF \UnsafeLocation \CurrentLocation
+        {
+          \@data@rerun@warn
+          \seq_map_break:
+        }
+     }
+     { }
+   }
+}
+\newcommand*\@datagidx@dorerun@warn@sort{}
+\AtEndDocument
+ {
+  \bool_if:NT \l__datagidx_warn_bool
+   {
+     \@datagidx@dorerun@warn
+     \@datagidx@dorerun@warn@sort
+   }
+ }
+\newcommand*\@data@rerun@warn@sort{
+  \PackageWarningNoLine {datagidx}
+   {
+     Rerun ~ required ~ to ~ sort ~ the ~
+     index/glossary ~ databases
+   }
+}
+\newcommand*\@data@rerun@warn{
+  \PackageWarningNoLine {datagidx}
+   {
+     Rerun ~ required ~ to ~ ensure ~ the ~
+     index/glossary ~ location ~ lists ~ are ~ up-to-date
+   }
+}
+\newcommand*{\datagidx@do@highopt@optimize}{%
+  \renewcommand*{\datagidx@do@sort}{%
+    \ifcsdef{datagidx@do@highopt@sort@\DTLgidxCurrentdb}%
+    {%
+      \csuse{datagidx@do@highopt@sort@\DTLgidxCurrentdb}%
+    }%
+    {%
+     \dtl@message
+      {
+        Not ~ sorting ~ `\DTLgidxCurrentdb' : ~
+        optimize=high ~ on ~ and ~ no ~ change ~
+        detected
+      }
+    }%
+    \group_begin:
+      \cs_set:Nn \__datagidx_used:n { 0 }
+      \cs_set_eq:NN \__datagidx_location:n \use_none:n
+      \cs_set_eq:NN
+       \__datagidx_letter_group:n
+       \__datagidx_write_letter_group:n
+      \DTLwrite
+       [
+         overwrite=allow,
+         format = dbtex, expand=none,
+         name = \DTLgidxCurrentdb
+       ]
+       { \datagidxhighoptfilename \DTLgidxCurrentdb }
+    \group_end:
+  }%
+  \def\newgidx{\datagidx@highopt@newgidx}%
+  \def\newterm{\datagidx@highopt@newterm}%
+}
+\newcommand*{\datagidx@do@highopt@update}[1]{}
+\newcommand*{\datagidxhighoptfilename}[1]{\jobname-#1.gidx}
+\keys_define:nn { datatool }
+{
+  columns .code:n = { \DTLgidxSetColumns { #1 } },
+  child .choice: ,
+  child / named .code:n = { \__datagidx_set_child_style_named: } ,
+  child / noname .code:n = { \__datagidx_set_child_style_noname: } ,
+  namecase .choice: ,
+  namecase / nochange .code:n =
+    { \let \DTLgidxNameCase \use:n } ,
+  namecase / uc .code:n =
+    { \renewcommand \DTLgidxNameCase [ 1 ] { \text_uppercase:n { ##1 } } } ,
+  namecase / lc .code:n =
+    { \renewcommand \DTLgidxNameCase [ 1 ] { \text_lowercase:n { ##1 } } } ,
+  namecase / firstuc .code:n =
+    { \renewcommand \DTLgidxNameCase [ 1 ] { \xmakefirstuc { ##1 } } } ,
+  namecase / capitalise .code:n =
+    { \renewcommand \DTLgidxNameCase [ 1 ] { \xcapitalisewords { ##1 } } } ,
+  namefont .code:n =
+    { \renewcommand \DTLgidxNameFont [ 1 ] { { #1 { ##1 } } } } ,
+  postname .code:n =
+    { \renewcommand \DTLgidxPostName { #1 } } ,
+  postdesc .choice: ,
+  postdesc / none .code:n =
+   { \tl_clear:N \DTLgidxPostDescription } ,
+  postdesc / dot .code:n =
+   { \tl_set:Nn \DTLgidxPostDescription { . } } ,
+  prelocation .choice: ,
+  prelocation / none .code:n =
+   { \tl_clear:N \DTLgidxPreLocation } ,
+  prelocation / enspace .code:n =
+   { \tl_set:Nn \DTLgidxPreLocation { \enspace } } ,
+  prelocation / space .code:n =
+   { \tl_set:Nn \DTLgidxPreLocation { ~ } } ,
+  prelocation / dotfill .code:n =
+   { \tl_set:Nn \DTLgidxPreLocation { \dotfill } } ,
+  prelocation / hfill .code:n =
+   { \tl_set:Nn \DTLgidxPreLocation { \hfill } } ,
+  location .choice: ,
+  location / hide .code:n =
+    { \tl_clear:N \DTLgidxLocation },
+  location / list .code:n =
+    { \tl_set:Nn \DTLgidxLocation { \dtldolocationlist } },
+  location / first .code:n =
+    { \tl_set:Nn \DTLgidxLocation { \dtldofirstlocation } },
+  see .choice: ,
+  see / comma .code:n =
+    {
+      \renewcommand*{\DTLgidxSee}
+       {
+         \datatool_if_null_or_empty:NF \See
+          {
+           , ~ \DTLgidxFormatSee { \seename } { \See }
+          }
+       }
+    } ,
+  see / brackets .code:n =
+    {
+      \renewcommand*{\DTLgidxSee}
+       {
+         \datatool_if_null_or_empty:NF \See
+          {
+            \space ( \DTLgidxFormatSee { \seename } { \See } )
+          }
+       }
+    } ,
+  see / dot .code:n =
+    {
+      \renewcommand*{\DTLgidxSee}
+       {
+         \datatool_if_null_or_empty:NF \See
+          {
+            .  ~
+            \DTLgidxFormatSee
+              { \xmakefirstuc { \seename } } { \See }
+          }
+       }
+    } ,
+  see / space .code:n =
+    {
+      \renewcommand*{\DTLgidxSee}
+       {
+         \datatool_if_null_or_empty:NF \See
+          {
+            \space
+            \DTLgidxFormatSee { \seename } { \See }
+          }
+       }
+    } ,
+  see / nosep .code:n =
+    {
+      \renewcommand*{\DTLgidxSee}
+       {
+         \datatool_if_null_or_empty:NF \See
+          {
+            \DTLgidxFormatSee { \seename } { \See }
+          }
+       }
+    } ,
+  see / semicolon .code:n =
+    {
+      \renewcommand*{\DTLgidxSee}
+       {
+         \datatool_if_null_or_empty:NF \See
+          {
+            ; ~ \DTLgidxFormatSee { \seename } { \See }
+          }
+       }
+    } ,
+  see / location .code:n =
+    {
+      \renewcommand*{\DTLgidxSee}
+       {
+         \datatool_if_null_or_empty:NF \See
+          {
+            \DTLgidxPreLocation
+            \DTLgidxFormatSee { \seename } { \See }
+          }
+       }
+    } ,
+  symboldesc .choice: ,
+  symboldesc / symbol .code:n =
+   {
+     \__datagix_set_symbol_only:
+   } ,
+  symboldesc / desc .code:n =
+   {
+     \__datagix_set_desc_only:
+   } ,
+  symboldesc / (symbol) ~ desc .code:n =
+   {
+     \__datagix_set_symbol_paren_desc:
+   } ,
+  symboldesc / desc ~ (symbol) .code:n =
+   {
+     \__datagix_set_desc_symbol_paren:
+   } ,
+  symboldesc / symbol ~ desc .code:n =
+   {
+     \__datagix_set_symbol_desc:
+   } ,
+  symboldesc / desc ~ symbol .code:n =
+   {
+     \__datagix_set_desc_symbol:
+   } ,
+  counter .code:n =
+   {
+     \__datagidx_set_counter:n { #1 }
+   },
+  counter .value_required:n = true ,
+  compositor .tl_set:N = \l__datagidx_compositor_tl ,
+  compositor .value_required:n = true ,
+  final .code:n =
+    { \cs_set_eq:NN \datagidxshowifdraft \use_none:n } ,
+  final .value_forbidden:n = true ,
+  draft .code:n =
+    { \cs_set_eq:NN \datagidxshowifdraft \use:n } ,
+  draft .value_forbidden:n = true ,
+  optimize .choice: ,
+  optimize / off .code:n =
+   {
+    \renewcommand*{\datagidx@do@sort}{ \l__datagidx_sort_tl }
+   } ,
+  optimize / low .code:n =
+   {
+    \renewcommand*{\datagidx@do@sort}{\datagidx@optimize@sort}
+   } ,
+  optimize / high .code:n =
+   {
+     \datagidx@do@highopt@optimize
+   } ,
+  optimize .default:n = { high } ,
+  nowarn .bool_set_inverse:N = \l__datagidx_warn_bool ,
+}
+\newcommand{\datagidxshowifdraft}[1]{}
+\ExplSyntaxOff
+\IfPackageLoadedTF{datatool}
+{
+  \ProcessKeyOptions[datatool]
+}
+{
+  \DeclareOption*{\PassOptionsToPackage{\CurrentOption}{datatool}}
+  \ProcessOptions
+}
+\RequirePackage{datatool}
+\ExplSyntaxOn
+\keys_define:nn { datatool }
+{
+  columns .undefine: ,
+  child .undefine: ,
+  namecase .undefine: ,
+  postname .undefine: ,
+  postdesc .undefine: ,
+  prelocation .undefine: ,
+  location .undefine: ,
+  see .undefine: ,
+  symboldesc .undefine: ,
+  counter .undefine: ,
+  compositor .undefine: ,
+  final .undefine: ,
+  draft .undefine: ,
+  optimize .undefine: ,
+  nowarn .undefine:
+}
+\ExplSyntaxOff
+\RequirePackage{mfirstuc}[2022/10/14]
+\RequirePackage{multicol}
+\ExplSyntaxOn
+\tl_new:N \l__datagidx_child_label_tl
+\clist_new:N \l__datagidx_child_clist
+\seq_new:N \l__datagidx_child_seq
+\tl_new:N \l__datagidx_parent_database_tl
+\tl_new:N \l__datagidx_database_tl
+\tl_new:N \l__datagidx_label_tl
+\tl_new:N \l__datagidx_id_tl
+\tl_new:N \l__datagidx_target_tl
+\tl_new:N \l__datagidx_parent_tl
+\clist_new:N \l__datagidx_database_clist
+\tl_new:N \l__datagidx_value_tl
+\tl_new:N \l__datagidx_title_tl
+\tl_new:N \l__datagidx_location_tl
+\clist_new:N \l__datagidx_location_clist
+\tl_new:N \l__datagidx_sep_tl
+\DTLnewdb{datagidx}
+\newcounter{DTLgidxChildCount}
+\def\theHDTLgidxChildCount{\Label.\arabic{DTLgidxChildCount}}
+\newcommand*{\DTLgidxChildCountLabel}{\theDTLgidxChildCount) ~ }
+\newcommand{\datagidx@foreachchild}[1]{%
+ \bool_if:NTF \l__datagidx_childsort_bool
+  {
+    \seq_clear:N \l__datagidx_child_seq
+    \clist_map_inline:Nn \Children
+     {
+       \__datatool_get_row_index:Nnxn
+        \l__datatool_row_idx_tl
+        { \DTLgidxCurrentdb }
+        { \dtlcolumnindex { \DTLgidxCurrentdb } { Label } }
+        { ##1 }
+       \datatool_if_null:NF \l__datatool_row_idx_tl
+        {
+          \seq_put_right:Nx \l__datagidx_child_seq
+            { { \l__datatool_row_idx_tl } { ##1 } }
+        }
+     }
+    \seq_sort:Nn \l__datagidx_child_seq
+     {
+       \int_compare:nNnTF
+         { \use_i:nn ##1 } > { \use_i:nn ##2 }
+        { \sort_return_swapped: }
+        { \sort_return_same: }
+     }
+    \seq_map_inline:Nn \l__datagidx_child_seq
+     {
+       \tl_set:Nx \Label { \use_ii:nn ##1 }
+       #1
+     }
+  }
+  {
+    \clist_map_variable:NNn \Children \Label
+     { #1 }
+  }
+}
+\newlength\datagidxsymbolwidth
+\newlength\datagidxlocationwidth
+\providecommand*{\seename}{see}
+\tl_if_exist:NF \seealsoname
+ {
+  \tl_if_exist:NTF \alsoname
+  {
+    \tl_set:Nn \seealsoname { \alsoname }
+  }
+  {
+    \tl_set:Nn \seealsoname { see ~ also }
+  }
+}
+\newcommand*{\DTLgidxSeeTagFont}[1]{\emph{#1}}
+\newcommand*{\DTLgidxFormatSee}[2]{%
+  \DTLgidxSeeTagFont{ #1 } ~ \DTLgidxSeeList{ #2 }
+}
+\NewDocumentCommand \DTLgidxFormatSeeAlso { m m }
+{
+  \datagidxdoseealso
+  {
+    \DTLgidxSeeTagFont{ #1 } ~ \DTLgidxSeeList { #2 }
+  }
+}
+\NewDocumentCommand \datagidxdoseealso { m }
+{
+  \datagidxseealsostart
+   #1
+  \datagidxseealsoend
+}
+\NewDocumentCommand \DTLgidxSeeList { m }
+{
+ \group_begin:
+  \tl_clear:N \l__datagidx_sep_tl
+  \exp_args:NNo \seq_set_from_clist:Nn
+    \l__datatool_tmp_seq { #1 }
+  \int_set:Nn \l__datatool_count_int
+    { \seq_count:N \l__datatool_tmp_seq }
+  \seq_map_indexed_inline:Nn \l__datatool_tmp_seq
+  {
+    \tl_set:Nn \l_datatool_label_tl { ##2 }
+    \int_compare:nNnTF
+       { ##1 } = { \l__datatool_count_int }
+     {
+      \tl_if_empty:NF \l__datagidx_sep_tl
+       {
+         \DTLidxSeeLastSep
+       }
+     }
+     {
+       \l__datagidx_sep_tl
+       \tl_set_eq:NN \l__datagidx_sep_tl \DTLidxSeeSep
+     }
+    \DTLidxFormatSeeItem { \l_datatool_label_tl }
+  }
+ \group_end:
+}
+\NewDocumentCommand \DTLidxFormatSeeItem { m }
+{
+ \group_begin:
+   \DTLgidxFetchEntry
+     \l__datagidx_value_tl { #1 } { Name }
+   \datatool_if_null:NTF \l__datagidx_value_tl
+   {
+     \bool_if:NT \l__datagidx_warn_bool
+      {
+        \PackageWarning { datagidx }
+         { Can't ~ find ~ cross-reference ~ `#1' }
+      }
+   }
+   {
+     \datagidxlink { #1 }
+       { \l__datagidx_value_tl }
+   }
+ \group_end:
+}
+\newcommand*{\DTLidxSeeSep}{ , ~ }
+\newcommand*{\DTLidxSeeLastSep}{ ~ \& ~ }
+\newrobustcmd* \DTLgidxDoSeeOrLocation
+{
+  \datatool_if_null_or_empty:NTF \See
+  {
+     \datatool_if_null_or_empty:NF \Location
+      {
+        \tl_if_empty:NF \DTLgidxLocation
+         {
+           \DTLgidxPreLocation
+           \DTLgidxLocation
+           \DTLgidxPostLocation
+         }
+      }
+  }
+  {
+     \DTLgidxSee
+  }
+}
+\newenvironment{dtlgidxchildlist}{}{}
+\newcommand*{\DTLgidxChildren}{
+  \begin { dtlgidxchildlist }
+    \datatool_if_null_or_empty:NF \Children
+    {
+      \int_incr:N \datagidx@level
+      \datagidxchildstart
+      \let\Parent\Label
+      \datagidx@foreachchild
+      {
+        \DTLaction
+        [
+          name = \DTLgidxCurrentdb ,
+          key = Label,
+          expand-value = \Label ,
+          return =
+           {
+             \Location = Location ,
+             \See = See ,
+             \SeeAlso = SeeAlso
+           }
+        ]
+        { select ~ row }
+        \bool_lazy_all:nF
+            {
+             { \datatool_if_null_or_empty_p:N \Location }
+             { \datatool_if_null_or_empty_p:N \See }
+             { \datatool_if_null_or_empty_p:N \SeeAlso }
+            }
+          {
+            \datagidx@displaychild
+          }
+      }
+      \datagidxchildend
+    }
+  \end { dtlgidxchildlist }
+}
+\newcommand*{\datagidxgetchildfields}{%
+  \dtlgetentryfromcurrentrow
+    {\Name}%
+    {\dtlcolumnindex{\DTLgidxCurrentdb}{Name}}%
+  \dtlgetentryfromcurrentrow
+    {\Description}%
+    {\dtlcolumnindex{\DTLgidxCurrentdb}{Description}}%
+  \dtlgetentryfromcurrentrow
+    {\Symbol}%
+    {\dtlcolumnindex{\DTLgidxCurrentdb}{Symbol}}%
+  \dtlgetentryfromcurrentrow
+    {\Long}%
+    {\dtlcolumnindex{\DTLgidxCurrentdb}{Long}}%
+  \dtlgetentryfromcurrentrow
+    {\Short}%
+    {\dtlcolumnindex{\DTLgidxCurrentdb}{Short}}%
+  \dtlgetentryfromcurrentrow
+    {\Text}%
+    {\dtlcolumnindex{\DTLgidxCurrentdb}{Text}}%
+  \dtlgetentryfromcurrentrow
+    {\Plural}%
+    {\dtlcolumnindex{\DTLgidxCurrentdb}{Plural}}%
+  \dtlgetentryfromcurrentrow
+    {\Used}%
+    {\dtlcolumnindex{\DTLgidxCurrentdb}{Used}}%
+  \dtlgetentryfromcurrentrow
+    {\Children}%
+    {\dtlcolumnindex{\DTLgidxCurrentdb}{Child}}%
+}
+\newcommand*{\datagidx@displaychild}{%
+  \datagidxgetchildfields
+  \datagidxchilditem
+}
+\tl_new:N \l__datagidx_heading_tl
+\cs_if_exist:NTF \chapter
+{
+  \tl_set:Nn \l__datagidx_heading_tl { \chapter* }
+}
+{
+  \tl_set:Nn \l__datagidx_heading_tl { \section* }
+}
+\newcommand{\DTLgidxNoHeading}[1]{}
+\tl_new:N \l__datagidx_post_heading_tl
+\tl_new:N \l__datagidx_multicols_tl
+\tl_set:Nn \l__datagidx_multicols_tl { multicols }
+\tl_new:N \l__datagidx_sort_tl
+\tl_set:Nn \l__datagidx_sort_tl
+ {
+    \DTLsortdata
+     [ save-group-key = LetterGroup ]
+     { \DTLgidxCurrentdb }
+     {HierSort={replacements=Sort},FirstId}
+ }
+\providecommand{\@idxitem}{\par\hangindent 40\p@}
+\newcommand* \datagidxstart
+{
+  \group_begin:
+  \dim_zero:N \parindent
+  \skip_set:Nn \parskip { 0pt ~ plus ~ 0.3pt }
+  \let\item\@idxitem
+}
+\newcommand*{\datagidxend} { \datagidx_end: }
+\cs_new:Nn \datagidx_end: { \expandafter \group_end: \if@endpe\@doendpe\fi }
+\newcommand*{\datagidxtarget}{ \__datagidx_target:nn }
+\cs_new:Nn \__datagidx_target:nn
+{
+  \cs_if_exist:NT \hypertarget
+  {
+    \group_begin:
+      \datatool_measure_height:Nn
+        \l__datatool_tmpa_dim { #2 }
+      \raisebox
+        { \l__datatool_tmpa_dim }
+        { \hypertarget { #1 } { } }
+    \group_end:
+  }
+  #2
+}
+\newcommand*{\datagidxlink}{ \__datagidx_link:nn }
+\cs_new:Nn \__datagidx_link:nn
+{
+  \cs_if_exist:NTF \hyperlink
+   { \hyperlink { #1 } { #2 } }
+   { #2 }
+}
+\NewDocumentCommand \DTLgidxEnableHyper { }
+{
+  \cs_set_eq:NN \datagidxtarget \__datagidx_target:nn
+  \cs_set_eq:NN \datagidxlink \__datagidx_link:nn
+}
+\NewDocumentCommand \DTLgidxDisableHyper { }
+{
+  \cs_set_eq:NN \datagidxtarget \use_ii:nn
+  \cs_set_eq:NN \datagidxlink \use_ii:nn
+}
+\newcommand*{\datagidxgroupsep}{}
+\newcommand*{\datagidxgroupheader}{}
+\newcommand*{\datagidxitem}{}%
+\newcommand*{\datagidxchildstart}{}
+\newcommand*{\datagidxchildend}{}
+\newcommand*{\datagidxchilditem}{}
+\newcommand*{\datagidxseealsostart}{}
+\newcommand*{\datagidxseealsoend}{}
+\newcommand{\DTLgidxEndItem}{\par\smallskip}
+\cs_new:Nn \__datagidx_do_ifsymlocwidth:nnn
+{
+  \datatool_measure_width:Nn
+    \l__datatool_tmpa_dim
+     { #2 \DTLgidxPreLocation \DTLgidxSymDescSep }
+  \dim_set:Nn \l__datatool_tmpa_dim
+    {
+      \linewidth - #1
+      - \l__datatool_tmpa_dim
+      - \datagidxsymbolwidth
+      - \datagidxlocationwidth
+    }
+  \bool_if:NTF \l__datagidx_symbol_left_bool
+  {
+    \begin{minipage} [t]
+       { \datagidxsymbolwidth }
+      \datagidxsymalign
+      \tl_clear:N \DTLgidxSymDescSep
+      \DTLgidxSymbolDescLeft
+    \end{minipage}
+    \DTLgidxSymDescSep
+    \begin{minipage} [t]
+       { \l__datatool_tmpa_dim }
+      \tl_clear:N \DTLgidxSymDescSep
+      \DTLgidxSymbolDescRight
+    \end{minipage}
+  }
+  {
+    \begin{minipage} [t]
+       { \l__datatool_tmpa_dim }
+      \tl_clear:N \DTLgidxSymDescSep
+      \DTLgidxSymbolDescRight
+    \end{minipage}
+    \DTLgidxSymDescSep
+    \begin{minipage} [t]
+       { \datagidxsymbolwidth }
+      \datagidxsymalign
+      \tl_clear:N \DTLgidxSymDescSep
+      \DTLgidxSymbolDescLeft
+    \end{minipage}
+  }
+  \DTLgidxPreLocation
+  \begin{minipage} [t]
+     { \datagidxlocationwidth }
+    \datagidxlocalign
+    \tl_clear:N \DTLgidxPreLocation
+    #3
+  \end{minipage}
+}
+\cs_new:Nn \__datagidx_do_iflocwidth:nnn
+{
+  \datatool_measure_width:Nn
+    \l__datatool_tmpa_dim
+     { #2 \DTLgidxPreLocation }
+  \dim_set:Nn \l__datatool_tmpa_dim
+    {
+      \linewidth - #1
+      - \l__datatool_tmpa_dim
+      - \datagidxlocationwidth
+    }
+  \begin{minipage} [t]
+      { \l__datatool_tmpa_dim }
+    \DTLgidxSymbolDescription
+  \end{minipage}
+  \DTLgidxPreLocation
+  \begin{minipage} [t]
+      { \datagidxlocationwidth }
+    \datagidxlocalign
+    \tl_clear:N \DTLgidxPreLocation
+    #3
+  \end{minipage}
+}
+\cs_new:Nn \__datagidx_do_ifsymwidth:nnn
+{
+  \datatool_measure_width:Nn
+    \l__datatool_tmpa_dim
+     { #2 \DTLgidxSymDescSep }
+  \dim_set:Nn \l__datatool_tmpa_dim
+    {
+      \linewidth -#1
+      - \l__datatool_tmpa_dim
+      - \datagidxsymbolwidth
+    }
+  \bool_if:NTF \l__datagidx_symbol_left_bool
+  {
+    \begin{minipage} [t]
+       { \datagidxsymbolwidth }
+      \datagidxsymalign
+      \tl_clear:N \DTLgidxSymDescSep
+      \DTLgidxSymbolDescLeft
+    \end{minipage}
+    \DTLgidxSymDescSep
+    \begin{minipage} [t]
+     { \l__datatool_tmpa_dim }
+      \tl_clear:N \DTLgidxSymDescSep
+      \DTLgidxSymbolDescRight
+      #3
+    \end{minipage}
+  }
+  {
+    \begin{minipage} [t]
+       { \l__datatool_tmpa_dim }
+      \tl_clear:N \DTLgidxSymDescSep
+      \DTLgidxSymbolDescRight
+    \end{minipage}
+    \DTLgidxSymDescSep
+    \begin{minipage} [t]
+        { \datagidxsymbolwidth }
+      \datagidxsymalign
+      \tl_clear:N \DTLgidxSymDescSep
+      \DTLgidxSymbolDescLeft
+      #3
+    \end{minipage}
+  }
+}
+\newcommand*{\datagidxlocalign}{\raggedleft}
+\newcommand*{\datagidxsymalign}{\centering}
+\NewDocumentCommand \datagidxsetstyle { m }
+{
+  \cs_if_exist_use:cF {datagidx@style@#1}
+  {
+    \PackageError {datagidx} {Unknown ~ style ~ `#1'} {}
+  }
+}
+\NewDocumentCommand \datagidxnewstyle { m +m }
+{
+  \cs_if_exist:cTF { datagidx@style@#1 }
+   {
+     \PackageError { datagidx }
+     {
+       Style ~ `#1 ' ~ already ~ exists
+     }
+     { }
+   }
+   {
+     \cs_set:cpn {  datagidx@style@#1 } { #2 }
+   }
+}
+\datagidxnewstyle{index}
+{
+  \tl_set:Nn \datagidxstart
+  {
+    \group_begin:
+    \dim_zero:N \parindent
+    \skip_set:Nn \parskip { 0pt ~ plus ~ 0.3pt }
+    \raggedright
+    \cs_set_eq:NN \item \@idxitem
+    \dim_compare:nNnTF
+      { \datagidxsymbolwidth } > { \c_zero_dim }
+     {
+      \dim_compare:nNnTF
+         { \datagidxlocationwidth } > { \c_zero_dim }
+       {
+        \tl_set:Nn \datagidx@item@body
+         {
+           \__datagidx_do_ifsymlocwidth:nnn
+            { \c_zero_dim }
+            {
+              \DTLgidxNameFont { \DTLgidxNameCase { \Name } }
+            }
+            {
+              \DTLgidxDoSeeOrLocation
+            }
+         }
+       }
+       {
+        \tl_set:Nn \datagidx@item@body
+         {
+           \__datagidx_do_iflocwidth:nnn
+            { \c_zero_dim }
+            {
+              \DTLgidxNameFont
+                { \DTLgidxNameCase { \Name } }
+            }
+            {
+              \DTLgidxDoSeeOrLocation
+            }
+         }
+       }
+    }
+    {
+      \dim_compare:nNnTF
+       { \datagidxlocationwidth } > { \c_zero_dim }
+      {
+        \tl_set:Nn \datagidx@item@body
+         {
+           \__datagidx_do_iflocwidth:nnn
+            { \c_zero_dim }
+            {
+              \DTLgidxNameFont
+               { \DTLgidxNameCase { \Name } }
+            }
+            {
+              \DTLgidxDoSeeOrLocation
+            }
+         }
+      }
+      {
+        \tl_set:Nn \datagidx@item@body
+         {
+          \DTLgidxSymbolDescription
+          \DTLgidxDoSeeOrLocation
+         }
+      }
+    }
+  }
+  \tl_set:Nn \datagidxend { \datagidx_end: }
+  \tl_set:Nn \datagidxgroupsep
+   { \ifdatagidxshowgroups \indexspace \fi }
+  \tl_set:Nn \datagidxgroupheader
+   {
+    \legacy_if:nT { datagidxshowgroups }
+     {
+      \item
+       \makebox [ \linewidth ]
+       {
+         \textbf
+          {
+            \DTLgidxGroupHeaderTitle { \datagidxcurrentgroup }
+          }
+       }
+       \DTLpar\nobreak\@afterheading
+     }
+   }
+  \tl_set:Nn \datagidxitem
+   {
+    \tl_if_empty:NTF \datagidxprevgroup
+    {
+      \datagidxgroupheader
+    }
+    {
+      \tl_if_eq:NNF \datagidxcurrentgroup \datagidxprevgroup
+      {
+        \datagidxgroupsep
+        \datagidxgroupheader
+      }
+    }
+    \item
+    \datagidxtarget { \Label }
+    {
+      \DTLgidxNameFont { \DTLgidxNameCase { \Name } }
+    }
+    \DTLgidxPostName
+    \datagidx@item@body
+    \DTLgidxChildrenSeeAlso
+    \DTLgidxEndItem
+   }
+  \tl_set:Nn \datagidxchildstart
+   {
+     \group_begin:
+     \dim_zero:N \parindent
+     \skip_set:Nn \parskip { 0pt ~ plus ~ 0.3pt }
+     \cs_set_eq:NN \item \@idxitem
+   }
+  \tl_set:Nn \datagidxchildend { \group_end: }
+  \tl_set:Nn \datagidxchilditem
+   {
+    \dim_set:Nn \l__datatool_tmpa_dim
+      {
+         \datagidx@level \datagidxindent
+      }
+    \@idxitem
+    \hspace* { \l__datatool_tmpa_dim }
+    \refstepcounter {DTLgidxChildCount}
+    \datagidxtarget { \Label }
+    {
+      \DTLgidxChildStyle
+      {
+        \DTLgidxNameFont { \DTLgidxNameCase { \Name } }
+        \DTLgidxPostChildName
+      }
+    }
+    \DTLgidxSymbolDescription
+    \DTLgidxDoSeeOrLocation
+    \DTLgidxChildrenSeeAlso
+   }
+  \tl_set:Nn \datagidxseealsostart
+   {
+    \group_begin:
+      \dim_zero:N \parindent
+      \skip_set:Nn \parskip { 0pt ~ plus ~ 0.3pt }
+      \int_incr:N \datagidx@level
+      \dim_set:Nn \l__datatool_tmpa_dim
+       {
+         \datagidx@level \datagidxindent
+       }
+      \@idxitem
+      \hspace* { \l__datatool_tmpa_dim }
+   }
+  \tl_set:Nn \datagidxseealsoend { \group_end: }
+}
+\datagidxsetstyle { index }
+\dim_new:N \l__datagidx_childindent_dim
+\NewDocumentCommand \datagidxmapdata { m }
+{
+ \DTLmapdata [ name = \DTLgidxCurrentdb , read-only ]
+  {
+    \exp_args:NV \__datatool_map_get_values_noerr:n
+       \DTLgidxAssignList
+    \__datagidx_filter:T
+     {
+       \__datagidx_unwrap_location:N \Location
+       #1
+     }
+  }
+}
+\datagidxnewstyle { indexalign }
+{
+  \tl_set:Nn \datagidxstart
+   {
+    \group_begin:
+    \dim_zero:N \parindent
+    \dim_set:Nn \parskip { 0pt ~ plus ~ 0.3pt }
+    \dim_zero:N \datagidxnamewidth
+    \datagidxmapdata
+     {
+       \datatool_if_null:NT \Parent
+       {
+         \datagidx@doifdisplayed
+         {
+           \datatool_measure_width:Nn
+             \l__datatool_tmpa_dim
+            {
+              \DTLgidxNameFont { \DTLgidxNameCase { \Name } }
+            }
+           \dim_compare:nNnT
+             { \l__datatool_tmpa_dim }
+              >
+             { \datagidxnamewidth }
+            {
+              \dim_set_eq:NN
+                \datagidxnamewidth
+                \l__datatool_tmpa_dim
+            }
+         }
+       }
+     }
+    \datatool_measure_width:Nn
+      \l__datatool_tmpa_dim { \DTLgidxPostName }
+    \dim_add:Nn \datagidxnamewidth
+      {
+        \l__datatool_tmpa_dim
+      }
+    \dim_set:Nn \datagidxdescwidth
+      {
+        \linewidth - \datagidxnamewidth
+      }
+    \dim_compare:nNnT
+       { \datagidxsymbolwidth } > { \c_zero_dim }
+     {
+       \datatool_measure_width:Nn
+         \l__datatool_tmpa_dim { \DTLgidxSymDescSep }
+       \dim_sub:Nn \datagidxdescwidth
+        {
+           \datagidxsymbolwidth
+          + \l__datatool_tmpa_dim
+        }
+     }
+    \dim_compare:nNnT
+       { \datagidxlocationwidth } > { \c_zero_dim }
+     {
+       \datatool_measure_width:Nn
+         \l__datatool_tmpa_dim { \DTLgidxPreLocation }
+       \dim_sub:Nn \datagidxdescwidth
+        {
+          \datagidxlocationwidth
+          + \l__datatool_tmpa_dim
+        }
+     }
+    \dim_compare:nNnTF
+      { \datagidxsymbolwidth } > { \c_zero_dim }
+     {
+      \dim_compare:nNnTF
+        { \datagidxlocationwidth } > { \c_zero_dim }
+       {
+        \bool_if:NTF \l__datagidx_symbol_left_bool
+         {
+          \tl_set:Nn \datagidx@item@body
+           {
+            \begin{minipage} [t]
+               { \datagidxsymbolwidth }
+              \datagidxsymalign
+              \tl_clear:N \DTLgidxSymDescSep
+              \DTLgidxSymbolDescLeft
+            \end{minipage}
+            \DTLgidxSymDescSep
+            \begin{minipage} [t]
+               { \datagidxdescwidth }
+              \tl_clear:N \DTLgidxSymDescSep
+              \skip_set:Nn \parskip { 0pt ~ plus ~ 0.3pt }
+              \DTLgidxSymbolDescRight
+            \end{minipage}
+            \DTLgidxPreLocation
+            \begin{minipage} [t]
+               { \datagidxlocationwidth }
+              \datagidxlocalign
+              \tl_clear:N \DTLgidxPreLocation
+              \DTLgidxDoSeeOrLocation
+            \end{minipage}
+           }
+         }
+         {
+          \tl_set:Nn \datagidx@item@body
+           {
+            \begin{minipage} [t]
+               { \datagidxdescwidth }
+              \tl_clear:N \DTLgidxSymDescSep
+              \DTLgidxSymbolDescLeft
+            \end{minipage}
+            \DTLgidxSymDescSep
+            \begin{minipage} [t]
+               { \datagidxsymbolwidth }
+              \datagidxsymalign
+              \tl_clear:N \DTLgidxSymDescSep
+              \skip_set:Nn \parskip { 0pt ~ plus ~ 0.3pt}
+              \DTLgidxSymbolDescRight
+            \end{minipage}
+            \DTLgidxPreLocation
+            \begin{minipage} [t]
+               { \datagidxlocationwidth }
+              \datagidxlocalign
+              \tl_clear:N \DTLgidxPreLocation
+              \DTLgidxDoSeeOrLocation
+            \end{minipage}
+           }
+         }
+       }
+       {
+        \bool_if:NTF \l__datagidx_symbol_left_bool
+         {
+          \tl_set:Nn \datagidx@item@body
+           {
+            \begin{minipage} [t]
+               { \datagidxsymbolwidth }
+              \datagidxsymalign
+              \tl_clear:N \DTLgidxSymDescSep
+              \DTLgidxSymbolDescLeft
+            \end{minipage}
+            \DTLgidxSymDescSep
+            \begin{minipage} [t]
+               { \datagidxdescwidth }
+              \tl_clear:N \DTLgidxSymDescSep
+              \skip_set:Nn \parskip { 0pt ~ plus ~ 0.3pt }
+              \DTLgidxSymbolDescRight
+              \DTLgidxDoSeeOrLocation
+            \end{minipage}
+           }
+         }
+         {
+          \tl_set:Nn \datagidx@item@body
+           {
+            \begin{minipage} [t]
+               { \datagidxdescwidth }
+              \tl_clear:N \DTLgidxSymDescSep
+              \DTLgidxSymbolDescLeft
+            \end{minipage}
+            \DTLgidxSymDescSep
+            \begin{minipage} [t]
+               { \datagidxsymbolwidth }
+              \datagidxsymalign
+              \tl_clear:N \DTLgidxSymDescSep
+              \skip_set:Nn \parskip { 0pt ~ plus ~ 0.3pt }
+              \DTLgidxSymbolDescRight
+              \DTLgidxDoSeeOrLocation
+            \end{minipage}
+           }
+         }
+       }
+     }
+     {
+      \dim_compare:nNnTF
+        { \datagidxlocationwidth } > { \c_zero_dim }
+       {
+        \tl_set:Nn \datagidx@item@body
+         {
+          \begin{minipage} [t]
+             { \datagidxdescwidth }
+           \skip_set:Nn \parskip {0pt ~ plus ~ 0.3pt }
+           \DTLgidxSymbolDescription
+          \end{minipage}
+          \DTLgidxPreLocation
+          \begin{minipage} [t]
+             { \datagidxlocationwidth }
+           \datagidxlocalign
+           \tl_clear:N \DTLgidxPreLocation
+           \DTLgidxDoSeeOrLocation
+         }
+       }
+       {
+        \tl_set:Nn \datagidx@item@body
+         {
+          \begin{minipage} [t]
+             { \datagidxdescwidth }
+           \skip_set:Nn \parskip { 0pt ~ plus ~ 0.3pt }
+           \DTLgidxSymbolDescription
+           \DTLgidxDoSeeOrLocation
+          \end{minipage}
+         }
+       }
+     }
+   }
+  \tl_set:Nn \datagidxend { \datagidx_end: }
+  \tl_clear:N \datagidxgroupsep
+  \tl_clear:N \datagidxgroupheader
+  \tl_set:Nn \datagidxitem
+   {
+    \tl_if_empty:NTF \datagidxprevgroup
+     {
+      \datagidxgroupheader
+     }
+     {
+      \tl_if_eq:NNF \datagidxcurrentgroup \datagidxprevgroup
+       {
+        \datagidxgroupsep
+        \datagidxgroupheader
+       }
+     }
+    \hangindent0pt\relax
+    \parindent0pt\relax
+    \makebox [ \datagidxnamewidth ] [l]
+     {
+      \datagidxtarget { \Label }
+       {
+        \DTLgidxNameFont
+          { \DTLgidxNameCase { \Name } }
+        \DTLgidxPostName
+       }
+     }
+    \datagidx@item@body
+    \par
+    \DTLgidxChildrenSeeAlso
+    \DTLgidxEndItem
+  }
+  \tl_set:Nn \datagidxchildstart
+   {
+    \group_begin:
+    \dim_set:Nn \l__datatool_tmpa_dim
+      { \datagidx@level \datagidxindent }
+    \dim_set:Nn \l__datagidx_childindent_dim
+      {
+        \linewidth -  \l__datatool_tmpa_dim
+      }
+    \dim_zero:N \parindent
+    \dim_set:Nn \parskip { 0pt ~ plus ~ 0.3pt }
+    \tl_set:Nx \item
+      {
+        \exp_not:N \parshape = \c_one_int
+        \dim_use:N \l__datatool_tmpa_dim \c_space_tl ~
+        \dim_use:N \l__datagidx_childindent_dim
+      }
+    \dim_zero:N \datagidxnamewidth
+    \datagidxmapdata
+     {
+       \datatool_if_null:NT \Parent
+        {
+          \datagidx@doifdisplayed
+           {
+             \datatool_measure_width:Nn
+               \l__datatool_tmpa_dim
+              {
+                \DTLgidxChildStyle
+                 {
+                   \DTLgidxNameFont
+                    { \DTLgidxNameCase { \Name } }
+                 }
+              }
+             \dim_compare:nNnT
+               { \l__datatool_tmpa_dim }
+                 >
+               { \datagidxnamewidth }
+              {
+                \dim_set_eq:NN
+                  \datagidxnamewidth
+                  \l__datatool_tmpa_dim
+              }
+           }
+        }
+    }
+   \datatool_measure_width:Nn
+     \l__datatool_tmpa_dim
+     { \DTLgidxChildStyle \DTLgidxPostChildName }
+   \dim_add:Nn \datagidxnamewidth
+    {
+      \l__datatool_tmpa_dim
+    }
+   \dim_set:Nn \datagidxdescwidth
+    {
+      \l__datagidx_childindent_dim
+      - \datagidxnamewidth
+    }
+   }
+  \tl_set:Nn \datagidxchildend { \group_end: }
+  \tl_set:Nn \datagidxchilditem
+   {
+     \item
+     \refstepcounter {DTLgidxChildCount}
+     \makebox [ \datagidxnamewidth ] [l]
+      {
+        \datagidxtarget { \Label }
+         {
+           \DTLgidxChildStyle
+            {
+              \DTLgidxNameFont
+               { \DTLgidxNameCase {\Name} }
+              \DTLgidxPostChildName
+            }
+         }
+      }
+     \begin{minipage} [t]
+       { \datagidxdescwidth }
+      \skip_set:Nn \parskip { 0pt ~ plus ~ 0.3pt }
+      \DTLgidxSymbolDescription
+      \DTLgidxDoSeeOrLocation
+      \DTLgidxChildrenSeeAlso
+     \end{minipage}
+     \par
+   }
+}
+\newlength\datagidxindent
+\dim_set:Nn \datagidxindent { 10pt }
+\newlength\datagidxnamewidth
+\newlength\datagidxdescwidth
+\datagidxnewstyle { align }
+{
+  \tl_set:Nn \datagidxstart
+   {
+    \group_begin:
+    \dim_zero:N \parindent
+    \skip_set:Nn \parskip { 0pt ~ plus ~ 0.3pt }
+    \dim_zero:N \datagidxnamewidth
+    \datagidxmapdata
+     {
+       \datatool_if_null:NT \Parent
+        {
+         \datagidx@doifdisplayed
+          {
+            \datatool_measure_width:Nn
+             \l__datatool_tmpa_dim
+              {
+                \DTLgidxNameFont
+                  { \DTLgidxNameCase { \Name } }
+              }
+           \dim_compare:nNnT
+             { \l__datatool_tmpa_dim }
+              >
+             { \datagidxnamewidth }
+            {
+              \dim_set_eq:NN
+                \datagidxnamewidth
+                \l__datatool_tmpa_dim
+            }
+          }
+        }
+     }
+    \datatool_measure_width:Nn
+       \l__datatool_tmpa_dim
+       { \DTLgidxPostName }
+    \dim_add:Nn \datagidxnamewidth
+     {
+       \l__datatool_tmpa_dim
+     }
+    \dim_set:Nn \datagidxdescwidth
+     {
+       \linewidth - \datagidxnamewidth
+     }
+    \dim_compare:nNnT
+       { \datagidxsymbolwidth } > { \c_zero_dim }
+     {
+       \datatool_measure_width:Nn
+         \l__datatool_tmpa_dim
+         { \DTLgidxSymDescSep }
+      \dim_sub:Nn \datagidxdescwidth
+         {
+           \datagidxsymbolwidth
+           + \l__datatool_tmpa_dim
+         }
+     }
+    \dim_compare:nNnT
+      { \datagidxlocationwidth } > { \c_zero_dim }
+     {
+       \datatool_measure_width:Nn
+         \l__datatool_tmpa_dim
+         { \DTLgidxPreLocation }
+       \dim_sub:Nn \datagidxdescwidth
+        {
+          \datagidxlocationwidth
+          + \l__datatool_tmpa_dim
+        }
+     }
+    \dim_compare:nNnTF
+      { \datagidxsymbolwidth } > { \c_zero_dim }
+     {
+       \dim_compare:nNnTF
+         { \datagidxlocationwidth } > { \c_zero_dim }
+        {
+          \bool_if:NTF \l__datagidx_symbol_left_bool
+           {
+             \tl_set:Nn \datagidx@item@body
+              {
+                \begin{minipage} [t]
+                  { \datagidxsymbolwidth }
+                \datagidxsymalign
+                \tl_clear:N \DTLgidxSymDescSep
+                \DTLgidxSymbolDescLeft
+                \end{minipage}
+                \DTLgidxSymDescSep
+                \begin{minipage} [t]
+                 { \datagidxdescwidth }
+                \tl_clear:N \DTLgidxSymDescSep
+                \skip_set:Nn \parskip { 0pt ~ plus ~ 0.3pt }
+                \DTLgidxSymbolDescRight
+                \end{minipage}
+                \DTLgidxPreLocation
+                \begin{minipage} [t]
+                   { \datagidxlocationwidth }
+                  \datagidxlocalign
+                  \tl_clear:N \DTLgidxPreLocation
+                  \DTLgidxDoSeeOrLocation
+                  \DTLgidxChildrenSeeAlso
+                \end{minipage}
+              }
+           }
+         {
+          \tl_set:Nn \datagidx@item@body
+           {
+            \begin{minipage} [t]
+               { \datagidxdescwidth }
+              \tl_clear:N \DTLgidxSymDescSep
+              \DTLgidxSymbolDescLeft
+            \end{minipage}
+            \DTLgidxSymDescSep
+            \begin{minipage} [t]
+               { \datagidxsymbolwidth }
+              \datagidxsymalign
+              \tl_clear:N \DTLgidxSymDescSep
+              \skip_set:N \parskip { 0pt ~ plus ~ 0.3pt }
+              \DTLgidxSymbolDescRight
+            \end{minipage}
+            \DTLgidxPreLocation
+            \begin{minipage} [t]
+               { \datagidxlocationwidth }
+              \datagidxlocalign
+              \tl_clear:N \DTLgidxPreLocation
+              \DTLgidxDoSeeOrLocation
+              \DTLgidxChildrenSeeAlso
+            \end{minipage}
+           }
+         }
+        }
+        {
+        \bool_if:NTF \l__datagidx_symbol_left_bool
+         {
+          \tl_set:Nn \datagidx@item@body
+           {
+            \begin{minipage} [t]
+               { \datagidxsymbolwidth }
+              \datagidxsymalign
+              \tl_clear:N \DTLgidxSymDescSep
+              \DTLgidxSymbolDescLeft
+            \end{minipage}
+            \DTLgidxSymDescSep
+            \begin{minipage} [t]
+               { \datagidxdescwidth }
+              \tl_clear:N \DTLgidxSymDescSep
+              \skip_set:Nn \parskip { 0pt ~ plus ~ 0.3pt }
+              \DTLgidxSymbolDescRight
+              \DTLgidxDoSeeOrLocation
+              \DTLgidxChildrenSeeAlso
+            \end{minipage}
+           }
+         }
+         {
+          \tl_set:Nn \datagidx@item@body
+           {
+            \begin{minipage} [t]
+               { \datagidxdescwidth }
+              \tl_clear:N \DTLgidxSymDescSep
+              \DTLgidxSymbolDescLeft
+            \end{minipage}
+            \DTLgidxSymDescSep
+            \begin{minipage} [t]
+               { \datagidxsymbolwidth }
+              \datagidxsymalign
+              \tl_clear:N \DTLgidxSymDescSep
+              \skip_set:Nn \parskip { 0pt ~ plus ~ 0.3pt }
+              \DTLgidxSymbolDescRight
+              \DTLgidxDoSeeOrLocation
+              \DTLgidxChildrenSeeAlso
+            \end{minipage}
+           }
+         }
+        }
+     }
+     {
+      \dim_compare:nNnTF
+        { \datagidxlocationwidth } > { \c_zero_dim }
+       {
+        \tl_set:Nn \datagidx@item@body
+         {
+          \begin{minipage} [t]
+            { \datagidxdescwidth }
+           \skip_set:Nn \parskip { 0pt ~ plus ~ 0.3pt }
+           \DTLgidxSymbolDescription
+          \end{minipage}
+          \DTLgidxPreLocation
+          \begin{minipage} [t]
+            { \datagidxlocationwidth }
+           \datagidxlocalign
+           \tl_clear:N \DTLgidxPreLocation
+           \DTLgidxDoSeeOrLocation
+           \DTLgidxChildrenSeeAlso
+          \end{minipage}
+         }
+       }
+       {
+        \tl_set:Nn \datagidx@item@body
+         {
+          \begin{minipage} [t]
+             { \datagidxdescwidth }
+           \skip_set:Nn \parskip { 0pt ~ plus ~ 0.3pt }
+           \DTLgidxSymbolDescription
+           \DTLgidxDoSeeOrLocation
+           \DTLgidxChildrenSeeAlso
+          \end{minipage}
+         }
+       }
+     }
+   }
+  \tl_set:Nn \datagidxend { \datagidx_end: }
+  \tl_set:Nn \datagidxgroupsep
+   { \ifdatagidxshowgroups \indexspace \fi }
+  \tl_set:Nn \datagidxgroupheader
+   {
+    \ifdatagidxshowgroups
+      \item
+       \makebox [ \linewidth ]
+       {
+         \textbf
+          {
+            \DTLgidxGroupHeaderTitle
+              { \datagidxcurrentgroup }
+          }
+       }
+       \DTLpar\nobreak\@afterheading
+    \fi
+   }
+  \tl_set:Nn \datagidxitem
+   {
+    \tl_if_empty:NTF \datagidxprevgroup
+     {
+       \datagidxgroupheader
+     }
+     {
+       \tl_if_eq:NNF \datagidxcurrentgroup \datagidxprevgroup
+       {
+         \datagidxgroupsep
+         \datagidxgroupheader
+       }
+     }
+    \hangindent \c_zero_dim
+    \parindent \c_zero_dim
+    \makebox [ \datagidxnamewidth ] [l]
+     {
+       \datagidxtarget { \Label }
+        {
+          \DTLgidxNameFont
+            { \DTLgidxNameCase {\Name} }
+          \DTLgidxPostName
+        }
+     }
+     \datagidx@item@body
+     \DTLgidxEndItem
+   }
+  \tl_set:Nn \datagidxchildstart
+   {
+    \group_begin:
+    \dim_zero:N \parindent
+    \skip_set:Nn \parskip { 0pt ~ plus ~ 0.3pt }
+    \dim_zero:N \datagidxnamewidth
+    \datagidxmapdata
+     {
+       \datatool_if_null:NT \Parent
+        {
+          \datagidx@doifdisplayed
+           {
+             \datatool_measure_width:Nn
+               \l__datatool_tmpa_dim
+              {
+                \DTLgidxChildStyle
+                 {
+                   \DTLgidxNameFont
+                    { \DTLgidxNameCase {\Name} }
+                 }
+              }
+             \dim_compare:nNnT
+               { \l__datatool_tmpa_dim }
+                >
+               { \datagidxnamewidth }
+              {
+                \dim_set_eq:NN
+                  \datagidxnamewidth
+                  \l__datatool_tmpa_dim
+              }
+           }
+        }
+     }
+    \datatool_measure_width:Nn
+      \l__datatool_tmpa_dim
+     {
+       \DTLgidxChildStyle \DTLgidxPostChildName
+     }
+    \dim_add:Nn \datagidxnamewidth
+      { \l__datatool_tmpa_dim }
+    \dim_set:Nn \datagidxdescwidth
+     {
+       \linewidth - \datagidxnamewidth
+     }
+   }
+  \tl_set:Nn \datagidxchildend { \group_end: }
+  \tl_set:Nn \datagidxchilditem
+   {
+    \hangindent \c_zero_dim
+    \parindent \c_zero_dim
+    \refstepcounter {DTLgidxChildCount}
+    \makebox [ \datagidxnamewidth ] [l]
+     {
+       \datagidxtarget {\Label}
+        {
+          \DTLgidxChildStyle
+           {
+             \DTLgidxNameFont
+               { \DTLgidxNameCase {\Name} }
+             \DTLgidxPostChildName
+           }
+        }
+     }
+    \begin{minipage} [t]
+       { \datagidxdescwidth }
+     \skip_set:Nn \parskip { 0pt ~ plus ~ 0.3pt }
+     \DTLgidxSymbolDescription
+     \DTLgidxDoSeeOrLocation
+     \DTLgidxChildrenSeeAlso
+    \end{minipage}
+    \par
+   }
+}
+\datagidxnewstyle { gloss }
+{
+  \tl_set:Nn \datagidxstart
+   {
+    \group_begin:
+    \dim_zero:N \parindent
+    \skip_set:Nn \parskip { 0pt ~ plus ~ 0.3pt }
+    \dim_zero:N \datagidxnamewidth
+    \datagidxmapdata
+     {
+       \datatool_if_null:NT \Parent
+        {
+          \datagidx@doifdisplayed
+           {
+             \datatool_measure_width:Nn
+              \l__datatool_tmpa_dim
+              {
+                \DTLgidxNameFont
+                 { \DTLgidxNameCase {\Name} }
+              }
+            \dim_compare:nNnT
+              { \l__datatool_tmpa_dim }
+                >
+              { \datagidxnamewidth }
+             {
+               \dim_set_eq:NN
+                 \datagidxnamewidth
+                 \l__datatool_tmpa_dim
+             }
+           }
+        }
+     }
+    \datatool_measure_width:Nn
+       \l__datatool_tmpa_dim
+      { \DTLgidxPostName }
+    \dim_add:Nn \datagidxnamewidth
+       { \l__datatool_tmpa_dim }
+    \dim_set:Nn \datagidxdescwidth
+     {
+      \linewidth - \datagidxnamewidth
+     }
+   }
+  \tl_set:Nn \datagidxend { \datagidx_end: }
+  \tl_set:Nn \datagidxgroupsep
+   {
+     \ifdatagidxshowgroups \indexspace \fi
+   }
+  \tl_set:Nn \datagidxgroupheader
+   {
+     \ifdatagidxshowgroups
+       \item
+       \makebox [ \linewidth ]
+        {
+         \textbf
+          {
+            \DTLgidxGroupHeaderTitle
+              { \datagidxcurrentgroup }
+          }
+        }
+       \DTLpar\nobreak\@afterheading
+     \fi
+   }
+  \tl_set:Nn \datagidxitem
+   {
+    \tl_if_empty:NTF \datagidxprevgroup
+     {
+       \datagidxgroupheader
+     }
+     {
+       \tl_if_eq:NNF \datagidxcurrentgroup\datagidxprevgroup
+        {
+          \datagidxgroupsep
+          \datagidxgroupheader
+        }
+     }
+    \dim_zero:N \hangindent
+    \dim_zero:N \parindent
+    \makebox [ \datagidxnamewidth ] [l]
+     {
+       \datagidxtarget {\Label}
+        {
+          \DTLgidxNameFont
+            { \DTLgidxNameCase {\Name} }
+          \DTLgidxPostName
+        }
+     }
+    \begin{minipage} [t]
+      { \datagidxdescwidth }
+     \skip_set:Nn \parskip { 0pt ~ plus ~ 0.3pt }
+     \bool_lazy_all:nTF
+        {
+         { \tl_if_empty_p:N \Description }
+         { \tl_if_empty_p:N \Symbol }
+         { \tl_if_empty_p:N \Location }
+        }
+      {
+        \mbox { }
+      }
+      {
+        \DTLgidxSymbolDescription
+        \DTLgidxDoSeeOrLocation
+      }
+     \DTLgidxChildrenSeeAlso
+    \end{minipage}
+    \DTLgidxEndItem
+   }
+  \tl_set:Nn \datagidxchildstart
+   {
+     \group_begin:
+     \tl_clear:N \datagidx@childsep
+     \setcounter {DTLgidxChildCount} { 0 }
+   }
+  \tl_set:Nn \datagidxchildend
+   { \DTLgidxPostChild \group_end: }
+  \tl_set:Nn \datagidxchilditem
+   {
+     \datagidx@childsep
+     \refstepcounter {DTLgidxChildCount}
+     \datagidxtarget {\Label}
+      {
+        \DTLgidxChildStyle
+         {
+           \DTLgidxNameFont
+             { \DTLgidxNameCase {\Name} }
+           \DTLgidxPostChildName
+         }
+      }
+     \DTLgidxSymbolDescription
+     \DTLgidxDoSeeOrLocation
+     \DTLgidxChildrenSeeAlso
+     \tl_set_eq:NN \datagidx@childsep \DTLgidxChildSep
+   }
+}
+\newcommand*{\DTLgidxChildSep}{ ~ }
+\newcommand*{\DTLgidxPostChild}{}
+\cs_if_exist:NTF \chapter
+{
+  \newcommand \DTLgidxDictHead
+   {
+     \chapter
+      {
+        \DTLgidxGroupHeaderTitle { \datagidxcurrentgroup }
+      }
+   }
+}
+{
+  \newcommand \DTLgidxDictHead
+   {
+     \section
+      {
+        \DTLgidxGroupHeaderTitle { \datagidxcurrentgroup }
+      }
+   }
+}
+\newcommand*{\DTLgidxCategoryNameFont}[1]{#1}
+\newcommand*{\DTLgidxCategorySep}{\space}
+\newcommand*{\DTLgidxSubCategorySep}{\space}
+\newcommand*{\datagidxdictindent}{1em}
+\newcommand{\DTLgidxDictPostItem}{\DTLgidxEndItem}
+\datagidxnewstyle { dict }
+{
+  \tl_set:Nn \datagidxstart
+   {
+     \group_begin:
+     \dim_zero:N \parindent
+     \dim_set:Nn \parskip { 0pt ~ plus ~ 0.3pt }
+     \dim_set:Nn \l__datatool_tmpa_dim
+      {
+        \linewidth - \datagidxdictindent
+      }
+     \dim_set:Nn \l__datagidx_childindent_dim
+      { \datagidxdictindent }
+     \tl_set:Nx \datagidxdictparshape
+      {
+        \exp_not:N \parshape=2 ~ 0pt ~
+         \dim_use:N \linewidth \c_space_tl ~
+         \dim_use:N \l__datagidx_childindent_dim
+         \c_space_tl ~
+         \dim_use:N \l__datatool_tmpa_dim
+      }
+    \int_set_eq:NN \datagidx@level \c_one_int
+    \raggedright
+   }
+  \tl_set:Nn \datagidxend { \datagidx_end: }
+  \tl_clear:N \datagidxgroupsep
+  \tl_set:Nn \datagidxgroupheader
+   {
+     \ifdatagidxshowgroups
+       \datagidxend
+       \datagidx@postend
+       \DTLgidxDictHead
+       \l__datagidx_prestart_tl
+       \datagidxstart
+     \fi
+   }
+  \tl_set:Nn \datagidxitem
+   {
+    \tl_if_empty:NTF \datagidxprevgroup
+     {
+       \datagidxgroupheader
+     }
+     {
+      \tl_if_eq:NNF \datagidxcurrentgroup \datagidxprevgroup
+       {
+         \datagidxgroupsep
+         \datagidxgroupheader
+       }
+     }
+    \datagidxdictparshape
+    \datagidxtarget {\Label}
+    {
+      \DTLgidxNameFont
+        { \DTLgidxNameCase {\Name} }
+    }
+    \DTLgidxPostName
+    \tl_clear:N \datagidx@catsep
+    \tl_clear:N \datagidx@subcatsep
+    \DTLgidxSymbolDescription
+    \DTLgidxChildrenSeeAlso
+    \DTLgidxDictPostItem
+   }
+  \tl_set:Nn \datagidxchildstart
+   { \group_begin: }
+  \tl_set:Nn \datagidxchildend { \group_end: }
+  \tl_set:Nn \datagidxchilditem
+   {
+     \int_compare:nNnTF
+       { \datagidx@level } = { 2 }
+      {
+        \datagidx@catsep
+        \tl_set_eq:NN
+          \datagidx@catsep
+          \DTLgidxCategorySep
+        \tl_clear:N \datagidx@subcapsep
+        \datagidxtarget { \Label }
+         {
+           \DTLgidxChildStyle
+            {
+              \DTLgidxCategoryNameFont
+               { \DTLgidxNameCase{\Name} }
+              \DTLgidxPostChildName
+            }
+         }
+        \setcounter {DTLgidxChildCount} {0}
+      }
+      {
+        \datagidx@subcatsep
+        \tl_set_eq:NN
+          \datagidx@subcatsep
+          \DTLgidxSubCategorySep
+        \refstepcounter {DTLgidxChildCount}
+        \DTLgidxChildCountLabel
+        \DTLgidxPostChildName
+      }
+     \DTLgidxSymbolDescription
+     \DTLgidxDoSeeOrLocation
+     \DTLgidxChildrenSeeAlso
+   }
+  \tl_set:Nn \datagidxseealsostart
+   {
+    \group_begin:
+      \dim_zero:N \parindent
+      \skip_set:Nn \parskip { 0pt ~ plus ~ 0.3pt }
+      \int_incr:N \datagidx@level
+      \dim_set:Nn \l__datatool_tmpa_dim
+       {
+         \datagidx@level \datagidxindent
+       }
+      \@idxitem
+      \hspace* { \l__datatool_tmpa_dim }
+   }
+  \tl_set:Nn \datagidxseealsoend { \group_end: }
+}
+\newcommand*{\dtldofirstlocation}{%
+ \group_begin:
+ \__datagidx_unwrap_location:N \Location
+ \clist_map_inline:Nn \Location
+ {
+    \tl_if_empty:nF { ##1 }
+    {
+       \tl_if_head_eq_meaning:nNTF { ##1 } [
+        {
+          \__datagidx_getlocation:wnn ##1
+        }
+        {
+          \__datagidx_getlocation:wnn [ ] { } { }
+        }
+       \datagidxlink
+        { \datagidx@current@target }
+        {
+           \__datagidx_formatlocation:VV
+            \datagidx@current@format
+            \datagidx@current@locationstring
+        }
+      \clist_map_break:
+    }
+  }
+ \group_end:
+}
+\cs_new:Nn \__datagidx_formatlocation:nn
+{
+ \tl_if_empty:nTF { #1 }
+  { #2 }
+  {
+    \cs_if_exist:cTF { #1 }
+    {
+      \use:c { #1 } { #2 }
+    }
+    {
+      \PackageWarning {datagidx}
+       { Unknown ~ format ~ `#1' }
+      #2
+    }
+  }
+}
+\cs_generate_variant:Nn
+ \__datagidx_formatlocation:nn
+ { VV }
+\NewDocumentCommand \dtldolocationlist { }
+{
+ \datatool_if_null_or_empty:NF \Location
+  {
+    \group_begin:
+    \int_set:Nn  \l__datagidx_prevloc_int {-1}
+    \tl_clear:N \datagidx@prev@locationstring
+    \tl_clear:N \datagidx@prev@format
+    \tl_clear:N \datagidx@prev@locationformat
+    \tl_clear:N \datagidx@prev@prefix
+    \tl_clear:N \datagidx@prev@target
+    \tl_clear:N \datagidx@location@sep
+    \int_set:Nn \l__datagidx_startloc_int {-1}
+    \__datagidx_unwrap_location:N \Location
+    \clist_map_function:NN
+      \Location \datagidx@parse@location
+    \__datagidx_do_prev_location: % tidy up loose ends
+    \group_end:
+  }
+}
+\bool_new:N \l__datagidx_sequential_bool
+\regex_const:Nn \c__datagidx_location_int_regex
+  { ( \d+ ) \Z }
+\regex_const:Nn \c__datagidx_location_roman_regex
+  { ( [ I V X L C D M ]+ | [ i v x l c d m ]+ ) \Z }
+\regex_const:Nn \c__datagidx_location_alph_regex
+  { ( [ a-z A-Z ] ) \Z }
+\cs_new:Nn \__datagidx_get_location_num:Nn
+{
+  \DTLifint { #2 }
+   {
+     \int_set:Nn #1 { \l__datatool_datum_value_tl }
+   }
+   {
+     \regex_extract_once:NnNTF
+       \c__datagidx_location_int_regex { #2 }
+        \l__datatool_tmpb_seq
+     {
+       \exp_args:NNx \int_set:Nn #1
+         { \seq_item:Nn \l__datatool_tmpb_seq { 2 } }
+     }
+     {
+        \regex_extract_once:NnNTF
+          \c__datagidx_location_roman_regex { #2 }
+           \l__datatool_tmpb_seq
+        {
+          \exp_args:NNx \tl_set:Nn
+            \l__datatool_tmpb_tl
+             {
+               \exp_not:N \int_from_roman:n
+                {
+                  \seq_item:Nn \l__datatool_tmpb_seq { 2 }
+                }
+             }
+          \int_set:Nn #1 { \l__datatool_tmpb_tl }
+        }
+        {
+          \regex_extract_once:NnNTF
+            \c__datagidx_location_alph_regex { #2 }
+             \l__datatool_tmpb_seq
+          {
+            \exp_args:NNx \tl_set:Nn
+              \l__datatool_tmpb_tl
+               {
+                 \exp_not:N \int_from_alph:n
+                  {
+                    \seq_item:Nn \l__datatool_tmpb_seq { 2 }
+                  }
+               }
+            \int_set:Nn #1 { \l__datatool_tmpb_tl }
+          }
+          {
+            \int_set:Nn #1 { -1 }
+          }
+        }
+     }
+   }
+}
+\cs_generate_variant:Nn  \__datagidx_get_location_num:Nn
+ { NV }
+\int_new:N \l__datagidx_prevloc_int
+\int_new:N \l__datagidx_currentloc_int
+\int_new:N \l__datagidx_startloc_int
+\cs_new:Npn \__datagidx_getlocation:wnn
+  [ #1 ] #2 #3
+{
+  \tl_set:Nn \datagidx@current@locationstring { #2 }
+  \tl_set:Nn \datagidx@current@format { #1 }
+  \tl_set:Nn \datagidx@current@target { #3 }
+  \tl_if_empty:nTF { #2 }
+  {
+    \tl_clear:N \datagidx@current@prefix
+    \tl_clear:N \datagidx@current@location
+  }
+  {
+    \seq_set_split:NVn \l__datatool_tmpa_seq
+      \l__datagidx_compositor_tl
+      { #2 }
+    \seq_pop_right:NN \l__datatool_tmpa_seq
+       \datagidx@current@location
+    \tl_set:Nx \datagidx@current@prefix
+      {
+        \seq_use:Nn \l__datatool_tmpa_seq
+          \l__datagidx_compositor_tl
+      }
+  }
+}
+\newcommand*{\datagidx@parse@location}[1]{
+  \tl_set:Nn \l__datagidx_location_tl { #1 }
+  \__datagidx_unwrap_location:N
+    \l__datagidx_location_tl
+   \exp_args:NV \tl_if_head_eq_meaning:nNTF
+    \l__datagidx_location_tl [
+   {
+     \exp_after:wN \__datagidx_getlocation:wnn
+        \l__datagidx_location_tl
+   }
+   {
+     \__datagidx_getlocation:wnn [ ] { } { }
+   }
+  \tl_if_eq:NNTF
+    \datagidx@prev@locationstring
+    \datagidx@current@locationstring
+  {
+    \tl_if_eq:NNF
+      \datagidx@prev@format
+      \datagidx@current@format
+    {
+      \tl_if_empty:NF \datagidx@current@format
+      {
+        \tl_if_empty:NTF \datagidx@prev@format
+        {
+          \tl_set_eq:NN
+            \datagidx@prev@format
+            \datagidx@current@format
+        }
+        {
+           \PackageWarning {datagidx}
+           {
+              Conflicting ~ location ~ formats ~
+              `\datagidx@prev@format' ~ and ~
+              `\datagidx@current@format' ~ for ~
+              location ~ `\datagidx@current@location'
+           }
+        }
+      }
+    }
+  }
+  {
+    \@datagidx@parse@location
+  }
+}
+\newcommand*{\@datagidx@parse@location}{
+  \__datagidx_get_location_num:NV
+    \l__datagidx_currentloc_int
+    \datagidx@current@location
+  \bool_set_true:N \l__datagidx_sequential_bool
+  \tl_if_eq:NNTF
+     \datagidx@prev@format \datagidx@current@format
+   {
+    \tl_if_eq:NNTF
+      \datagidx@prev@locationformat
+      \datagidx@current@locationformat
+     {
+       \tl_if_eq:NNF
+          \datagidx@prev@prefix \datagidx@current@prefix
+        {
+          \bool_set_false:N \l__datagidx_sequential_bool
+        }
+     }
+     {
+        \bool_set_false:N \l__datagidx_sequential_bool
+     }
+   }
+   {
+    \bool_set_false:N \l__datagidx_sequential_bool
+   }
+  \bool_if:NT \l__datagidx_sequential_bool
+   {
+    \int_compare:nNnTF
+      { \l__datagidx_prevloc_int + 1 }
+        =
+      { \l__datagidx_currentloc_int }
+    {
+       \tl_if_eq:NNTF
+         \datagidx@current@locationformat
+         \datagidx@prev@locationformat
+      {
+        \bool_set_true:N \l__datagidx_sequential_bool
+      }
+      {
+        \bool_set_false:N \l__datagidx_sequential_bool
+      }
+    }
+    {
+      \bool_set_false:N \l__datagidx_sequential_bool
+    }
+   }
+  \bool_if:NTF \l__datagidx_sequential_bool
+   {
+     \int_compare:nNnT
+      { \l__datagidx_startloc_int } = { -1 }
+     {
+       \int_set_eq:NN
+         \l__datagidx_startloc_int
+         \l__datagidx_prevloc_int
+       \let\datagidx@location@startval\datagidx@prev@locationstring
+       \let\datagidx@location@format\datagidx@prev@format
+       \let\datagidx@location@target\datagidx@prev@target
+     }
+    }
+    {
+      \__datagidx_do_prev_location:
+    }
+  \let\datagidx@prev@location\datagidx@current@location
+  \let\datagidx@prev@format\datagidx@current@format
+  \let\datagidx@prev@prefix\datagidx@current@prefix
+  \let\datagidx@prev@locationformat\datagidx@current@locationformat
+  \let\datagidx@prev@locationstring\datagidx@current@locationstring
+  \let\datagidx@prev@target\datagidx@current@target
+  \int_set_eq:NN
+    \l__datagidx_prevloc_int
+    \l__datagidx_currentloc_int
+}
+\newcommand*{\DTLgidxLocationSep}{, ~ }
+\newcommand*{\DTLgidxLocationF}[2]{%
+  #1\DTLgidxLocationSep#2%
+}
+\newcommand*{\DTLgidxLocationFF}[2]{%
+  #1--#2%
+}
+\cs_new:Nn \__datagidx_do_prev_location:
+{
+  \int_compare:nNnTF
+    { \l__datagidx_startloc_int} = { -1 }
+  {
+     \tl_if_empty:NF \datagidx@prev@locationstring
+     {
+       \datagidx@location@sep
+       \datagidxlink{\datagidx@prev@target}%
+       {
+         \__datagidx_formatlocation:VV
+           \datagidx@prev@format
+           \datagidx@prev@locationstring
+       }
+       \def\datagidx@location@sep{\DTLgidxLocationSep}%
+     }
+  }
+  {
+    \datagidx@location@sep
+    \do@locrange
+    \def\datagidx@location@sep{\DTLgidxLocationSep}%
+    \int_set:Nn \l__datagidx_startloc_int { -1 }
+  }%
+}
+\newcommand*{\do@locrange}{%
+  \int_compare:nNnTF
+   {\l__datagidx_prevloc_int}
+     >
+   { \l__datagidx_startloc_int + 1}%
+  {%
+     \DTLgidxLocationFF
+       {%
+         \datagidxlink{\datagidx@location@target}%
+         {%
+           \__datagidx_formatlocation:VV
+             \datagidx@location@format
+             \datagidx@location@startval
+         }%
+       }%
+       {%
+         \datagidxlink{\datagidx@prev@target}%
+         {%
+           \__datagidx_formatlocation:VV
+             \datagidx@prev@format
+             \datagidx@prev@locationstring
+         }%
+       }%
+  }%
+  {%
+     \DTLgidxLocationF
+       {%
+         \datagidxlink{\datagidx@location@target}%
+         {%
+           \__datagidx_formatlocation:VV
+             \datagidx@location@format
+             \datagidx@location@startval
+         }%
+       }%
+       {%
+         \datagidxlink{\datagidx@prev@target}%
+         {%
+           \__datagidx_formatlocation:VV
+             \datagidx@prev@format
+             \datagidx@prev@locationstring
+         }%
+       }%
+  }%
+}
+\tl_new:N \l__datagidx_default_database_tl
+\newcommand*{\DTLgidxSetDefaultDB}[1]{%
+  \tl_set:Nn \l__datagidx_default_database_tl { #1 }
+}
+\newif\ifdatagidxbalance
+\datagidxbalancetrue
+\newcommand*{\datagidx@style}{index}
+\newif\ifdatagidxshowgroups
+\newcommand*{\datagidx@showgroups}{false}
+\ifundef\newgidx
+{%
+  \newcommand*{\newgidx}{\datagidx@newgidx}
+}%
+{}
+\@onlypreamble\newgidx
+\NewDocumentCommand \datagidx@highopt@newgidx { o m m }
+{
+  \tl_set:Nx \datagidx@indexfilename
+    { \text_purify:n { \datagidxhighoptfilename{ #2 } } }
+  \IfFileExists{\datagidx@indexfilename}%
+  {%
+    \DTLread[format=dbtex] { \datagidx@indexfilename }
+    \__datagidx_update_loaded_data:n { #2 }
+    \group_begin:
+      \IfValueT { #1 }
+       {
+         \keys_set_groups:nnn
+          { datatool / index } { newgloss } { #1 }
+       }
+      \datagidx@newgidx@update {#2} {#3}
+    \group_end:
+  }
+  {
+    \datagidx@newgidx[#1]{#2}{#3}
+  }
+}
+\NewDocumentCommand \loadgidx { O{} m m }
+{%
+  \DTLread [ format = dbtex ] { #2 }
+  \__datagidx_update_loaded_data:n { \dtllastloadeddb }
+  \bgroup
+    \keys_set_groups:nnn
+     { datatool / index } { newgloss }
+      { sort = {} , #1 }
+    \expandafter\datagidx@newgidx@update\expandafter
+      {\dtllastloadeddb}{#3}%
+  \egroup
+  \tl_set_eq:NN
+    \l__datagidx_default_database_tl
+    \dtllastloadeddb
+  \dtlforcolumn{\Label}{\dtllastloadeddb}{Label}%
+  {%
+     \__datagidx_assign_label_db:nn
+       { \Label } { \dtllastloadeddb }
+  }%
+}
+\@onlypreamble\loadgidx
+\cs_new:Nn \__datagidx_used:n { #1 }
+\cs_new:Nn \__datagidx_letter_group:n { #1 }
+\cs_new:Nn \__datagidx_write_letter_group:n
+{
+  \tl_to_str:n { #1 }
+}
+\cs_new:Nn \__datagidx_location:n { \exp_not:n { #1 } }
+\cs_new:Nn \__datagidx_unwrap_location:N
+{
+  \exp_args:NV
+     \tl_if_head_eq_meaning:nNT #1
+     { \dtlspecialvalue }
+   {
+     \group_begin:
+      \cs_set_eq:NN \__datagidx_location:n \exp_not:n
+      \cs_set_eq:NN \dtlspecialvalue \use:n
+      \exp_args:NNNx
+     \group_end:
+       \tl_set:Nn #1 { #1 }
+  }
+}
+\NewDocumentCommand \datagidx@newgidx { o m m }
+{
+\bgroup
+  \IfValueT { #1 }
+   {
+     \keys_set_filter:nnnN
+       { datatool / index } { general , print-only } { #1 }
+       \l__datagidx_remainder_tl
+     \tl_if_empty:NF \l__datagidx_remainder_tl
+      {
+        \PackageError { datagidx }
+         {
+           Invalid ~ \token_to_str:N \newgidx \c_space_tl option(s): ~
+            \tl_to_str:N \l__datagidx_remainder_tl
+         }
+         {
+           The ~ listed ~ option ~ or ~ options ~ can't ~ be ~ passed ~
+           to ~ \token_to_str:N \newgidx . \MessageBreak
+           Try ~ \token_to_str:N \DTLsetup
+            { index = { \tl_to_str:N \l__datagidx_remainder_tl } } ~
+           or ~ pass ~ the ~ option(s) ~ to ~
+           \token_to_str:N \printterms \c_space_tl instead
+         }
+      }
+   }
+  \tl_if_empty:NT \l__datagidx_default_database_tl
+   {
+     \tl_gset:Nx \l__datagidx_default_database_tl { #2 }
+   }
+  \DTLgnewdb{#2}%
+  \__datagidx_add_column:nn {#2} {Label}
+  \__datagidx_add_column:nnn
+    {#2} {Used} { \c_datatool_integer_int }
+  \__datagidx_add_column:nn {#2} {Location}
+  \__datagidx_add_column:nn {#2} {UnsafeLocation}
+  \__datagidx_add_column:nn {#2} {CurrentLocation}
+  \__datagidx_add_column:nnn {#2} {FirstId} { \c_datatool_integer_int }
+  \__datagidx_add_column:nn {#2} {Name}
+  \__datagidx_add_column:nn {#2} {Text}
+  \__datagidx_add_column:nn {#2} {Plural}
+  \__datagidx_add_column:nn {#2} {Parent}
+  \__datagidx_add_column:nn {#2} {Child}
+  \__datagidx_add_column:nn {#2} {Description}
+  \__datagidx_add_column:nn {#2} {HierSort}
+  \__datagidx_add_column:nn {#2} {Sort}
+  \__datagidx_add_column:nn {#2} {LetterGroup}
+  \__datagidx_add_column:nn {#2} {Symbol}
+  \__datagidx_add_column:nn {#2} {Long}
+  \__datagidx_add_column:nn {#2} {LongPlural}
+  \__datagidx_add_column:nn {#2} {Short}
+  \__datagidx_add_column:nn {#2} {ShortPlural}
+  \__datagidx_add_column:nn {#2} {See}
+  \__datagidx_add_column:nn {#2} {SeeAlso}
+  \datagidx@newgidx@update{#2}{#3}%
+\egroup
+}
+\cs_new:Nn \__datagidx_add_column:nn
+{
+  \__datagidx_add_column:nnn
+   { #1 } { #2 } { \c_datatool_string_int }
+}
+\cs_new:Nn \__datagidx_add_column:nnn
+{
+  \__datatool_add_column_with_header:nxxx
+    { #1 } { #2 } { \int_eval:n { #3 } } { #2 }
+}
+\cs_new:Nn \__datagidx_update_loaded_data:n
+{
+  \datatool_if_has_key:nnF { #1 } { HierSort }
+  {
+    \__datagidx_add_column:nn { #1 } { HierSort }
+  }
+  \datatool_if_has_key:nnF { #1 } { LetterGroup }
+  {
+    \__datagidx_add_column:nn { #1 } { LetterGroup }
+  }
+  \datatool_if_has_key:nnF { #1 } { UnsafeLocation }
+  {
+    \__datagidx_add_column:nn {#1 } { UnsafeLocation }
+  }
+}
+\newcommand*{\datagidx@newgidx@update}[2]{%
+  \group_begin:
+    \bool_set_true:N \l__datatool_db_global_bool
+    \dtlexpandnewvalue
+    \DTLnewrow {datagidx}
+    \DTLnewdbentry {datagidx} {Glossary}
+     { \exp_not:n { #1 } }
+    \DTLnewdbentry {datagidx} {Title}
+     { \exp_not:n { #2 } }
+    \DTLnewdbentry {datagidx} {Heading}
+     { \exp_not:V \l__datagidx_heading_tl }
+    \DTLnewdbentry{datagidx}{PostHeading}
+      {\exp_not:V \l__datagidx_post_heading_tl }
+    \DTLnewdbentry {datagidx} {MultiCols}
+      {\exp_not:V \l__datagidx_multicols_tl }
+    \DTLnewdbentry{datagidx}{Sort}
+     { \exp_not:V \l__datagidx_sort_tl }
+    \DTLnewdbentry{datagidx}{Style}{\expandonce\datagidx@style}%
+    \DTLnewdbentry{datagidx}{ShowGroups}{\expandonce\datagidx@showgroups}%
+  \group_end:
+}
+\cs_new:Npn \__datagidx_filter:T #1 { #1 }
+\bool_new:N \l__datagidx_childsort_bool
+\bool_set_true:N \l__datagidx_childsort_bool
+\clist_new:N \l__datagidx_styles_clist
+\keys_define:nn { datatool / index }
+{
+  database .tl_set:N =
+    \l__datagidx_default_database_tl ,
+  database .groups:n = { print-only },
+  columns .code:n =
+    { \DTLgidxSetColumns { #1 } },
+  columns .groups:n = { print-only },
+  symbolwidth .dim_set:N =
+    \datagidxsymbolwidth ,
+  symbolwidth .groups:n = { print-only },
+  symbol-width .dim_set:N =
+    \datagidxsymbolwidth ,
+  symbol-width .groups:n = { print-only },
+  locationwidth .dim_set:N =
+    \datagidxlocationwidth ,
+  locationwidth .groups:n = { print-only },
+  location-width .dim_set:N =
+    \datagidxlocationwidth ,
+  location-width .groups:n = { print-only },
+  child .choice: ,
+  child .groups:n = { print-only },
+  child / named .code:n =
+   { \__datagidx_set_child_style_named: } ,
+  child / noname .code:n =
+   { \__datagidx_set_child_style_noname: } ,
+  childsort .bool_set:N = \l__datagidx_childsort_bool ,
+  childsort .groups:n = { print-only } ,
+  child-sort .bool_set:N = \l__datagidx_childsort_bool ,
+  child-sort .groups:n = { print-only } ,
+  namecase .choice: ,
+  namecase .groups:n = { print-only },
+  namecase / nochange .code:n =
+    { \let \DTLgidxNameCase \use:n } ,
+  namecase / uc .code:n =
+    { \renewcommand \DTLgidxNameCase [ 1 ] { \text_uppercase:n { ##1 } } } ,
+  namecase / lc .code:n =
+    { \renewcommand \DTLgidxNameCase [ 1 ] { \text_lowercase:n { ##1 } } } ,
+  namecase / firstuc .code:n =
+    { \renewcommand \DTLgidxNameCase [ 1 ] { \xmakefirstuc { ##1 } } } ,
+  namecase / capitalise .code:n =
+    { \renewcommand \DTLgidxNameCase [ 1 ] { \xcapitalisewords { ##1 } } } ,
+  name-case .choice: ,
+  name-case .groups:n = { print-only },
+  name-case / nochange .code:n =
+    { \let \DTLgidxNameCase \use:n } ,
+  name-case / uc .code:n =
+    { \renewcommand \DTLgidxNameCase [ 1 ] { \text_uppercase:n { ##1 } } } ,
+  name-case / lc .code:n =
+    { \renewcommand \DTLgidxNameCase [ 1 ] { \text_lowercase:n { ##1 } } } ,
+  name-case / firstuc .code:n =
+    { \renewcommand \DTLgidxNameCase [ 1 ] { \xmakefirstuc { ##1 } } } ,
+  name-case / capitalise .code:n =
+    { \renewcommand \DTLgidxNameCase [ 1 ] { \xcapitalisewords { ##1 } } } ,
+  namefont .code:n =
+    { \renewcommand*\DTLgidxNameFont [ 1 ] { { #1 { ##1 } } } } ,
+  namefont .groups:n = { print-only },
+  name-font .code:n =
+    { \renewcommand*\DTLgidxNameFont [ 1 ] { { #1 { ##1 } } } } ,
+  name-font .groups:n = { print-only },
+  postname .code:n =
+    { \renewcommand \DTLgidxPostName { #1 } } ,
+  postname .groups:n = { print-only },
+  post-name .code:n =
+    { \renewcommand \DTLgidxPostName { #1 } } ,
+  post-name .groups:n = { print-only },
+  postdesc .choice: ,
+  postdesc / none .code:n =
+   { \tl_clear:N \DTLgidxPostDescription } ,
+  postdesc / dot .code:n =
+   { \tl_set:Nn \DTLgidxPostDescription { . } } ,
+  postdesc .groups:n = { print-only },
+  post-desc .choice: ,
+  post-desc / none .code:n =
+   { \tl_clear:N \DTLgidxPostDescription } ,
+  post-desc / dot .code:n =
+   { \tl_set:Nn \DTLgidxPostDescription { . } } ,
+  post-desc .groups:n = { print-only },
+  prelocation .choice: ,
+  prelocation .groups:n = { print-only },
+  prelocation / none .code:n =
+   { \tl_clear:N \DTLgidxPreLocation } ,
+  prelocation / enspace .code:n =
+   { \tl_set:Nn \DTLgidxPreLocation { \enspace } } ,
+  prelocation / space .code:n =
+   { \tl_set:Nn \DTLgidxPreLocation { ~ } } ,
+  prelocation / dotfill .code:n =
+   { \tl_set:Nn \DTLgidxPreLocation { \dotfill } } ,
+  prelocation / hfill .code:n =
+   { \tl_set:Nn \DTLgidxPreLocation { \hfill } } ,
+  pre-location .choice: ,
+  pre-location .groups:n = { print-only },
+  pre-location / none .code:n =
+   { \tl_clear:N \DTLgidxPreLocation } ,
+  pre-location / enspace .code:n =
+   { \tl_set:Nn \DTLgidxPreLocation { \enspace } } ,
+  pre-location / space .code:n =
+   { \tl_set:Nn \DTLgidxPreLocation { ~ } } ,
+  pre-location / dotfill .code:n =
+   { \tl_set:Nn \DTLgidxPreLocation { \dotfill } } ,
+  pre-location / hfill .code:n =
+   { \tl_set:Nn \DTLgidxPreLocation { \hfill } } ,
+  location .choice: ,
+  location .groups:n = { print-only },
+  location / hide .code:n =
+    { \tl_clear:N \DTLgidxLocation },
+  location / list .code:n =
+    { \tl_set:Nn \DTLgidxLocation { \dtldolocationlist } },
+  location / first .code:n =
+    { \tl_set:Nn \DTLgidxLocation { \dtldofirstlocation } },
+  see .choice: ,
+  see .groups:n = { print-only },
+  see / comma .code:n =
+    {
+      \renewcommand \DTLgidxSee
+       {
+         \datatool_if_null_or_empty:NF \See
+          {
+           , ~ \DTLgidxFormatSee { \seename } { \See }
+          }
+       }
+    } ,
+  see / brackets .code:n =
+    {
+      \renewcommand \DTLgidxSee
+       {
+         \datatool_if_null_or_empty:NF \See
+          {
+            \space ( \DTLgidxFormatSee { \seename } { \See } )
+          }
+       }
+    } ,
+  see / dot .code:n =
+    {
+      \renewcommand \DTLgidxSee
+       {
+         \datatool_if_null_or_empty:NF \See
+          {
+            .  ~
+            \DTLgidxFormatSee
+              { \xmakefirstuc { \seename } } { \See }
+          }
+       }
+    } ,
+  see / space .code:n =
+    {
+      \renewcommand \DTLgidxSee
+       {
+         \datatool_if_null_or_empty:NF \See
+          {
+            \space
+            \DTLgidxFormatSee { \seename } { \See }
+          }
+       }
+    } ,
+  see / nosep .code:n =
+    {
+      \renewcommand \DTLgidxSee
+       {
+         \datatool_if_null_or_empty:NF \See
+          {
+            \DTLgidxFormatSee { \seename } { \See }
+          }
+       }
+    } ,
+  see / semicolon .code:n =
+    {
+      \renewcommand \DTLgidxSee
+       {
+         \datatool_if_null_or_empty:NF \See
+          {
+            ; ~ \DTLgidxFormatSee { \seename } { \See }
+          }
+       }
+    } ,
+  see / location .code:n =
+    {
+      \renewcommand \DTLgidxSee
+       {
+         \datatool_if_null_or_empty:NF \See
+          {
+            \DTLgidxPreLocation
+            \DTLgidxFormatSee { \seename } { \See }
+          }
+       }
+    } ,
+  symboldesc .choice: ,
+  symboldesc .groups:n = { print-only },
+  symboldesc / symbol .code:n =
+   {
+     \__datagix_set_symbol_only:
+   } ,
+  symboldesc / desc .code:n =
+   {
+     \__datagix_set_desc_only:
+   } ,
+  symboldesc / (symbol) ~ desc .code:n =
+   {
+     \__datagix_set_symbol_paren_desc:
+   } ,
+  symboldesc / desc ~ (symbol) .code:n =
+   {
+     \__datagix_set_desc_symbol_paren:
+   } ,
+  symboldesc / symbol ~ desc .code:n =
+   {
+     \__datagix_set_symbol_desc:
+   } ,
+  symboldesc / desc ~ symbol .code:n =
+   {
+     \__datagix_set_desc_symbol:
+   } ,
+  symbol-desc .choice: ,
+  symbol-desc .groups:n = { print-only },
+  symbol-desc / symbol .code:n =
+   {
+     \__datagix_set_symbol_only:
+   } ,
+  symbol-desc / desc .code:n =
+   {
+     \__datagix_set_desc_only:
+   } ,
+  symbol-desc / (symbol) ~ desc .code:n =
+   {
+     \__datagix_set_symbol_paren_desc:
+   } ,
+  symbol-desc / desc ~ (symbol) .code:n =
+   {
+     \__datagix_set_desc_symbol_paren:
+   } ,
+  symbol-desc / symbol ~ desc .code:n =
+   {
+     \__datagix_set_symbol_desc:
+   } ,
+  symbol-desc / desc ~ symbol .code:n =
+   {
+     \__datagix_set_desc_symbol:
+   } ,
+  compositor .tl_set:N = \l__datagidx_compositor_tl ,
+  compositor .value_required:n = true ,
+  compositor .groups:n = { general } ,
+  counter .code:n =
+   {
+     \__datagidx_set_counter:n { #1 }
+   },
+  counter .value_required:n = true ,
+  counter .groups:n = { general } ,
+  warn .bool_set:N = \l__datagidx_warn_bool ,
+  warn .groups:n = { general } ,
+  heading .code:n =
+   {
+     \clist_put_right:Nn \l__datagidx_styles_clist
+       { heading = { #1 } }
+     \tl_set:Nn \l__datagidx_heading_tl { #1 }
+   } ,
+  heading .groups:n = { newgloss, print } ,
+  postheading .code:n =
+   {
+     \clist_put_right:Nn \l__datagidx_styles_clist
+       { postheading = { #1 } }
+     \tl_set:Nn \l__datagidx_post_heading_tl { #1 }
+   },
+  postheading .groups:n = { newgloss, print } ,
+  post-heading .code:n =
+   {
+     \clist_put_right:Nn \l__datagidx_styles_clist
+       { postheading = { #1 } }
+     \tl_set:Nn \l__datagidx_post_heading_tl { #1 }
+   },
+  post-heading .groups:n = { newgloss, print } ,
+  balance .choice: ,
+  balance .groups:n = { newgloss, print } ,
+  balance / true .code:n =
+   {
+     \clist_put_right:Nn \l__datagidx_styles_clist
+       { balance = true }
+     \tl_set:Nn \l__datagidx_multicols_tl { multicols }
+     \datagidxbalancetrue
+   } ,
+  balance / false .code:n =
+   {
+     \clist_put_right:Nn \l__datagidx_styles_clist
+       { balance = false }
+     \tl_set:Nn \l__datagidx_multicols_tl { multicols* }
+     \datagidxbalancefalse
+   } ,
+  balance .default:n = { true } ,
+  sort .code:n =
+   {
+     \clist_put_right:Nn \l__datagidx_styles_clist
+       { sort = { #1 } }
+     \tl_set:Nn \l__datagidx_sort_tl { #1 }
+   } ,
+  sort .groups:n = { newgloss, print } ,
+  style .code:n =
+    {
+      \clist_put_right:Nn \l__datagidx_styles_clist
+       { style = { #1 } }
+      \tl_set:Nn \datagidx@style { #1 }
+    } ,
+  style .groups:n = { newgloss, print } ,
+  showgroups .choice: ,
+  showgroups .groups:n = { newgloss, print } ,
+  showgroups / true .code:n =
+    {
+      \clist_put_right:Nn \l__datagidx_styles_clist
+        { showgroups = true }
+      \tl_set:Nn \datagidx@showgroups { true }
+    } ,
+  showgroups / false .code:n =
+    {
+      \clist_put_right:Nn \l__datagidx_styles_clist
+        { showgroups = false }
+      \tl_set:Nn \datagidx@showgroups { false }
+    } ,
+  showgroups .default:n = { true } ,
+  show-groups .choice: ,
+  show-groups .groups:n = { newgloss, print } ,
+  show-groups / true .code:n =
+    {
+      \clist_put_right:Nn \l__datagidx_styles_clist
+        { showgroups = true }
+      \tl_set:Nn \datagidx@showgroups { true }
+    } ,
+  show-groups / false .code:n =
+    {
+      \clist_put_right:Nn \l__datagidx_styles_clist
+        { showgroups = false }
+      \tl_set:Nn \datagidx@showgroups { false }
+    } ,
+  show-groups .default:n = { true } ,
+  condition .code:n =
+    {
+      \cs_set:Npn \__datagidx_filter:T ##1
+       {
+         \ifthenelse { #1 } { ##1 } { }
+       }
+    } ,
+  condition .groups:n = { print-only } ,
+  include-if .cs_set:Np = \__datagidx_filter:T #1,
+  include-if .groups:n = { print-only } ,
+  include-if-fn .code:n =
+   {
+     \cs_set_eq:NN \__datagidx_filter:T #1
+   },
+  include-if-fn .groups:n = { print-only } ,
+}
+\keys_define:nn { datatool }
+{
+  index .code:n = { \keys_set:nn { datatool / index } { #1 } }
+}
+\tl_new:N \l__datagidx_remainder_tl
+\tl_new:N \l__datagidx_term_label_tl
+\tl_new:N \l__datagidx_term_parent_tl
+\tl_new:N \l__datagidx_term_name_tl
+\tl_new:N \l__datagidx_term_text_tl
+\tl_new:N \l__datagidx_term_description_tl
+\tl_new:N \l__datagidx_term_plural_tl
+\tl_new:N \l__datagidx_term_sort_tl
+\tl_new:N \l__datagidx_term_symbol_tl
+\tl_new:N \l__datagidx_term_database_tl
+\tl_new:N \l__datagidx_term_long_tl
+\tl_new:N \l__datagidx_term_short_tl
+\tl_new:N \l__datagidx_term_longplural_tl
+\tl_new:N \l__datagidx_term_shortplural_tl
+\tl_new:N \l__datagidx_term_see_tl
+\tl_new:N \l__datagidx_term_seealso_tl
+\cs_new:Nn \__datagidx_create_label:n
+{
+ \group_begin:
+   \cs_set_eq:NN \glsadd \DTLgidxGobble
+   \cs_set_eq:NN \MakeUppercase \DTLgidxNoFormat
+   \cs_set_eq:NN \MakeTextUppercase \DTLgidxNoFormat
+   \cs_set_eq:NN \MakeLowercase \DTLgidxNoFormat
+   \cs_set_eq:NN \MakeTextLowercase \DTLgidxNoFormat
+   \cs_set_eq:NN \acronymfont \DTLgidxNoFormat
+   \cs_set_eq:NN \textrm \DTLgidxNoFormat
+   \cs_set_eq:NN \texttt \DTLgidxNoFormat
+   \cs_set_eq:NN \textsf \DTLgidxNoFormat
+   \cs_set_eq:NN \textsc \DTLgidxNoFormat
+   \cs_set_eq:NN \textbf \DTLgidxNoFormat
+   \cs_set_eq:NN \textmd \DTLgidxNoFormat
+   \cs_set_eq:NN \textit \DTLgidxNoFormat
+   \cs_set_eq:NN \textsl \DTLgidxNoFormat
+   \cs_set_eq:NN \emph \DTLgidxNoFormat
+   \cs_set_eq:NN \textsuperscript \DTLgidxNoFormat
+  \datagidxconvertchars
+   \cs_set_eq:NN \ensuremath \DTLgidxNoFormat
+   \cs_set_eq:NN \DTLgidxParen \use_none:n
+   \cs_set_eq:NN \DTLgidxName \use_ii:nn
+   \cs_set_eq:NN \DTLgidxPlace \datagidx@invert
+   \cs_set_eq:NN \DTLgidxSubject \datagidx@invert
+   \cs_set_eq:NN \DTLgidxOffice \use_ii:nn
+   \cs_set_eq:NN \DTLgidxParticle \datagidx@bothoftwo
+   \cs_set_eq:NN \__datagidx_punc:n \use_none:n
+   \datagidxwordifygreek
+   \newtermlabelhook
+    \protected@edef \l__datagidx_term_label_tl { #1 }
+    \regex_replace_all:nnN
+        { [,=] } { } \l__datagidx_term_label_tl
+   \tl_set:Nx \l__datagidx_term_label_tl
+    {
+      \text_purify:n { \l__datagidx_term_label_tl }
+    }
+  \exp_args:NNNV
+ \group_end:
+    \tl_set:Nn
+      \l__datagidx_term_label_tl
+      \l__datagidx_term_label_tl
+}
+\cs_new:Nn \__datagidx_create_sort:n
+{
+ \group_begin:
+   \cs_set_eq:NN \glsadd \use_none:n
+   \cs_set_eq:NN \MakeUppercase \DTLgidxNoFormat
+   \cs_set_eq:NN \MakeTextUppercase \DTLgidxNoFormat
+   \cs_set_eq:NN \MakeLowercase \DTLgidxNoFormat
+   \cs_set_eq:NN \MakeTextLowercase \DTLgidxNoFormat
+   \cs_set_eq:NN \acronymfont \DTLgidxNoFormat
+   \cs_set_eq:NN \textrm \DTLgidxNoFormat
+   \cs_set_eq:NN \texttt \DTLgidxNoFormat
+   \cs_set_eq:NN \textsf \DTLgidxNoFormat
+   \cs_set_eq:NN \textsc \DTLgidxNoFormat
+   \cs_set_eq:NN \textbf \DTLgidxNoFormat
+   \cs_set_eq:NN \textmd \DTLgidxNoFormat
+   \cs_set_eq:NN \textit \DTLgidxNoFormat
+   \cs_set_eq:NN \textsl \DTLgidxNoFormat
+   \cs_set_eq:NN \emph \DTLgidxNoFormat
+   \cs_set_eq:NN \textsuperscript \DTLgidxNoFormat
+  \datagidxconvertchars
+   \cs_set_eq:NN \ensuremath \DTLgidxNoFormat
+   \cs_set_eq:NN \__datagidx_punc:n \exp_not:n
+   \cs_set_eq:NN \DTLgidxName \datagidx@person
+   \cs_set_eq:NN \DTLgidxPlace \datagidx@place
+   \cs_set_eq:NN \DTLgidxSubject \datagidx@subject
+   \cs_set_eq:NN \DTLgidxOffice \datagidx@person
+   \cs_set_eq:NN \DTLgidxParen \datagidx@paren
+   \cs_set_eq:NN \DTLgidxMac \datagidx@mac
+   \cs_set_eq:NN \DTLgidxSaint \datagidx@saint
+   \cs_set_eq:NN \DTLgidxIgnore \@gobble
+   \cs_set_eq:NN \DTLgidxRank \datagidx@rank
+   \cs_set_eq:NN \DTLgidxParticle \datagidx@particle
+   \cs_set_eq:NN \DTLgidxNameNum \datagidx@namenum
+   \datagidxwordifygreek
+   \newtermsorthook
+   \protected@edef \l__datagidx_term_sort_tl { #1 }
+  \exp_args:NNNV
+ \group_end:
+    \tl_set:Nn
+      \l__datagidx_term_sort_tl
+      \l__datagidx_term_sort_tl
+}
+\tl_new:N \l__datagidx_term_hiersort_tl
+\keys_define:nn { datatool / index / newterm }
+{
+  database .code:n =
+   {
+     \tl_set:Nx \l__datagidx_term_database_tl
+       { #1 }
+   },
+  label .code:n =
+   {
+     \__datagidx_create_label:n { #1 }
+   } ,
+  parent .code:n =
+   {
+     \tl_set:Nx \l__datagidx_term_parent_tl
+       { #1 }
+   } ,
+  text .code:n =
+    {
+      \tl_set:Nn \l__datagidx_term_text_tl { #1 }
+      \tl_if_eq:NnT \l__datagidx_term_plural_tl { \c_novalue_tl }
+       {
+         \tl_set:Nn \l__datagidx_term_plural_tl { #1 s }
+       }
+    } ,
+  description .tl_set:N = \l__datagidx_term_description_tl ,
+  plural .tl_set:N = \l__datagidx_term_plural_tl ,
+  sort .code:n =
+   {
+     \__datagidx_create_sort:n { #1 }
+   } ,
+  symbol .tl_set:N = \l__datagidx_term_symbol_tl ,
+  long .code:n =
+   {
+     \tl_set:Nn \l__datagidx_term_long_tl { #1 }
+     \tl_if_eq:NnT \l__datagidx_term_longplural_tl { \c_novalue_tl }
+      {
+        \tl_set:Nn \l__datagidx_term_longplural_tl { #1 s }
+      }
+   } ,
+  short .code:n =
+   {
+     \tl_set:Nn \l__datagidx_term_short_tl { #1 }
+     \tl_if_eq:NnT \l__datagidx_term_shortplural_tl { \c_novalue_tl }
+      {
+        \tl_set:Nn \l__datagidx_term_shortplural_tl { #1 s }
+      }
+   } ,
+  longplural .tl_set:N = \l__datagidx_term_longplural_tl ,
+  shortplural .tl_set:N = \l__datagidx_term_shortplural_tl ,
+  see .tl_set:N = \l__datagidx_term_see_tl ,
+  seealso .tl_set:N = \l__datagidx_term_seealso_tl ,
+}
+\tl_new:N \g__datagidx_newterm_defaults_tl
+\tl_new:N \g__datagidx_extra_fields_tl
+\newcommand*{\DTLgidxAssignList}{
+  \Name=Name,
+  \Description=Description,
+  \Used=Used,
+  \Symbol=Symbol,
+  \Long=Long,
+  \Short=Short,
+  \LongPlural=LongPlural,
+  \ShortPlural=ShortPlural,
+  \Location=Location,
+  \See=See,
+  \SeeAlso=SeeAlso,
+  \Text=Text,
+  \Plural=Plural,
+  \CurrentLocation=CurrentLocation,
+  \Label=Label,
+  \Parent=Parent,
+  \Children=Child,
+  \FirstId=FirstId,
+  \HierSort=HierSort,
+  \Sort=Sort,
+  \datagidxcurrentgroup=LetterGroup
+}
+\newcommand*{\datagidxtermkeys}{}
+\cs_new:Nn \__datagidx_add_field:nn
+{
+  \clist_gput_right:Nn \datagidxtermkeys { #2 }
+  \tl_gset:cn { g__datagidx_fieldkey_ #1 } { #2 }
+  \tl_clear_new:c { l__datagidx_term_ #2 _tl }
+}
+\cs_new:Nn \__datagidx_add_field_option:nnnN
+{
+  \__datagidx_add_field:nn { #1 } { #2 }
+  \keys_define:nn { datatool / index / newterm }
+  {
+    #2 .tl_set:N = #4
+  }
+  \tl_put_right:Nn \g__datagidx_newterm_defaults_tl
+   {
+     \tl_if_eq:NnT #4 { \c_novalue_tl }
+      {
+        \tl_set:Nx #4 { #3 }
+      }
+   }
+}
+\cs_generate_variant:Nn
+ \__datagidx_add_field_option:nnnN
+ { xxnc }
+\__datagidx_add_field:nn { Name } { name }
+\__datagidx_add_field:nn { Description} { description }
+\__datagidx_add_field:nn { Symbol } { symbol }
+\__datagidx_add_field:nn { Long } { long }
+\__datagidx_add_field:nn { Short } { short }
+\__datagidx_add_field:nn { See } { see }
+\__datagidx_add_field:nn { SeeAlso } { seealso }
+\__datagidx_add_field:nn { Text } { text }
+\__datagidx_add_field:nn { Plural } { plural }
+\__datagidx_add_field:nn { Label } { label }
+\__datagidx_add_field:nn { Parent } { parent }
+\__datagidx_add_field:nn { Sort } { sort }
+\NewDocumentCommand \newtermaddfield
+  { O{} m o m O { \c_datatool_string_int } m }
+{
+  \__datagidx_set_label:Nn \l__datagidx_label_tl { #2 }
+  \tl_if_empty:nTF { #1 }
+  {
+    \dtlforcolumn
+      \l__datagidx_database_tl { datagidx } { Glossary }
+    {
+      \datatool_if_has_key:nnF
+       { \l__datagidx_database_tl } { \l__datagidx_label_tl }
+       {
+         \__datagidx_add_column:nnn
+           { \l__datagidx_database_tl }
+           { \l__datagidx_label_tl }
+           { #5 }
+       }
+    }
+  }
+  {
+    \clist_map_inline:nn { #1 }
+    {
+      \datatool_if_has_key:nnF
+       { ##1 } { \l__datagidx_label_tl }
+       {
+         \__datagidx_add_column:nnn
+           { ##1 }
+           { \l__datagidx_label_tl }
+           { #5 }
+       }
+    }
+  }
+  \__datagidx_add_field_option:xxnc
+    { \l__datagidx_label_tl } { #4 } { #6 }
+    { l__datagidx_term_ #4 _tl }
+  \__datagidx_append_extra_field:cV
+    { l__datagidx_term_ #4 _tl }
+    \l__datagidx_label_tl
+  \IfValueTF { #3 }
+  {
+    \tl_if_blank:n { #3 }
+    {
+      \__datagidx_add_placeholder:cV
+        { \l__datagidx_label_tl }
+        \l__datagidx_label_tl
+    }
+    {
+      \__datagidx_add_placeholder:NV
+        #3
+        \l__datagidx_label_tl
+    }
+  }
+  {
+    \__datagidx_add_placeholder:cV
+      { \l__datagidx_label_tl }
+      \l__datagidx_label_tl
+  }
+}
+\cs_new:Nn \__datagidx_append_extra_field:Nn
+{
+  \tl_gput_right:Nn \g__datagidx_extra_fields_tl
+   {
+     \__datagidx_append_element_with_check:Nn
+       #1 { #2 }
+   }
+}
+\cs_generate_variant:Nn
+  \__datagidx_append_extra_field:Nn
+  { cV }
+\cs_new:Nn \__datagidx_add_placeholder:Nn
+{
+ \tl_if_exist:NTF #1
+  {
+    \PackageError { datagidx }
+    {
+      \token_to_str: \newtermaddfield : ~ placeholder ~
+      \token_to_str #1 \c_space_tl ~ already ~ exists
+    }
+    {
+      Choose ~ a ~ different ~ command ~ name ~ in
+      \token_to_str: \newtermaddfield [ ... ]
+      { #2 } [ \token_to_str #1 ] { ... }
+    }
+  }
+  {
+    \clist_gput_right:Nn \DTLgidxAssignList
+    {
+      #1 = #2
+    }
+    \tl_gput_right:Nn \datagidxgetchildfields
+    {
+      \datatool_if_has_key:nnTF
+        { \DTLgidxCurrentdb } { #2 }
+       {
+         \dtlgetentryfromcurrentrow { #1 }
+         { \dtlcolumnindex { \DTLgidxCurrentdb } { #2 } }
+       }
+       {
+         \tl_set_eq:NN #1 \dtlnovalue
+       }
+    }
+  }
+}
+\cs_generate_variant:Nn \__datagidx_add_placeholder:Nn
+ { cn, cV, NV }
+\newcommand*{\newtermlabelhook}{}
+\newcommand*{\newtermsorthook}{}
+\newcommand*{\DTLgidxNoFormat}[1]{#1}
+\newcommand*{\DTLgidxGobble}[1]{}
+\newcommand*{\DTLgidxStripBackslash}[1]{ \cs_to_str:N #1 }
+\newcommand*{\DTLgidxName}[2]{ #1 \c_space_tl #2 }
+\newcommand*{\DTLgidxNameNum}[1]{\@Roman{#1}}
+\newcommand*{\datagidx@namenum}[1]{\two@digits{#1}}
+\newcommand*{\DTLgidxPlace}[2]{ #2 }
+\newcommand*{\DTLgidxSubject}[2]{ #2 }
+\newcommand*{\DTLgidxOffice}[2]{ #2 ~ ( #1 ) }
+\newcommand*{\DTLgidxIgnore}[1]{#1}
+\newcommand*{\DTLgidxMac}[1]{#1}
+\newcommand*{\datagidx@mac}[1]{Mac}
+\newcommand*{\DTLgidxSaint}[1]{#1}
+\newcommand*{\datagidx@saint}[1]{Saint}
+\ExplSyntaxOff
+\newcommand*{\DTLgidxRank}[2]{#1~#2}
+\newcommand*{\datagidx@rank}[2]{#2.}
+\newcommand*{\DTLgidxParticle}[2]{#1~#2}
+\ExplSyntaxOn
+\newcommand*{\datagidx@particle}[2]{#2.}
+\newcommand*{\datagidx@bothoftwo}[2]{#1#2}
+\cs_new:Nn \__datagidx_punc:n { #1 }
+\newcommand*{\datagidx@person}[2]{
+ #2 \__datagidx_punc:n { \datatoolpersoncomma } #1
+}
+\newcommand*{\datagidx@place}[2]{
+ #2 \__datagidx_punc:n { \datatoolplacecomma } #1
+}
+\newcommand*{\datagidx@subject}[2]{
+ #2 \__datagidx_punc:n { \datatoolsubjectcomma } #1
+}
+\newcommand*{\datagidx@paren}[1]{
+ \__datagidx_punc:n { \datatoolparenstart } #1
+}
+\newcommand*{\datagidx@invert}[2]{
+ #2 \__datagidx_punc:n { , } ~ #1
+}
+\newcommand*{\DTLgidxParen}[1]{ \c_space_tl ( #1 ) }
+\newcommand*{\datagidxwordifygreek}{%
+  \def\alpha{alpha}%
+  \def\beta{beta}%
+  \def\gamma{gamma}%
+  \def\delta{delta}%
+  \def\epsilon{epsilon}%
+  \def\varepsilon{epsilon}%
+  \def\zeta{zeta}%
+  \def\eta{eta}%
+  \def\theta{theta}%
+  \def\vartheta{theta}%
+  \def\iota{iota}%
+  \def\kappa{kappa}%
+  \def\lambda{lambda}%
+  \def\mu{mu}%
+  \def\nu{nu}%
+  \def\xi{xi}%
+  \def\pi{pi}%
+  \def\varpi{pi}%
+  \def\rho{rho}%
+  \def\varrho{rho}%
+  \def\sigma{sigma}%
+  \def\varsigma{sigma}%
+  \def\tau{tau}%
+  \def\upsilon{upsilon}%
+  \def\phi{phi}%
+  \def\varphi{phi}%
+  \def\chi{chi}%
+  \def\psi{psi}%
+  \def\omega{omega}%
+  \def\Gamma{Gamma}%
+  \def\Delta{Delta}%
+  \def\Theta{Theta}%
+  \def\Lambda{Lambda}%
+  \def\Xi{Xi}%
+  \def\Pi{Pi}%
+  \def\Sigma{Sigma}%
+  \def\Upsilon{Upsilon}%
+  \def\Phi{Phi}%
+  \def\Psi{Psi}%
+  \def\Omega{Omega}%
+}
+\newcommand{\datagidxextendedtoascii}{%
+  \def\AE{AE}%
+  \def\ae{ae}%
+  \def\OE{OE}%
+  \def\oe{oe}%
+  \def\AA{AA}%
+  \def\aa{aa}%
+  \def\L{L}%
+  \def\l{l}%
+  \def\O{O}%
+  \def\o{o}%
+  \def\SS{SS}%
+  \def\ss{ss}%
+  \def\th{th}%
+  \def\TH{TH}%
+  \def\dh{dh}%
+  \def\DH{DH}%
+}
+\ExplSyntaxOff
+\newcommand*{\datagidxconvertchars}{%
+  \let~\space
+  \ifdef\andname
+  {%
+    \let\&\andname
+  }%
+  {%
+    \def\&{\expandafter\@gobble\string\&}%
+  }%
+  \def\_{\string_}%
+  \def\${\string$}%
+  \def\#{\expandafter\@gobble\string\#}%
+  \def\%{\expandafter\@gobble\string\%}%
+  \def\{{\expandafter\@gobble\string\{}%
+  \def\}{\expandafter\@gobble\string\}}%
+}
+\ExplSyntaxOn
+\newcommand*{\datagidxstripaccents}{%
+  \PackageWarning { datagidx }
+   {
+     \token_to_str:N \datagidxstripaccents \c_space_tl ~
+     is ~ deprecated
+   }
+   \let\add@accent@\@secondoftwo
+   \let\@text@composite@x\@secondoftwo
+   \let\@tabacckludge\@secondoftwo
+   \expandafter\def\csname \encodingdefault-cmd\endcsname##1##2##3{##3}%
+   \expandafter\def\csname OT1-cmd\endcsname##1##2##3{##3}%
+   \expandafter\def\csname T1-cmd\endcsname##1##2##3{##3}%
+   \expandafter\def\csname PD1-cmd\endcsname##1##2##3{##3}%
+   \def\IeC##1{\@gobbletwo##1}%
+   \let\UTFviii@two@octets\UTFviii@two@octets@combine
+}%
+\providecommand{\newterm}{\datagidx@newterm}
+\@onlypreamble\newterm
+\cs_new:Nn \__datagidx_set_label:n
+{
+  \__datagidx_set_label:Nn
+    \l__datagidx_term_label_tl { #1 }
+}
+\cs_new:Nn \__datagidx_set_label:Nn
+{
+  \tl_set:Nx #1 { \text_purify:n { #2 } }
+}
+\cs_new:Nn \__datagidx_set_field_values:nn
+{
+ \clist_map_inline:Nn \datagidxtermkeys
+  {
+    \tl_set:cn { l__datagidx_term_ ##1 _ tl} { \c_novalue_tl }
+  }
+ \tl_set:Nx \l__datagidx_term_database_tl
+   { \l__datagidx_default_database_tl }
+ \tl_clear:N \l__datagidx_term_parent_tl
+ \tl_set:Nn \l__datagidx_term_name_tl { #2 }
+ \tl_set:Nn \l__datagidx_term_text_tl { #2 }
+ \tl_clear:N \l__datagidx_term_description_tl
+ \tl_clear:N \l__datagidx_term_symbol_tl
+ \tl_set:Nn \l__datagidx_term_short_tl { #2 }
+ \tl_set:Nn \l__datagidx_term_long_tl { #2 }
+ \tl_clear:N \l__datagidx_term_see_tl
+ \tl_clear:N \l__datagidx_term_seealso_tl
+ \keys_set:nn { datatool / index / newterm } { #1 }
+ \cs_set_eq:NN \__datagidx_org_field:n \field
+ \def \field ##1
+   { \exp_not:v { l__datagidx_term_ ##1 _tl } }
+ \g__datagidx_newterm_defaults_tl
+ \let \field \__datagidx_org_field:n
+  \tl_if_eq:NnT \l__datagidx_term_label_tl { \c_novalue_tl }
+   {
+     \__datagidx_create_label:n { #2 }
+   }
+  \exp_args:NV \tl_if_blank:nT \l__datagidx_term_label_tl
+   {
+      \PackageError { datagidx }
+      {
+        Blank ~ label ~ not ~ permitted ~
+        ( for ~ term ~ ` \tl_to_str:n { #2 } ')
+      }
+      {
+        Use ~ label={...} ~ in ~ options ~
+        to ~ set ~ the ~ label ~ to ~ a ~ non-blank ~ value. ~
+        Bear ~ in ~ mind ~ that ~ commas ~ (,) ~ and ~
+        equals ~ (=) ~ and ~ other ~ problematic ~
+        content ~ will ~ be ~ stripped
+      }
+   }
+  \tl_if_eq:NnT \l__datagidx_term_sort_tl { \c_novalue_tl }
+   {
+     \__datagidx_create_sort:n { #2 }
+   }
+}
+\cs_new:Nn \__datagidx_add_term:n
+{
+  \__datagidx_assign_label_db:nn
+    { \l__datagidx_term_label_tl }
+    { \l__datagidx_term_database_tl }
+  \tl_clear:N \l__datatool_row_tl
+  \tl_put_right:Nx \l__datatool_row_tl
+   {
+     \__datatool_row_element_markup:vV
+      { dtl@ci@ \l__datagidx_term_database_tl @ Label }
+       \l__datagidx_term_label_tl
+   }
+  \tl_put_right:Nx \l__datatool_row_tl
+   {
+     \__datatool_row_element_markup:vn
+      { dtl@ci@ \l__datagidx_term_database_tl @ Used }
+      {
+        \dtlspecialvalue { \__datagidx_used:n { 0 } }
+      }
+   }
+  \__datagidx_append_element:nn { Name } { #1 }
+  \__datagidx_append_element:nV
+    { Text } \l__datagidx_term_text_tl
+  \__datagidx_append_element:nV
+    { Description } \l__datagidx_term_description_tl
+  \__datagidx_append_element:nV
+    { Sort } \l__datagidx_term_sort_tl
+  \__datagidx_append_element:nV
+    { Symbol } \l__datagidx_term_symbol_tl
+  \__datagidx_append_element:nV
+    { Short } \l__datagidx_term_short_tl
+  \__datagidx_append_element:nV
+    { Long } \l__datagidx_term_long_tl
+  \tl_if_eq:NnTF \l__datagidx_term_plural_tl { \c_novalue_tl }
+    {
+      \__datagidx_append_element:no
+        { Plural }
+        { \l__datagidx_term_text_tl s }
+    }
+    {
+      \__datagidx_append_element:nV
+        { Plural } \l__datagidx_term_plural_tl
+    }
+  \tl_if_eq:NnTF \l__datagidx_term_shortplural_tl { \c_novalue_tl }
+    {
+      \__datagidx_append_element:no
+        { ShortPlural }
+        { \l__datagidx_term_short_tl s }
+    }
+    {
+      \__datagidx_append_element:nV
+        { ShortPlural }
+        \l__datagidx_term_shortplural_tl
+    }
+   \tl_if_eq:NnTF \l__datagidx_term_longplural_tl { \c_novalue_tl }
+    {
+      \__datagidx_append_element:no
+        { LongPlural }
+        { \l__datagidx_term_long_tl s }
+    }
+    {
+      \__datagidx_append_element:nV
+        { LongPlural }
+        \l__datagidx_term_longplural_tl
+    }
+   \tl_if_empty:NF \l__datagidx_term_see_tl
+    {
+      \tl_put_right:Nx \l__datatool_row_tl
+       {
+         \__datatool_row_element_markup:vV
+           { dtl@ci@ \l__datagidx_term_database_tl @ See }
+           \l__datagidx_term_see_tl
+       }
+    }
+   \tl_if_empty:NF \l__datagidx_term_seealso_tl
+    {
+      \tl_put_right:Nx \l__datatool_row_tl
+       {
+         \__datatool_row_element_markup:vV
+           { dtl@ci@ \l__datagidx_term_database_tl @ SeeAlso }
+           \l__datagidx_term_see_tl
+       }
+    }
+   \g__datagidx_extra_fields_tl
+   \tl_if_empty:NF \l__datagidx_term_parent_tl
+    {
+      \iftermexists { \l__datagidx_term_parent_tl }
+       {
+         \tl_set:Nx \l__datagidx_parent_database_tl
+          {
+            \__datagidx_term_database:n
+              { \l__datagidx_term_parent_tl }
+          }
+         \tl_if_eq:NNTF
+           \l__datagidx_parent_database_tl
+           \l__datagidx_term_database_tl
+         {
+           \tl_put_right:Nx \l__datatool_row_tl
+            {
+              \__datatool_row_element_markup:vV
+               { dtl@ci@ \l__datagidx_term_database_tl @ Parent }
+               \l__datagidx_term_parent_tl
+            }
+           \__datagidx_add_child:xxx
+             { \l__datagidx_term_database_tl }
+             { \l__datagidx_term_parent_tl }
+             { \l__datagidx_term_label_tl }
+           \tl_set:Nn \l__datagidx_term_hiersort_tl { \c_novalue_tl }
+           \__datagidx_set_hiersort:
+           \tl_if_eq:NnF
+             \l__datagidx_term_hiersort_tl { \c_novalue_tl }
+            {
+              \__datagidx_append_element:nV
+                { HierSort } \l__datagidx_term_hiersort_tl
+            }
+         }
+         {
+           \PackageError{datagidx}
+           {
+             Parent ~ entry ~ ` \l__datagidx_term_parent_tl ' ~ must ~
+             belong ~ to ~ the ~ same ~ database ~ as ~
+             child ~ entry ~ `\l__datagidx_term_label_tl '
+           }
+           {
+             Parent ~ entry ~ is ~ in ~ database ~
+             ` \l__datagidx_parent_database_tl ' ~ and ~
+             child ~ entry ~ is ~ in ~
+             database ~ `\l__datagidx_term_database_tl'
+           }
+         }
+       }
+       {
+         \PackageError {datagidx}
+         {
+            Can't ~ assign ~ parent ~ to ~
+            `\l__datagidx_term_label_tl': ~
+            ` \l__datagidx_term_parent_tl ' ~ doesn't ~ exist
+         }
+         {}
+       }
+    }
+  \int_gincr:c { dtlrows@  \l__datagidx_term_database_tl  }
+  \__datatool_token_register_gput_right:cx
+   { dtldb@ \l__datagidx_term_database_tl }
+   {
+     \__datatool_row_markup:vV
+      { dtlrows@ \l__datagidx_term_database_tl }
+      \l__datatool_row_tl
+   }
+  \tl_gset:Nx \datagidxlastlabel
+   { \l__datagidx_term_label_tl }
+  \postnewtermhook
+}
+\cs_new:Nn \__datagidx_set_hiersort:
+{
+  \group_begin:
+    \DTLaction
+     [
+       key = Label,
+       expand-value = \l__datagidx_term_parent_tl ,
+       name =  \l__datagidx_term_database_tl ,
+       return = { \Sort = Sort, \HierSort = HierSort}
+     ]
+     { select ~ row }
+    \datatool_if_null_or_empty:NTF \HierSort
+     {
+       \datatool_if_null_or_empty:NF \Sort
+        {
+          \tl_set:Nx \l__datagidx_term_hiersort_tl
+            {
+               \exp_not:V \Sort
+               \exp_not:N \datatoolctrlboundary
+               \exp_not:N \datatoolasciistart
+               \exp_not:V \l__datagidx_term_sort_tl
+            }
+        }
+     }
+     {
+       \tl_set:Nx \l__datagidx_term_hiersort_tl
+         {
+            \exp_not:V \HierSort
+            \exp_not:N \datatoolctrlboundary
+            \exp_not:N \datatoolasciistart
+            \exp_not:V \l__datagidx_term_sort_tl
+         }
+     }
+  \exp_args:NNNV
+  \group_end:
+    \tl_set:Nn \l__datagidx_term_hiersort_tl
+      \l__datagidx_term_hiersort_tl
+}
+\cs_new:Nn \__datagidx_append_element:nn
+{
+  \tl_if_exist:cTF
+     { dtl@ci@ \l__datagidx_term_database_tl @ #1 }
+   {
+     \__datatool_process_new_value:n { #2 }
+     \tl_put_right:Nx \l__datatool_row_tl
+      {
+        \__datatool_row_element_markup:vV
+          { dtl@ci@ \l__datagidx_term_database_tl @ #1 }
+          \l__datatool_item_value_tl
+      }
+   }
+   {
+     \PackageError { datagidx }
+     {
+       Column ~ ` #1' ~ hasn't ~ been ~ defined ~ in ~
+       database ~ ` \l__datagidx_term_database_tl '
+     }
+     {
+       A ~ new ~ term ~ can't ~ be ~ added ~ to ~
+       database ~ ` \l__datagidx_term_database_tl '. ~
+       Has ~ the ~ database ~ been ~ defined ~ with ~
+       \token_to_str:N \newgidx ? ~ If ~ this ~ is ~
+       a ~ custom ~ field, ~ was ~
+       \token_to_str:N  \newtermaddfield \c_space_tl ~
+       used ~ after ~ ` \l__datagidx_term_database_tl ' ~
+       was ~ defined?
+     }
+   }
+}
+\cs_generate_variant:Nn
+  \__datagidx_append_element:nn
+  { nV , no, nv }
+\cs_new:Nn \__datagidx_append_element_with_check:Nn
+{
+  \datatool_if_null:NF #1
+   {
+     \datatool_if_has_key:nnT
+       { \l__datagidx_term_database_tl } { #2 }
+      {
+        \__datagidx_append_element:nV
+          { #2 } #1
+      }
+   }
+}
+\newcommand*{\postnewtermhook}{}
+\newcommand*{\newtermfield}[1]{
+ \use:c { l__datagidx_term_ #1 _ tl }
+}
+\newcommand{\ifnewtermfield}[3]{%
+  \tl_if_exist:cTF { l__datagidx_term_ #1 _ tl }
+   {
+     \tl_if_empty:cTF { l__datagidx_term_ #1 _ tl }
+       { #3 } { #2 }
+   }
+   { #3 }
+}
+\NewDocumentCommand \datagidx@newterm { O{} m }
+{
+  \__datagidx_set_field_values:nn { #1 } { #2 }
+  \DTLifdbexists { \l__datagidx_term_database_tl }
+  {
+    \iftermexists { \l__datagidx_term_label_tl }
+    {
+      \PackageError {datagidx}
+      {
+        Term ~ ` \l__datagidx_term_label_tl ' ~
+        already ~ exists ~ in ~ database ~
+         ` \l__datagidx_term_database_tl '
+      }
+      { }
+    }
+    {
+       \__datagidx_add_term:n { #2 }
+       \dtl@message
+        {
+          Added ~ term ~  ` \l__datagidx_term_label_tl ' ~
+          to ~ database ~ ` \l__datagidx_term_database_tl ' ~
+          (name: ~ ` \tl_to_str:N \l__datagidx_term_name_tl ' , ~
+           sort: ~ ` \tl_to_str:N \l__datagidx_term_sort_tl ')
+        }
+    }
+  }
+  {
+    \PackageError {datagidx}
+    {
+      Glossary/index ~ database ~ `\l__datagidx_term_database_tl' ~
+      doesn't ~ exist
+    }
+    {
+      You ~ must ~ define ~ the ~ glossary/index ~
+      database ~ with \token_to_str:N \newgidx \c_space_tl ~
+      before ~ you ~ can ~ add ~ any ~ terms ~ to ~ it.
+    }
+  }%
+}
+\NewDocumentCommand \datagidx@highopt@newterm { O{} m }
+{
+  \__datagidx_set_field_values:nn { #1 } { #2 }
+  \DTLifdbexists { \l__datagidx_term_database_tl }
+  {
+    \__datatool_get_row_index:Nxxx
+      \l__datatool_row_idx_tl
+       { \l__datagidx_term_database_tl }
+       {
+         \dtlcolumnindex
+           { \l__datagidx_term_database_tl } {Label}
+       }
+       { \l__datagidx_term_label_tl }
+    \datatool_if_null:NTF \l__datatool_row_idx_tl
+     {
+       \__datagidx_add_term:n { #2 }
+       \tl_set:cx
+         {
+           datagidx@do@highopt@sort@
+           \l__datagidx_term_database_tl
+         }
+         { \exp_not:V \l__datagidx_sort_tl }
+     }
+     {
+      \__datagidx_assign_label_db:nn
+        \l__datagidx_term_label_tl
+        \l__datagidx_term_database_tl
+      \tl_set:Nx \datagidxlastlabel
+        { \l__datagidx_term_label_tl }
+     }
+  }%
+  {%
+    \PackageError {datagidx}
+    {
+      Glossary/index ~ database ~
+      `\l__datagidx_term_database_tl' ~ doesn't ~ exist
+    }
+    {
+      You ~ must ~ define ~ the ~ glossary/index ~
+      database ~ before ~ you ~ can ~
+      add ~ any ~ terms ~ to ~ it.
+    }
+  }
+}
+\cs_new:Nn \__datagidx_add_child:nnn
+{
+  \__datatool_get_row_for_value:xxn
+   { #1 }
+   { \dtlcolumnindex { #1 } { Label } }
+   { #2 }
+  \dtlgetentryfromcurrentrow
+    \l__datagidx_child_clist
+    { \dtlcolumnindex { #1 } { Child } }
+  \datatool_if_null:NT \l__datagidx_child_clist
+   {
+     \clist_clear:N \l__datagidx_child_clist
+   }
+  \clist_put_right:Nx \l__datagidx_child_clist
+    { #3 }
+  \exp_args:NnV
+    \dtlupdateentryincurrentrow
+    {Child} \l__datagidx_child_clist
+  \dtlrecombine
+}
+\cs_generate_variant:Nn
+  \__datagidx_add_child:nnn
+  { xxx }
+\NewDocumentCommand \newacro { O{} m m }
+{
+  \exp_args:Nno \datagidx_new_acro:nnnn { #1 }
+   { \text_uppercase:n { #2 } } { #2 } { #3 }
+}
+\cs_new:Nn \datagidx_new_acro:nnnn
+{
+  \bool_if:NTF \l__datatool_new_element_expand_bool
+   {
+     \newterm
+       [
+         description = { \exp_not:N \capitalisewords { #4 } },
+         short = { \exp_not:N \acronymfont { #3 } },
+         long = { #4 },
+         text =
+          {
+            \exp_not:N \DTLgidxAcrStyle
+              { #4 } { \exp_not:N \acronymfont { #3 } }
+          },
+         plural =
+          {
+             \exp_not:N \DTLgidxAcrStyle
+               { #4 s } {\exp_not:N \acronymfont { #3 s } }
+          },
+         sort = { #3 }, label = { #3 },
+         #1
+       ]
+       { #2 }
+   }
+   {
+     \newterm
+       [
+         description = { \capitalisewords { #4 } },
+         short = { \acronymfont { #3 } },
+         long = { #4 },
+         text = { \DTLgidxAcrStyle { #4 } { \acronymfont { #3 } } },
+         plural = { \DTLgidxAcrStyle { #4 s } { \acronymfont { #3 s } } },
+         sort = { #3 }, label = { #3 },
+         #1
+       ]
+       { #2 }
+   }
+}
+\newcommand*{\acronymfont}[1]{#1}
+\newcommand*{\DTLgidxAcrStyle}[2]{#1 ~ (#2)}
+\newcommand{\iftermexists}[3]{%
+  \tl_if_exist:cTF
+     { g__datagidxentry_ #1 _ tl }
+   { #2 } { #3 }
+}
+\cs_new:Nn \__datagidx_assign_label_db:nn
+{
+  \tl_if_exist:cTF
+    {  g__datagidxentry_ #1 _ tl }
+  {
+     \exp_args:Nxx \tl_if_eq:nnF
+       { #2 } { \tl_use:c { g__datagidxentry_ #1 _ tl } }
+     {
+       \PackageError { datagidx}
+       {
+          Can't ~ associated ~ label ~ ` #1 ' ~
+          with ~ database ~ `#2'. ~ Label ~
+          already ~ associated ~ with ~ database ~
+          ` \tl_use:c { g__datagidxentry_ #1 _ tl } '
+       }
+       { }
+     }
+  }
+  {
+    \tl_gset:cx { g__datagidxentry_ #1 _ tl } { #2 }
+  }
+}
+\cs_new:Nn \__datagidx_term_database:n
+{
+  \csuse { g__datagidxentry_ #1 _ tl }
+}
+\newcommand*{\datagidxdb}[1]{
+  \__datagidx_term_database:n { #1 }
+}
+\newcommand{\dtlunknowntag}{??}
+\cs_new:Nn \__datagidx_fetch_row_for_label:NT
+{
+  \tl_set:Nx \l__datagidx_term_database_tl
+   {
+     \__datagidx_term_database:n
+       { \l__datagidx_term_label_tl }
+   }
+  \tl_if_empty:NTF \l__datagidx_term_database_tl
+   {
+     \dtlunknowntag
+      \PackageError {datagidx}
+      {
+       \token_to_str:N #1 : ~
+        No ~ term ~ ` \l__datagidx_term_label_tl ' ~ defined
+      }
+      {
+       Check ~ that ~ you ~ have ~ correctly ~ spelt ~ the ~
+       label. ~ If ~ you ~ defined ~ a ~ term ~ containing ~
+       commands ~ and ~ you ~ didn't ~ explicitly ~ set ~
+       the ~ label, ~
+       \legacy_if:nF { dtlverbose } { switch ~ on ~ verbose ~
+       mode ~ and ~ } examine ~ the ~ transcript ~
+       messages ~ (Added ~ term ~ ` [...] ' ~ to ~
+       database ~ ` [...] ') ~ to ~ check ~ the ~ label
+      }
+   }
+   {
+    \tl_set:Nx \l__datatool_item_col_tl
+     {
+       \dtlcolumnindex
+         { \l__datagidx_term_database_tl } {Label}
+     }
+    \tl_if_empty:NTF \l__datatool_item_col_tl
+     {
+        \PackageError { datagidx }
+        {
+          \token_to_str:N #1 : ~
+          No ~ column ~ `Label' ~ found ~ in ~ database ~
+          ` \l__datagidx_term_database_tl '
+        }
+        {
+          Something ~ has ~ gone ~ wrong. ~ The ~
+          index/glossary ~ database
+          ` \l__datagidx_term_database_tl ' ~
+          is ~ associated ~ with ~ the ~ term ~
+          label ~ `  \l__datagidx_term_label_tl ' ~
+          but ~ it ~ doesn't ~ have ~ a ~ column ~ with ~
+          the ~ key ~ `Label'
+        }
+     }
+     {
+      \exp_args:NNVV
+      \__datatool_get_row_for_value:nnnTF
+        \l__datagidx_term_database_tl
+        \l__datatool_item_col_tl
+        \l__datagidx_term_label_tl
+      {
+        #2
+      }
+      {
+        \PackageError { datagidx }
+        {
+          \token_to_str:N #1 : ~
+          No ~ row ~ found ~ in ~ database ~
+          ` \l__datagidx_term_database_tl ' ~ in ~ column ~
+          ` Label ' ~ matching ~ ` \l__datagidx_term_label_tl '
+        }
+        {
+          Something ~ has ~ gone ~ wrong. ~ Term ~ with ~
+          label ~ ` \l__datagidx_term_label_tl ' ~ was ~
+          assigned ~ to ~ database ~
+          ` \l__datagidx_term_database_tl ' ~ but ~
+          there ~ isn't ~ a ~ corresponding ~ row ~
+          in ~ that ~ database ~ for ~ the ~ term
+        }
+      }
+    }
+  }
+}
+\NewDocumentCommand \ifentryused { m m m }
+{
+  \__datagidx_set_label:n { #1 }
+  \__datagidx_fetch_row_for_label:NT \ifentryused
+   {
+     \dtlgetentryfromcurrentrow
+       \l__datagidx_value_tl
+       { \dtlcolumnindex { \l__datagidx_term_database_tl } {Used} }
+     \datatool_if_null_or_empty:NTF
+        \l__datagidx_value_tl
+      { #1 }
+      {
+        \int_compare:nNnTF
+           { \l__datagidx_value_tl } = { \c_one_int }
+          { #2 } { #3 }
+      }
+   }
+}
+\NewDocumentCommand \glsreset { m }
+{
+  \__datagidx_set_label:n { #1 }
+  \__datagidx_fetch_row_for_label:NT \glsreset
+   {
+     \dtlreplaceentryincurrentrow
+       {
+         \dtlspecialvalue { \__datagidx_used:n { 0 } }
+       }
+       {
+         \dtlcolumnindex { \l__datagidx_term_database_tl } {Used}
+       }
+     \dtlrecombine
+   }
+}
+\MFUexcl { \glsreset }
+\NewDocumentCommand \glsunset { m }
+{
+  \__datagidx_set_label:n { #1 }
+  \__datagidx_fetch_row_for_label:NT \glsunset
+   {
+    \dtlreplaceentryincurrentrow
+      {
+        \dtlspecialvalue { \__datagidx_used:n { 1 } }
+      }
+      {
+        \dtlcolumnindex
+          { \l__datagidx_term_database_tl } {Used}
+      }
+    \dtlrecombine
+   }
+}
+\MFUexcl { \glsunset }
+\NewDocumentCommand \glsresetall { m }
+{
+  \dtlforcolumn \l__datagidx_label_tl { #1 } { Label }
+  {
+    \exp_args:NV \glsreset \l__datagidx_label_tl
+  }
+}
+\MFUexcl { \glsresetall }
+\NewDocumentCommand \glsunsetall { m }
+{
+  \dtlforcolumn \l__datagidx_label_tl { #1 } { Label }
+  {
+    \exp_args:NV \glsunset \l__datagidx_label_tl
+  }
+}
+\MFUexcl { \glsunsetall }
+\int_new:N \g__datagidx_anchor_count_int
+\cs_new:Nn \__datagidx_format_anchor:n
+{
+ \int_compare:nNnT { #1 } < { 10000 }
+  {
+   0
+   \int_compare:nNnT { #1 } < { 1000 }
+    {
+      0
+      \int_compare:nNnT { #1 } < { 100 }
+       {
+         0
+         \int_compare:nNnT { #1 } < { 10 }
+          { 0 }
+       }
+    }
+  }
+ \int_eval:n { #1 }
+}
+\cs_new:Nn \__datagidx_append_firstid:n
+{
+  \exp_args:Nnx \dtlappendentrytocurrentrow
+   {FirstId} { \__datagidx_format_anchor:n { #1 } }
+}
+\cs_new:Nn \__datagidx_get_firstid:Nn
+{
+  \dtlgetentryfromcurrentrow #1
+   {
+     \dtlcolumnindex { #2 } {FirstId}
+   }
+}
+\newcommand*{\@datagidx@escloc}[2]
+{
+  \token_to_str:c { #1 } { \exp_not:N \int_eval:n { #2 } }
+}
+\newcommand*{\DTLgidxAddLocationType}[1]{%
+ \PackageWarning { datagidx }
+  {
+    \token_to_str:N \DTLgidxAddLocationType \c_space_tl ~
+    deprecated. ~ Ignoring
+  }
+}
+\tl_put_right:Nn \l_datatool_measure_hook_tl
+ {
+   \cs_set_eq:NN \glsadd \use_none:n
+ }
+\cs_new:Nn \__datagidx_target:nnnn
+ {
+  \__datagidx_target_create_anchor:nnn
+    { #1 } { #2 } {  }
+ }
+\AtBeginDocument
+  {
+    \cs_set_eq:NN
+      \__datagidx_target:nnnn
+      \__datagidx_target_doc:nnnn
+  }
+\cs_new:Nn \__datagidx_target_create_anchor:nnn
+ {
+  \int_gincr:N \g__datagidx_anchor_count_int
+  \tl_set:Nx \l__datagidx_target_tl
+   {
+     datagidx .
+     \__datagidx_format_anchor:n { \g__datagidx_anchor_count_int }
+   }
+  \tl_if_empty:nTF { #3 }
+  {
+    \exp_args:Nx \datagidx@write@usedentry
+     { #1 } { }
+  }
+  {
+    \__datagidx_write_used_entry:xxnx
+      { #1 } { #2 } { #3 } { \l__datagidx_target_tl }
+  }
+ }
+\cs_new:Nn \__datagidx_target_doc:nnnn
+{
+  \__datagidx_target_create_anchor:nnn
+    { #1 } { #2 } { #3 }
+  \cs_if_exist:NT \hypertarget
+  {
+    \datagidxshowifdraft
+    {
+      [ \l__datagidx_target_tl ]
+      \discretionary {} {} {}
+    }
+    \group_begin:
+      \datatool_measure_height:Nn
+       \l__datatool_tmpa_dim { #4 }
+      \raisebox { \l__datatool_tmpa_dim }
+      {
+        \datagidxtarget { \l__datagidx_target_tl } { }
+      }
+    \group_end:
+  }
+  \datagidxshowifdraft
+    { [ #1 ] \discretionary {} {} {} }
+  #4
+}
+\NewDocumentCommand \glsdispentry { m m }
+{
+  \DTLgidxFetchEntry \l__datagidx_value_tl { #1 } { #2 }
+  \datatool_if_null:NF \l__datagidx_value_tl
+   {
+     \l__datagidx_value_tl
+   }
+}
+\NewDocumentCommand \Glsdispentry { m m }
+{
+  \DTLgidxFetchEntry \l__datagidx_value_tl { #1 } { #2 }
+  \datatool_if_null:NF \l__datagidx_value_tl
+   {
+    \xmakefirstuc \l__datagidx_value_tl
+   }
+}
+\MFUaddmap { \glsdispentry } { \Glsdispentry }
+\NewDocumentCommand \DTLgidxFetchEntry { m m m }
+{
+  \__datagidx_set_label:n { #2 }
+  \tl_set_eq:NN #1 \dtlnovalue
+  \iftermexists { \l__datagidx_term_label_tl }
+  {
+    \tl_set:Nx \l__datagidx_term_database_tl
+     {
+       \__datagidx_term_database:n
+        { \l__datagidx_term_label_tl }
+     }
+    \datatool_if_has_key:nnTF
+        { \l__datagidx_term_database_tl }
+        { #3 }
+     {
+       \__datagidx_fetch_row_for_label:NT \DTLgidxFetchEntry
+        {
+          \dtlgetentryfromcurrentrow
+           #1
+          {
+            \dtlcolumnindex { \l__datagidx_term_database_tl } { #3 }
+          }
+        }
+     }
+     {
+       \PackageError { datagidx }
+       {
+          Database ~ ` \l__datagidx_term_database_tl ' ~
+          doesn't ~ have ~ a ~ column ~ labelled ~ `#3'
+       }
+       {
+          Check ~ that ~ you ~ have ~ correctly ~ spelt ~
+          the ~ column ~ label ~ (key)
+       }
+     }
+   }
+   {
+     \PackageError { datagidx }
+      {
+        No ~ term ~ ` \l__datagidx_term_label_tl ' ~ defined
+      }
+      {
+        Check ~ that ~ you ~ have ~ spelt ~ the ~ label ~
+        correctly ~ and ~ that ~ the ~ term ~ was ~ added ~
+        to ~ the ~ database ~ with ~ \token_to_str:N \newterm
+        \c_space_tl ~ or \token_to_str:N \newacro
+      }
+   }
+}
+\tl_new:N \l__datagidx_format_tl
+\newcommand*{\datagidx@parse@formatlabel}[1]{%
+  \datagidx@parse@format@label@#1\@endparse@formatlabel@
+}
+\newcommand*\datagidx@parse@format@label@{%
+  \@ifnextchar[{\datagidx@parse@formatlabel@}{\datagidx@parse@formatlabel@[]}%
+}
+\def\datagidx@parse@formatlabel@[#1]#2\@endparse@formatlabel@{%
+  \tl_set:Nn \l__datagidx_format_tl { #1 }
+  \__datagidx_set_label:n { #2 }
+}
+\cs_new:Nn \__datagidx_use_entry:Nn
+{
+  \__datagidx_fetch_row_for_label:NT #1
+   {
+     \__datagidx_get_firstid:Nn
+       \l__datagidx_id_tl
+       { \l__datagidx_term_database_tl }
+     \datatool_if_null:NT \l__datagidx_id_tl
+      {
+       \exp_args:Nx \__datagidx_append_firstid:n
+        {
+          \int_eval:n
+            {  \g__datagidx_anchor_count_int + \c_one_int }
+        }
+      }
+     \dtlreplaceentryincurrentrow
+      {
+        \dtlspecialvalue { \__datagidx_used:n { 1 } }
+      }
+      {
+        \dtlcolumnindex
+         { \l__datagidx_term_database_tl } {Used}
+      }
+     \dtlgetentryfromcurrentrow
+       \l__datagidx_parent_tl
+       {
+         \dtlcolumnindex
+           { \l__datagidx_term_database_tl }{Parent}
+       }
+     \dtlrecombine
+     \__datagidx_mark_parent:NN
+      \l__datagidx_term_database_tl \l__datagidx_parent_tl
+      \__datagidx_target:nnnn
+       { \l__datagidx_term_label_tl }
+       { \l__datagidx_format_tl }
+       { \csuse { the\DTLgidxCounter } }
+       { #2 }
+   }
+}
+\cs_new:Nn \__datagidx_mark_parent:NN
+{
+  \datatool_if_null:NF #2
+   {
+    \__datagidx_target:nnnn { #2 } { } { } { }
+    \__datatool_get_row_for_value:xxx
+      { #1 }
+      { \dtlcolumnindex { #1 } { Label } }
+      { #2 }
+      \__datagidx_get_firstid:Nn
+        \l__datagidx_id_tl
+        { \l__datagidx_term_database_tl }
+    \datatool_if_null:NT \l__datagidx_id_tl
+    {
+      \__datagidx_append_firstid:n
+       {
+         \g__datagidx_anchor_count_int
+       }
+    }
+      \dtlgetentryfromcurrentrow
+        \l__datagidx_parent_tl
+        {\dtlcolumnindex{#1}{Parent}}%
+    \dtlrecombine
+    \__datagidx_mark_parent:NN #1 \l__datagidx_parent_tl
+  }
+}
+\cs_new:Nn \__datagidx_write_used_entry:nnnn
+{
+  \datagidx@write@usedentry
+    { #1 }
+    { [ #2 ] { #3 } { #4 } }
+}
+\cs_generate_variant:Nn
+  \__datagidx_write_used_entry:nnnn
+   { xxnx }
+\newcommand*{\datagidx@write@usedentry}[2]{%
+  \datagidx@do@highopt@update{#1}%
+  \protected@edef \l__datagidx_location_tl { #2 }
+  \protected@write{\@auxout}{}%
+    {%
+      \token_to_str:N \datagidx@aux@usedentry
+       { #1 } { #2 }
+       { \tl_to_str:N \l__datagidx_location_tl }
+    }%
+   \__datagidx_used_entry:nxx
+      { CurrentLocation } { #1 }
+      { \tl_to_str:N \l__datagidx_location_tl }
+}
+\cs_new:Nn \__datagidx_used_entry:nnn
+{
+  \datagidx@usedentry [ #1 ] { #2 } { #3 }
+}
+\cs_generate_variant:Nn
+ \__datagidx_used_entry:nnn
+ { xxx, nxx }
+\newcommand*{\datagidx@usedentry}[3][Location]{%
+  \iftermexists { #2 }
+  {%
+    \tl_set:Nx \l__datagidx_term_database_tl
+      {  \__datagidx_term_database:n { #2 } }
+    \__datatool_get_row_for_value:xxx
+      { \l__datagidx_term_database_tl }
+      { \dtlcolumnindex{\l__datagidx_term_database_tl}{Label} }
+      { #2 }
+    \dtlgetentryfromcurrentrow
+      \l__datagidx_location_tl
+      { \dtlcolumnindex { \l__datagidx_term_database_tl } { #1 } }
+    \__datagidx_unwrap_location:N
+      \l__datagidx_location_tl
+    \datatool_if_null:NTF \l__datagidx_location_tl
+     {
+      \tl_set:Nn \l__datagidx_location_tl { #3 }
+      \__datagidx_unwrap_location:N
+        \l__datagidx_location_tl
+      \exp_args:Nne \dtlappendentrytocurrentrow
+        { #1 }
+        {
+          \exp_not:N \dtlspecialvalue
+          {
+            \exp_not:N \__datagidx_location:n
+            {
+              \exp_not:V \l__datagidx_location_tl
+            }
+          }
+        }
+     }
+     {
+      \clist_clear:N \l__datagidx_location_clist
+      \tl_if_empty:NTF \l__datagidx_location_tl
+      {
+        \clist_put_right:Nn \l__datagidx_location_clist {#3}
+      }
+      {
+        \clist_set:NV \l__datagidx_location_clist
+          \l__datagidx_location_tl
+        \tl_if_empty:nF { #3 }
+        {
+          \clist_put_right:Nn \l__datagidx_location_clist { #3 }
+        }
+      }
+      \exp_args:Nx \dtlreplaceentryincurrentrow
+        {
+          \exp_not:N \dtlspecialvalue
+          {
+            \exp_not:N \__datagidx_location:n
+            {
+              \clist_use:Nn \l__datagidx_location_clist { , }
+            }
+          }
+        }
+        { \dtlcolumnindex { \l__datagidx_term_database_tl } {#1} }
+     }
+    \dtlrecombine
+  }
+  {
+    \PackageWarning{datagidx}{No ~ term ~ `#2' ~ defined. ~ Ignoring}
+  }
+}
+\newcommand*{\datagidx@aux@usedentry}[3]
+{
+  \iftermexists { #1 }
+  {
+    \tl_set:Nx \l__datagidx_term_database_tl
+      {  \__datagidx_term_database:n { #1 } }
+    \__datatool_get_row_for_value:xxxT
+      { \l__datagidx_term_database_tl }
+      { \dtlcolumnindex{\l__datagidx_term_database_tl}{Label} }
+      { #1 }
+    {
+      \dtlgetentryfromcurrentrow
+        \l__datagidx_location_tl
+        { \dtlcolumnindex { \l__datagidx_term_database_tl } { Location } }
+      \__datagidx_unwrap_location:N
+        \l__datagidx_location_tl
+      \datatool_if_null:NTF \l__datagidx_location_tl
+       {
+        \tl_set:Nn \l__datagidx_location_tl { #2 }
+        \__datagidx_unwrap_location:N
+          \l__datagidx_location_tl
+        \exp_args:Nne \dtlappendentrytocurrentrow
+          { Location }
+          {
+            \exp_not:N \dtlspecialvalue
+            {
+              \exp_not:N \__datagidx_location:n
+              {
+                \exp_not:V \l__datagidx_location_tl
+              }
+            }
+          }
+       }
+       {
+        \clist_clear:N \l__datagidx_location_clist
+        \tl_if_empty:NTF \l__datagidx_location_tl
+        {
+          \clist_put_right:Nn \l__datagidx_location_clist
+            { #2 }
+        }
+        {
+          \clist_set:NV \l__datagidx_location_clist
+            \l__datagidx_location_tl
+          \tl_if_empty:nF { #2 }
+          {
+            \clist_put_right:Nn \l__datagidx_location_clist
+              { #2 }
+          }
+        }
+        \exp_args:Nx \dtlreplaceentryincurrentrow
+          {
+            \exp_not:N \dtlspecialvalue
+            {
+              \exp_not:N \__datagidx_location:n
+              {
+                \clist_use:Nn \l__datagidx_location_clist { , }
+              }
+            }
+          }
+          {
+            \dtlcolumnindex
+              { \l__datagidx_term_database_tl }
+              { Location }
+          }
+       }
+      \dtlgetentryfromcurrentrow
+        \l__datagidx_location_tl
+        {
+          \dtlcolumnindex
+          { \l__datagidx_term_database_tl }
+          { UnsafeLocation }
+        }
+      \__datagidx_unwrap_location:N
+        \l__datagidx_location_tl
+      \datatool_if_null:NTF \l__datagidx_location_tl
+       {
+        \tl_set:Nn \l__datagidx_location_tl { #3 }
+        \__datagidx_unwrap_location:N
+          \l__datagidx_location_tl
+        \exp_args:Nne \dtlappendentrytocurrentrow
+          { UnsafeLocation }
+          {
+            \exp_not:N \dtlspecialvalue
+            {
+              \exp_not:N \__datagidx_location:n
+              {
+                \tl_to_str:N \l__datagidx_location_tl
+              }
+            }
+          }
+       }
+       {
+        \clist_clear:N \l__datagidx_location_clist
+        \tl_if_empty:NTF \l__datagidx_location_tl
+        {
+          \tl_set:Nn \l__datagidx_location_tl { #3 }
+          \__datagidx_unwrap_location:N
+            \l__datagidx_location_tl
+          \clist_put_right:Nx \l__datagidx_location_clist
+            { \tl_to_str:N \l__datagidx_location_tl }
+        }
+        {
+          \clist_set:NV \l__datagidx_location_clist
+            \l__datagidx_location_tl
+          \tl_if_empty:nF { #3 }
+          {
+            \tl_set:Nn \l__datagidx_location_tl { #3 }
+            \__datagidx_unwrap_location:N
+              \l__datagidx_location_tl
+            \clist_put_right:Nx \l__datagidx_location_clist
+              { \tl_to_str:N \l__datagidx_location_tl }
+          }
+        }
+        \exp_args:Nx \dtlreplaceentryincurrentrow
+          {
+            \exp_not:N \dtlspecialvalue
+            {
+              \exp_not:N \__datagidx_location:n
+              {
+                \clist_use:Nn \l__datagidx_location_clist { , }
+              }
+            }
+          }
+          {
+            \dtlcolumnindex
+              { \l__datagidx_term_database_tl }
+              { UnsafeLocation }
+          }
+       }
+      \dtlrecombine
+    }
+  }
+  {
+    \PackageWarning{datagidx}{No ~ term ~ `#1' ~ defined. ~ Ignoring}
+  }
+}
+\newcommand*{\datagidx@save@loc}[2]{%
+}
+\NewDocumentCommand \glsadd { m }
+{
+  \group_begin:
+  \iftermexists { \l__datagidx_term_label_tl }
+  {
+    \datagidx@parse@formatlabel{#1}%
+    \__datagidx_target:nnnn
+      { \l__datagidx_term_label_tl }
+      { \l__datagidx_format_tl }
+      { \csuse{the\DTLgidxCounter} }
+      { }
+    \tl_set:Nx \l__datagidx_term_database_tl
+     { \__datagidx_term_database:n { \l__datagidx_term_label_tl } }
+    \__datatool_get_row_for_value:xxxTF
+      { \l__datagidx_term_database_tl }
+      { \dtlcolumnindex { \l__datagidx_term_database_tl } {Label} }
+      { \l__datagidx_term_label_tl }
+     {
+       \dtlreplaceentryincurrentrow
+        {
+          \dtlspecialvalue { \__datagidx_used:n { 1 } }
+        }
+        {
+          \dtlcolumnindex { \l__datagidx_term_database_tl } {Used}
+        }
+       \__datagidx_get_firstid:Nn
+         \l__datagidx_id_tl
+         { \l__datagidx_term_database_tl }
+       \datatool_if_null:NT \l__datagidx_id_tl
+        {
+          \__datagidx_append_firstid:n
+           { \g__datagidx_anchor_count_int }
+        }
+       \dtlrecombine
+     }
+     {
+       \PackageError { datagidx }
+        {
+          No ~ row ~ found ~ for ~ label ~
+          ` \l__datagidx_term_label_tl ' ~ in ~
+          database ~ ` \l__datagidx_term_database_tl '
+        }
+        {
+          Something ~ has ~ gone ~ wrong ~ with ~ the ~ underlying ~
+          structure. ~ Did ~ you ~ define ~ ` \l__datagidx_term_label_tl ' ~
+          using ~ \token_to_str:N \newterm \c_space_tl or
+          \token_to_str:N \newacro ? ~ Has ~ the ~ database ~
+          ` \l__datagidx_term_database_tl ' ~ been ~ modified ~
+          outside ~ of ~ datagidx.sty ~ commands?
+        }
+     }
+  }
+  {
+    \PackageError {datagidx}
+     { Term ~ `\l__datagidx_term_label_tl' ~ doesn't ~ exist }
+     {
+       Check ~ the ~ spelling ~ of ~ the ~ label. ~ Verbose ~ mode ~
+       will ~ show ~ the ~ labels ~ in ~ the ~ transcript ~ for ~
+       each ~ new ~ term
+     }
+  }
+ \group_end:
+}
+\MFUexcl { \glsadd }
+\NewDocumentCommand \glsaddall { m }
+{
+  \DTLifdbexists{#1}%
+  {
+    \int_step_inline:nn
+       { \DTLrowcount { #1 } }
+    {
+      \datatool_get_row:nnT { #1 } { ##1 }
+      {
+        \dtlgetentryfromcurrentrow
+           \l__datagidx_term_label_tl
+          { \dtlcolumnindex { #1 } {Label} }
+        \group_begin:
+          \cs_set_eq:NN \hypertarget \use_ii:nn
+          \__datagidx_target:nnnn
+            { \l__datagidx_term_label_tl }{}{}{}
+        \group_end:
+         \dtlreplaceentryincurrentrow
+          {
+            \dtlspecialvalue { \__datagidx_used:n { 1 } }
+          }
+          { \dtlcolumnindex { #1 } {Used} }
+        \__datagidx_get_firstid:Nn
+          \l__datagidx_id_tl { #1 }
+        \datatool_if_null:NT \l__datagidx_id_tl
+        {
+          \__datagidx_append_firstid:n
+           { \g__datagidx_anchor_count_int }
+        }
+        \dtlrecombine
+      }
+    }
+  }
+  {
+    \PackageError {datagidx}
+    {
+      \token_to_str:N \glsaddall : ~
+       Database ~ `#1' ~ doesn't ~ exist
+    }
+    {
+      Check ~ that ~ you ~ have ~ correctly ~ spelt ~ the ~ database
+      ~ name ~ in ~ the ~ argument ~ of \token_to_str:N \glsaddall
+    }
+  }
+}
+\MFUexcl { \glsaddall }
+\NewDocumentCommand \glslink { m m }
+{
+ \group_begin:
+  \datagidx@parse@formatlabel {#1}
+  \datagidxlink { \l__datagidx_term_label_tl }
+  {
+    \__datagidx_use_entry:Nn \glslink { #2 }
+  }
+ \group_end:
+}
+\NewDocumentCommand \Glslink { m m }
+{
+  \glslink { #1 } { \makefirstuc { #2 } }
+}
+\MFUaddmap { \glslink } { \Glslink }
+\NewDocumentCommand \useentry { m m }
+{
+ \group_begin:
+  \datagidx@parse@formatlabel { #1 }
+  \DTLgidxFetchEntry
+    \l__datagidx_value_tl
+    { \l__datagidx_term_label_tl } { #2 }
+  \datatool_if_null:NF \l__datagidx_value_tl
+  {
+    \datagidxlink { \l__datagidx_term_label_tl }
+    {
+      \__datagidx_use_entry:Nn \useentry
+        { \l__datagidx_value_tl }
+    }
+  }
+ \group_end:
+}
+\NewDocumentCommand \Useentry { m m }
+{
+ \group_begin:
+  \datagidx@parse@formatlabel { #1 }
+  \DTLgidxFetchEntry
+    \l__datagidx_value_tl
+     { \l__datagidx_term_label_tl } { #2 }
+  \datatool_if_null:NF \l__datagidx_value_tl
+  {
+    \datagidxlink { \l__datagidx_term_label_tl }
+    {
+      \__datagidx_use_entry:Nn \Useentry
+        { \xmakefirstuc {  \l__datagidx_value_tl } }
+    }
+  }
+ \group_end:
+}
+\MFUaddmap { \useentry } { \Useentry }
+\NewDocumentCommand \USEentry { m m }
+{
+ \group_begin:
+  \datagidx@parse@formatlabel { #1 }
+  \DTLgidxFetchEntry
+    \l__datagidx_value_tl
+     { \l__datagidx_term_label_tl } { #2 }
+  \datatool_if_null:NF \l__datagidx_value_tl
+  {
+    \datagidxlink { \l__datagidx_term_label_tl }
+    {
+      \__datagidx_use_entry:Nn \USEentry
+       { \text_uppercase:n { \l__datagidx_value_tl } }
+    }
+  }
+ \group_end:
+}
+\MFUexcl { \USEentry }
+\NewDocumentCommand \useentrynl { m m }
+{
+ \group_begin:
+  \datagidx@parse@formatlabel { #1 }
+  \DTLgidxFetchEntry
+    \l__datagidx_value_tl
+      { \l__datagidx_term_label_tl } { #2 }
+  \datatool_if_null:NF \l__datagidx_value_tl
+  {
+    \__datagidx_use_entry:Nn \useentrynl
+      { \l__datagidx_value_tl }
+  }
+ \group_end:
+}
+\NewDocumentCommand \Useentrynl { m m }
+{
+ \group_begin:
+  \datagidx@parse@formatlabel { #1 }
+  \DTLgidxFetchEntry
+    \l__datagidx_value_tl
+     { \l__datagidx_term_label_tl } { #2 }
+  \datatool_if_null:NF \l__datagidx_value_tl
+  {
+    \__datagidx_use_entry:Nn \Useentrynl
+      { \xmakefirstuc {  \l__datagidx_value_tl } }
+  }
+ \group_end:
+}
+\MFUaddmap { \useentrynl } { \Useentrynl }
+\NewDocumentCommand \USEentrynl { m m }
+{
+ \group_begin:
+  \datagidx@parse@formatlabel { #1 }
+  \DTLgidxFetchEntry
+    \l__datagidx_value_tl
+      { \l__datagidx_term_label_tl } { #2 }
+  \datatool_if_null:NF \l__datagidx_value_tl
+  {
+    \__datagidx_use_entry:Nn \USEentrynl
+     { \text_uppercase:n {  \l__datagidx_value_tl } }
+  }
+ \group_end:
+}
+\MFUexcl { \USEentrynl }
+\newrobustcmd*{\gls}[1]{\useentry{#1}{Text}}
+\newrobustcmd*{\glspl}[1]{\useentry{#1}{Plural}}
+\newrobustcmd*{\Gls}[1]{\Useentry{#1}{Text}}
+\MFUaddmap { \gls } { \Gls }
+\newrobustcmd*{\Glspl}[1]{\Useentry{#1}{Plural}}
+\MFUaddmap { \glspl } { \Glspl }
+\newrobustcmd*{\glsnl}[1]{\useentrynl{#1}{Text}}
+\newrobustcmd*{\glsplnl}[1]{\useentrynl{#1}{Plural}}
+\newrobustcmd*{\Glsnl}[1]{\Useentrynl{#1}{Text}}
+\MFUaddmap { \glsnl } { \Glsnl }
+\newrobustcmd*{\Glsplnl}[1]{\Useentrynl{#1}{Plural}}
+\MFUaddmap { \glsplnl } { \Glsplnl }
+\newrobustcmd*{\glssym}[1]{\useentry{#1}{Symbol}}
+\newrobustcmd*{\Glssym}[1]{\Useentry{#1}{Symbol}}
+\MFUaddmap { \glssym } { \Glssym }
+\newcommand*{\DTLgidxFormatAcr}[3]{%
+  \DTLgidxAcrStyle{\glsdispentry{#1}{#2}}{\useentry{#1}{#3}}%
+}
+\newcommand*{\DTLgidxFormatAcrUC}[3]{%
+  \DTLgidxAcrStyle{\Glsdispentry{#1}{#2}}{\useentry{#1}{#3}}%
+}
+\newrobustcmd*{\acr}[1]{%
+  \ifentryused{#1}%
+  {\useentry{#1}{Short}}%
+  {\DTLgidxFormatAcr{#1}{Long}{Short}}%
+}
+\newrobustcmd*{\acrpl}[1]{%
+  \ifentryused{#1}%
+  {\useentry{#1}{ShortPlural}}%
+  {\DTLgidxFormatAcr{#1}{LongPlural}{ShortPlural}}%
+}
+\newrobustcmd*{\Acr}[1]{%
+  \ifentryused{#1}%
+  {\Useentry{#1}{Short}}%
+  {\DTLgidxFormatAcrUC{#1}{Long}{Short}}%
+}
+\MFUaddmap { \acr } { \Acr }
+\newrobustcmd*{\Acrpl}[1]{%
+  \ifentryused{#1}%
+  {\Useentry{#1}{ShortPlural}}%
+  {\DTLgidxFormatAcrUC{#1}{LongPlural}{ShortPlural}}%
+}
+\MFUaddmap { \acrpl } { \Acrpl }
+\newcommand{\printtermsstartpar}{\par}
+\tl_new:N \l__datagidx_prestart_tl
+\newcommand*{\printterms@setupmulticol}{
+ \tl_if_empty:NTF \l__datagidx_post_heading_tl
+ {
+   \tl_set:Nx \l__datagidx_prestart_tl
+    {
+      \exp_not:N \l__datagidx_heading_tl
+        { \exp_not:N \l__datagidx_title_tl }
+      \exp_not:N \begin
+        { \l__datagidx_multicols_tl }
+        { \int_use:N \l__datagidx_columns_int }
+    }
+ }
+ {
+   \tl_set:Nx \l__datagidx_prestart_tl
+    {
+      \exp_not:N \l__datagidx_heading_tl
+        {\exp_not:N \l__datagidx_title_tl }
+      \exp_not:N \begin { \l__datagidx_multicols_tl }
+        { \int_use:N \l__datagidx_columns_int }
+      [ \exp_not:N \l__datagidx_post_heading_tl ]
+   }
+ }
+ \tl_set:Nx \datagidx@postend
+  {
+    \exp_not:N \end { \l__datagidx_multicols_tl }
+  }
+}
+\newcommand*{\printterms@setuptwocol}{
+ \tl_set:Nn \l__datagidx_prestart_tl
+  {
+    \twocolumn
+     [
+       \l__datagidx_heading_tl
+         { \l__datagidx_title_tl }
+       \l__datagidx_post_heading_tl
+     ]
+  }
+ \if@twocolumn
+   \tl_clear:N \datagidx@postend
+ \else
+   \tl_set:Nn \datagidx@postend
+    { \printtermsrestoreonecolumn }
+ \fi
+}
+\newcommand{\printtermsrestoreonecolumn}{\onecolumn}
+\NewDocumentCommand \printterms { o }
+{
+\group_begin:
+  \bool_set_true:N \l__datatool_db_global_bool
+  \clist_clear:N \l__datagidx_styles_clist
+  \IfValueT { #1 }
+   {
+     \keys_set_filter:nnnN
+       { datatool / index } { general } { #1 }
+       \l__datagidx_remainder_tl
+     \tl_if_empty:NF \l__datagidx_remainder_tl
+      {
+        \PackageError { datagidx }
+         {
+           Invalid ~ \token_to_str:N \printterms \c_space_tl option(s): ~
+            \tl_to_str:N \l__datagidx_remainder_tl
+         }
+         {
+           The ~ listed ~ option ~ or ~ options ~ can't ~ be ~ passed ~
+           to ~ \token_to_str:N \printterms . \MessageBreak
+           Try ~ \token_to_str:N \DTLsetup
+            { index = { \tl_to_str:N \l__datagidx_remainder_tl } }
+         }
+      }
+   }
+  \tl_set_eq:NN
+   \l__datagidx_term_database_tl
+   \l__datagidx_default_database_tl
+  \DTLifdbexists { \l__datagidx_term_database_tl }
+  {
+   \tl_set_eq:NN
+     \DTLgidxCurrentdb
+     \l__datagidx_term_database_tl
+   \__datatool_get_row_for_value:xxxTF
+     { datagidx }
+     { \dtlcolumnindex{datagidx}{Glossary} }
+     { \l__datagidx_term_database_tl }
+   {
+    \dtlgetentryfromcurrentrow
+      \l__datagidx_title_tl
+      {\dtlcolumnindex{datagidx}{Title}}%
+    \dtlgetentryfromcurrentrow
+      \l__datagidx_heading_tl
+      {\dtlcolumnindex{datagidx}{Heading}}%
+    \dtlgetentryfromcurrentrow
+      \l__datagidx_post_heading_tl
+      { \dtlcolumnindex {datagidx} {PostHeading} }
+    \dtlgetentryfromcurrentrow
+      \l__datagidx_multicols_tl
+      { \dtlcolumnindex {datagidx} {MultiCols} }
+    \dtlgetentryfromcurrentrow
+      \l__datagidx_sort_tl
+      { \dtlcolumnindex {datagidx} {Sort} }
+    \dtlgetentryfromcurrentrow
+      {\datagidx@style}%
+      {\dtlcolumnindex{datagidx}{Style}}%
+    \dtlgetentryfromcurrentrow
+      {\datagidx@showgroups}%
+      {\dtlcolumnindex{datagidx}{ShowGroups}}%
+    \keys_set_groups:nnV { datatool / index } { print }
+       \l__datagidx_styles_clist
+    \int_case:nnF { \l__datagidx_columns_int }
+     {
+       { \c_one_int }
+         {
+           \tl_clear:N \l__datagidx_post_heading_tl
+           \tl_clear:N \datagidx@postend
+         }
+       { 2 }
+         {
+           \ifdatagidxbalance
+             \printterms@setupmulticol
+           \else
+             \printterms@setuptwocol
+           \fi
+         }
+     }
+     {
+       \printterms@setupmulticol
+     }
+    \tl_set_eq:NN \@dtl@dbname \DTLgidxCurrentdb
+    \csuse{datagidxshowgroups\datagidx@showgroups}%
+    \datagidxsetstyle{\datagidx@style}%
+    \int_compare:nNnT
+      { \l__datagidx_columns_int } = { \c_one_int }
+     {
+       \l__datagidx_heading_tl
+         { \l__datagidx_title_tl }
+       \l__datagidx_post_heading_tl
+     }
+    \datagidx@do@sort
+    \l__datagidx_prestart_tl
+    \printtermsstartpar
+    \datagidxstart
+    \let\DTLgidxName\datagidx@invert
+    \let\DTLgidxPlace\datagidx@invert
+    \let\DTLgidxSubject\datagidx@invert
+    \let\DTLgidxOffice\datagidx@invert
+    \DTLgidxForeachEntry
+     {
+       \datagidxitem
+     }
+    \datagidxend
+    \datagidx@postend
+   }
+   {
+     \PackageError { datagidx }
+      {
+        \token_to_str:N \printterms : ~
+        Unable ~ to ~ access ~ `Glossary' ~
+        column ~ in ~ ` datagidx ' ~
+        database ~ matching ~ ` \l__datagidx_term_database_tl '
+      }
+      { }
+   }
+  }
+  {
+    \PackageError{datagidx}%
+    {
+      Glossary/index ~ database ~
+      `\l__datagidx_term_database_tl' ~ doesn't ~ exist
+    }
+    {
+      You ~ must ~ define ~ the ~ glossary/index ~
+      database ~ before ~ you ~ can ~ use ~ it.
+    }
+  }
+ \expandafter \group_end: \if@endpe \@doendpe \fi
+}
+\newcommand*{\DTLgidxGroupHeaderTitle}[1]{%
+  \cs_if_exist_use:cF
+  { datagidx #1 name }
+  { #1 }
+}
+\NewDocumentCommand \DTLgidxForeachEntry { m }
+{
+ \tl_clear:N \datagidxprevgroup
+ \DTLmapdata [ name = \DTLgidxCurrentdb , read-only ]
+  {
+    \exp_args:NV \__datatool_map_get_values_noerr:n
+       \DTLgidxAssignList
+       \__datagidx_filter:T
+     {
+       \datatool_if_null:NT \Parent
+        {
+         \legacy_if:nT { datagidxshowgroups }
+          {
+            \tl_set:Ne \datagidxcurrentgroup
+             { \datagidxcurrentgroup }
+          }
+         \datagidx@doifdisplayed
+          {
+            \seq_gput_right:NV
+              \g__datagidx_refd_labels_seq
+              \Label
+            \int_set_eq:NN \datagidx@level \c_one_int
+            #1
+            \cs_gset_eq:NN \datagidxprevgroup \datagidxcurrentgroup
+          }
+        }
+     }
+  }
+}
+\newcommand{\datagidx@doifdisplayed}[1]{
+  \__datagidx_unwrap_location:N \Location
+  \DTLifnull \Location
+  {
+     \datatool_if_null_or_empty:NTF \See
+     {
+       \datatool_if_null_or_empty:NF \SeeAlso { #1 }
+     }
+     {
+       \clist_map_inline:Nn \See
+       {
+           \iftermexists { ##1 }
+           {
+             \ifentryused { ##1 }
+             {
+               #1
+               \clist_map_break:
+             }
+             { }
+           }
+           { }
+       }
+     }
+  }
+  { #1 }
+}
+\newcount\datagidx@level
+\ExplSyntaxOff
+\endinput
+%%
+%% End of file `datagidx.sty'.

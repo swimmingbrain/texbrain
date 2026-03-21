@@ -1,0 +1,53 @@
+%%
+%% This is file `listings-acm.prf',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% lstdrvrs.dtx  (with options: `acm-prf')
+%% 
+%% The listings package is copyright 1996--2004 Carsten Heinz, and
+%% continued maintenance on the package is copyright 2006--2007 Brooks
+%% Moses. From 2013 on the maintenance is done by Jobst Hoffmann.
+%% The drivers are copyright 1997/1998/1999/2000/2001/2002/2003/2004/2006/
+%% 2007/2013 any individual author listed in this file.
+%%
+%% This file is distributed under the terms of the LaTeX Project Public
+%% License from CTAN archives in directory  macros/latex/base/lppl.txt.
+%% Either version 1.3c or, at your option, any later version.
+%%
+%% This file is completely free and comes without any warranty.
+%%
+%% Send comments and ideas on the package, error reports and additional
+%% programming languages to Jobst Hoffmann at <j.hoffmann@fh-aachen.de>.
+%%
+\ProvidesFile{listings-acm.prf}
+    [2025/11/14 1.11b listings language file]
+\usepackage[rgb, x11names]{xcolor}
+
+\definecolor{Comments}{rgb}{0.00,0.50,0.00}
+\definecolor{KeyWords}{rgb}{0.00,0.00,0.63}
+\definecolor{Strings}{rgb}{0.84,0.00,0.00}
+
+\lstdefinestyle{ACM}{%
+  basicstyle=\scriptsize\ttfamily,%
+  keywordstyle=\color{KeyWords},%
+  showstringspaces=false,%
+  identifierstyle=\color{black},%
+  commentstyle=\color{Comments},%
+  stringstyle=\color{Strings},%
+  frame=shadowbox,%             % for ACM-Code scrartcl commented out
+  rulesepcolor=\color{black},%
+  numbers=left,%                % left
+  firstnumber=1,%
+  stepnumber=5,%
+  columns=fixed,%               % to prevent inserting spaces
+  fontadjust=true,%
+  basewidth=0.5em,%
+  captionpos=t,%
+  abovecaptionskip=\smallskipamount,% same amount as default
+  belowcaptionskip=\smallskipamount,% in caption package
+}%
+\endinput
+%%
+%% End of file `listings-acm.prf'.

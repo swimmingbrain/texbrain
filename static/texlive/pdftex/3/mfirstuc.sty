@@ -1,0 +1,664 @@
+%%
+%% This is file `mfirstuc.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% mfirstuc.dtx  (with options: `mfirstuc.sty,package')
+%% 
+%%  mfirstuc.dtx
+%%  Copyright 2025 Nicola Talbot
+%% 
+%%  This work may be distributed and/or modified under the
+%%  conditions of the LaTeX Project Public License, either version 1.3
+%%  of this license or (at your option) any later version.
+%%  The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%%  and version 1.3 or later is part of all distributions of LaTeX
+%%  version 2005/12/01 or later.
+%% 
+%%  This work has the LPPL maintenance status `maintained'.
+%% 
+%%  The Current Maintainer of this work is Nicola Talbot.
+%% 
+%%  This work consists of the files mfirstuc.dtx and mfirstuc.ins and the derived files mfirstuc.sty, mfirstuc-english.sty, mfirstuc-2021-10-15.sty, sample-mfirstuc.tex, mfirstuc.l2h.
+%% 
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\NeedsTeXFormat{LaTeX2e}
+\DeclareRelease{v2.07}{2021-10-15}{mfirstuc-2021-10-15.sty}
+\DeclareCurrentRelease{v2.09}{2025-04-03}
+\ProvidesPackage{mfirstuc}[2025/04/03 v2.09 (NLCT)]
+\RequirePackage{etoolbox}
+\newcommand{\glsmakefirstuc}[1]{\MFUsentencecase{\unexpanded{#1}}}
+\ExplSyntaxOn
+\newcommand{\mfirstucMakeUppercase}[1]{\text_uppercase:n{#1}}
+\DeclareOption{expanded}{%
+ \renewcommand{\glsmakefirstuc}[1]{\MFUsentencecase{#1}}%
+ \renewcommand{\mfirstucMakeUppercase}[1]{\text_uppercase:n{#1}}%
+}
+\DeclareOption{unexpanded}{%
+ \renewcommand{\glsmakefirstuc}[1]{\MFUsentencecase{\unexpanded{#1}}}%
+ \renewcommand{\mfirstucMakeUppercase}[1]{\text_uppercase:n{#1}}%
+}
+\ExplSyntaxOff
+\newrobustcmd*{\mfugrabfirstuc}[1]{\@mfu@grabfirstuc#1\empty}
+\newcommand*{\@mfu@grabfirstuc}[2]{\mfirstucMakeUppercase{#1}#2}
+\DeclareOption{grabfirst}{%
+ \renewcommand*{\glsmakefirstuc}[1]{\mfugrabfirstuc{#1}}%
+ \renewcommand*{\mfirstucMakeUppercase}[1]{\MakeUppercase{#1}}%
+}
+\ProcessOptions
+\ExplSyntaxOn
+\newcommand{\MFUsentencecase}[1]{\text_titlecase_first:n{#1}}
+\newcommand{\MFUexcl}[1]{
+  \tl_if_empty:nF { #1 }
+  {
+    \tl_if_in:NnF \l_text_case_exclude_arg_tl {#1}
+     {
+       \tl_put_right:Nn \l_text_case_exclude_arg_tl {#1}
+     }
+  }
+}
+\MFUexcl{\ensuremath}
+\cs_new:Npn \mfirstuc_if_excluded:NTF #1 #2 #3
+ {
+  \tl_if_in:NnTF \l_text_case_exclude_arg_tl {#1} {#2} {#3}
+ }
+\tl_new:N \l__mfirstuc_stack_tl
+\tl_new:N \l__mfirstuc_head_tl
+\tl_new:N \l__mfirstuc_next_tl
+\tl_new:N \l__mfirstuc_blocker_tl
+\newcommand{\MFUblocker}[1]{
+ \tl_if_empty:nF { #1 }
+  {
+    \tl_if_in:NnF \l__mfirstuc_blocker_tl {#1}
+    {
+      \tl_put_right:Nn \l__mfirstuc_blocker_tl {#1}
+    }
+    \MFUexcl { #1 }
+  }
+}
+\cs_new:Npn \tl_if_mfirstuc_blocker:nTF #1 #2 #3
+ {
+   \tl_if_in:NnTF \l__mfirstuc_blocker_tl {#1} {#2} {#3}
+ }
+\cs_new:Npn \tl_if_mfirstuc_blocker:VTF #1 #2 #3
+ {
+   \expandafter \tl_if_mfirstuc_blocker:nTF \expandafter {#1} {#2} {#3}
+ }
+\newrobustcmd{\makefirstuc}[1]{%
+  \tl_set:Nn \l__mfirstuc_stack_tl {#1}
+  \tl_if_empty:NF \l__mfirstuc_stack_tl
+  {
+    \tl_if_single:NTF \l__mfirstuc_stack_tl
+    {
+      \glsmakefirstuc{#1}
+    }
+    {
+      \tl_if_head_is_group:nTF {#1}
+      {
+        \glsmakefirstuc{#1}
+      }
+      {
+        \tl_if_head_eq_catcode:nNTF {#1} \relax
+        {
+          \tl_set:NV \l_tmpa_tl \l__mfirstuc_stack_tl
+          \tl_set:Nx \l__mfirstuc_head_tl { \tl_head:V \l_tmpa_tl }
+          \tl_set:Nx \l__mfirstuc_stack_tl { \tl_tail:N \l__mfirstuc_stack_tl }
+          \tl_if_eq:NnTF \l__mfirstuc_head_tl { \protect }
+          {
+            \tl_set:NV \l_tmpa_tl \l__mfirstuc_stack_tl
+            \tl_set:Nx \l__mfirstuc_head_tl { \tl_head:V \l_tmpa_tl }
+            \tl_set:Nx \l__mfirstuc_stack_tl { \tl_tail:N \l__mfirstuc_stack_tl }
+          }
+          {}
+          \tl_if_mfirstuc_blocker:VTF \l__mfirstuc_head_tl
+          { #1 }
+          {
+            \let \l_tmpa_tl \l__mfirstuc_stack_tl
+            \tl_set:Nx \l__mfirstuc_next_tl { \tl_head:N \l_tmpa_tl }
+            \tl_if_single:NTF \l__mfirstuc_next_tl
+            {
+              \glsmakefirstuc{#1}
+            }
+            {
+              \tl_set:Nx \l__mfirstuc_stack_tl { \tl_tail:N \l__mfirstuc_stack_tl }
+              \tl_clear:N \l_tmpa_tl
+              \tl_put_right:Nn \l_tmpa_tl { \__mfirstuc_inner:nnn }
+              \tl_put_right:NV \l_tmpa_tl \l__mfirstuc_head_tl
+              \tl_put_right:Nx  \l_tmpa_tl
+              {
+                { \expandonce \l__mfirstuc_next_tl }
+                { \expandonce \l__mfirstuc_stack_tl }
+              }
+            \tl_use:N \l_tmpa_tl
+            }
+          }
+        }
+        {
+          \glsmakefirstuc{#1}
+        }
+      }
+    }
+  }
+}
+\cs_new_protected:Npn \__mfirstuc_inner:nnn #1 #2 #3
+ {
+   \mfirstuc_get_map:NN #1 \l_tmpb_tl
+   \quark_if_no_value:NTF \l_tmpb_tl
+   {
+      \mfirstuc_if_excluded:NTF #1
+      { #1{#2}\makefirstuc{#3} }
+      { #1{\makefirstuc{#2}}#3 }
+   }
+   {
+     \l_tmpb_tl {#2} #3
+   }
+ }
+\prop_new:N \l__mfirstuc_mappings_prop
+\newrobustcmd*{\MFUaddmap}[2]{%
+  \tl_if_empty:nF { #1 }
+  {
+    \tl_if_empty:nF { #2 }
+    {
+      \prop_put:Nnn \l__mfirstuc_mappings_prop {#1} {#2}
+    }
+  }
+  \MFUexcl { #1 }
+  \MFUblocker { #2 }
+}
+\cs_new:Npn \mfirstuc_get_map:NN #1 #2
+ {
+   \prop_get:NnN \l__mfirstuc_mappings_prop {#1} #2
+ }
+\newcommand{\MFUsaveatend}{
+ \AtEndDocument { \@MFUsavetoaux }
+ \let\MFUsaveatend\relax
+}
+\newcommand{\MFUsave}{
+ \@MFUsavetoaux
+ \let\@MFUsavetoaux\relax
+ \let\MFUsave\relax
+ \let\MFUsaveatend\relax
+}
+\newcommand{\@MFUsavetoaux}{
+ \protected@write\@auxout{}
+   { \tl_to_str:n { \providecommand{\@mfu@excls}[1]{} } }
+ \protected@write\@auxout{}
+   { \tl_to_str:n { \providecommand{\@mfu@blockers}[1]{} } }
+ \protected@write\@auxout{}
+   { \tl_to_str:n { \providecommand{\@mfu@mappings}[1]{} } }
+  \protected@write\@auxout{}
+  {
+    \string\@mfu@excls { \tl_to_str:V \l_text_case_exclude_arg_tl }
+  }
+  \protected@write\@auxout{}
+  {
+    \string\@mfu@blockers { \tl_to_str:V \l__mfirstuc_blocker_tl }
+  }
+  \protected@write\@auxout{}
+  {
+    \string\@mfu@mappings
+    { \expandonce { \prop_to_keyval:N \l__mfirstuc_mappings_prop } }
+  }
+}
+\ExplSyntaxOff
+\newrobustcmd{\emakefirstuc}[1]{%
+  \protected@edef\@MFU@caparg{#1}%
+  \expandafter\makefirstuc\expandafter{\@MFU@caparg}%
+}
+\newcommand{\xmakefirstuc}[1]{\expandafter\makefirstuc\expandafter{#1}}
+\newrobustcmd*{\MFUskippunc}[1]{#1}
+\MFUexcl{\MFUskippunc}
+\newcommand{\MFUcapwordfirstuc}[1]{%
+  \makefirstuc{#1}%
+}
+\newrobustcmd*{\capitalisewords}[1]{%
+  \let\@mfu@checkword\@gobble
+  \def\gls@add@space{}%
+  \let\@mfu@domakefirstuc\@MFU@dofirst@capword
+  \mfu@capitalisewords#1 \@nil\mfu@endcap
+}
+\newcommand*{\@mfu@mid@capitalisewords}[1]{%
+  \def\gls@add@space{}%
+  \let\@mfu@domakefirstuc\@MFU@do@capword
+  \mfu@capitalisewords#1 \@nil\mfu@endcap
+}
+\def\mfu@capitalisewords#1 #2\mfu@endcap{%
+  \def\mfu@cap@first{#1}%
+  \def\mfu@cap@second{#2}%
+  \gls@add@space
+  \@mfu@checkword{#1}%
+  \@mfu@domakefirstuc{#1}%
+  \def\gls@add@space{ }%
+  \ifx\mfu@cap@second\@nnil
+    \let\next@mfu@cap\mfu@noop
+  \else
+    \let\next@mfu@cap\mfu@capitalisewords
+    \let\@mfu@checkword\mfu@checkword
+  \fi
+  \next@mfu@cap#2\mfu@endcap
+}
+\def\mfu@noop#1\mfu@endcap{}
+\newif\ifMFUhyphen
+\MFUhyphenfalse
+\newcommand*{\@MFU@do@capword}[1]{%
+  \let\@MFU@cappingword\MFUcapword
+  \@MFUwordbreak#1\MFUwordbreak{}\@nil\@endMFUwordbreak
+}
+\newcommand*{\@MFU@dofirst@capword}[1]{%
+  \let\@MFU@cappingword\MFUcapword
+  \@MFUfirstwordbreak#1\MFUwordbreak{}\@nil\@endMFUfirstwordbreak
+}
+\newcommand*{\MFUcapword}[1]{%
+  \ifMFUhyphen
+   \MFUhyphencapword{#1}%
+  \else
+   \MFUcapwordfirstuc{#1}%
+  \fi
+}
+\newrobustcmd*{\MFUwordbreak}[1]{#1}
+\newcommand*{\MFUhyphencapword}[1]{%
+  \@MFUcapword#1-\@nil\@endMFUcapword
+}
+\def\@MFUcapword#1-#2\@endMFUcapword{%
+  \MFUcapwordfirstuc{#1}%
+  \def\@mfu@argii{#2}%
+  \ifx\@mfu@argii\@nnil
+  \else
+    -\@MFUcapword#2\@endMFUcapword
+  \fi
+}
+\def\@MFUwordbreak#1\MFUwordbreak#2#3\@endMFUwordbreak{%
+  \def\@mfu@argiii{#3}%
+  \ifx\@mfu@argiii\@nnil
+    \@MFU@cappingword{#1}%
+  \else
+    \let\@MFU@cappingword\@MFU@wordbreakcapword
+    \@MFU@cappingword{#1}%
+    #2\@MFUwordbreak#3\@endMFUwordbreak
+  \fi
+}
+\newcommand*{\@MFU@wordbreakcapword}[1]{%
+  \mfu@checkword{#1}%
+  \@mfu@domakefirstuc{#1}%
+}
+\def\@MFUfirstwordbreak#1\MFUwordbreak#2#3\@endMFUfirstwordbreak{%
+  \def\@mfu@argiii{#3}%
+  \ifx\@mfu@argiii\@nnil
+    \@MFU@cappingword{#1}%
+  \else
+    \let\@MFU@cappingword\@MFU@firstwordbreakcapword
+    \@MFU@cappingword{#1}%
+    #2\@MFUfirstwordbreak#3\@endMFUfirstwordbreak
+  \fi
+}
+\newcommand*{\@MFU@firstwordbreakcapword}[1]{%
+  \@mfu@domakefirstuc{#1}%
+}
+\newcommand*\mfu@checkword[1]{%
+  \def\mfu@checkword@arg{#1}%
+  \let\@mfu@domakefirstuc\@MFU@do@capword
+  \forlistloop\mfu@checkword@do\@mfu@nocaplist
+}
+\newcommand*{\mfu@checkword@do}[1]{%
+  \def\mfu@checkword@argii{#1}%
+  \ifdefequal\mfu@checkword@arg\mfu@checkword@argii
+  {%
+    \let\@mfu@domakefirstuc\@firstofone
+    \listbreak
+  }%
+  {%
+    \def\mfu@checkword@argii{#1{\@mfu@terminator}}%
+    \ifdefequal\mfu@checkword@arg\mfu@checkword@argii
+    {%
+      \let\@mfu@domakefirstuc\@firstofone
+      \listbreak
+    }%
+    {}%
+  }%
+}
+\newcommand*{\@mfu@nocaplist}{}
+\newcommand*{\MFUnocap}[1]{\listadd{\@mfu@nocaplist}{#1}}
+\newcommand*{\gMFUnocap}[1]{\listgadd{\@mfu@nocaplist}{#1}}
+\newcommand*{\MFUclear}{\renewcommand*{\@mfu@nocaplist}{}}
+\newcommand*{\xcapitalisewords}[1]{%
+  \expandafter\capitalisewords\expandafter{#1}%
+}
+\newrobustcmd*{\ecapitalisewords}[1]{%
+  \protected@edef\@MFU@caparg{#1}%
+  \expandafter\capitalisewords\expandafter{\@MFU@caparg}%
+}
+\newcommand\@mfu@nil{\unskip}
+\newcommand*\@mfu@nnil{\@mfu@nil}
+\newcommand*{\capitalisefmtwords}{%
+  \@ifstar\@s@capitalisefmtwords\@ns@capitalisefmtwords
+}
+\newcommand*{\@s@capitalisefmtwords}[1]{%
+  \@@s@checkgrp@@capitalisefmtwords#1\@nil
+}
+\newcommand*{\@@s@checkgrp@@capitalisefmtwords}{%
+  \@ifnextchar\bgroup{\@@s@nocs@capitalisefmtwords}{\@@s@capitalisefmtwords}%
+}
+\def\@@s@nocs@capitalisefmtwords#1\@nil{%
+  \capitalisewords{#1}%
+}
+\newcommand*{\@@s@capitalisefmtwords}[1]{%
+  \def\gls@argi{#1}%
+  \ifx\gls@argi\@MFU@protect
+    \let\@mfu@capfmtwordsnext\@@s@capitalisefmtwords
+  \else
+    \ifx\gls@argi\@nnil
+      \let\@mfu@capfmtwordsnext\relax
+    \else
+      \def\@gls@tmp{\ #1}%
+      \@onelevel@sanitize\@gls@tmp
+      \expandafter\@gls@checkcs\@gls@tmp\relax\relax
+      \if@glscs
+        \def\@mfu@capfmtwordsnext{\@@s@cs@capitalisefmtwords#1}%
+      \else
+        \def\@mfu@capfmtwordsnext{\@@s@nocs@capitalisefmtwords#1}%
+      \fi
+    \fi
+  \fi
+  \@mfu@capfmtwordsnext
+}
+\newcommand*{\@@s@cs@capitalisefmtwords}[1]{%
+  \@ifnextchar\bgroup
+   {\@@s@cs@g@capitalisefmtwords#1}%
+   {\@@s@cs@ng@capitalisefmtwords#1}%
+}
+\def\@@s@cs@g@capitalisefmtwords#1#2#3\@nil{%
+  #1{\capitalisewords{#2}}%
+  \ifblank{#3}%
+  {}%
+  {%
+    \def\gls@add@space{}%
+    \let\@mfu@checkword\mfu@checkword
+    \mfu@capitalisewords#3 \@nil\mfu@endcap
+  }%
+}
+\def\@@s@cs@ng@capitalisefmtwords#1#2\@nil{%
+  \capitalisewords{#1#2}%
+}
+\newcommand*{\@ns@capitalisefmtwords}[1]{%
+  \let\@mfu@checkword\@gobble
+  \def\gls@add@space{}%
+  \@capitalisefmtwords#1 \@mfu@nil{} \unskip
+}
+\newcommand*{\@capitalisefmtwords}{%
+  \@ifnextchar\bgroup{\@capitalise@g@fmtwords}{\@capitalise@ng@fmtwords}%
+}
+\newcommand*{\@capitalise@g@fmtwords}[1]{%
+  \@capitalise@ng@fmtwords{{#1}}%
+}
+\def\@mfu@ifnil#1#2\@mfu@end@nil#3#4{%
+  \def\gls@argi{#1}%
+  \ifx\gls@argi\@mfu@nnil
+    #3%
+  \else
+    #4%
+  \fi
+}
+\def\@capitalise@ng@fmtwords#1 {%
+  \@mfu@ifnil#1\relax\relax\@mfu@end@nil
+  {%
+    \def\@mfu@capfmtwordsnext{#1}%
+  }%
+  {%
+    \def\@mfu@capfmtwordsnext{%
+       \@capitalise@fmtwords#1\@mfu@nil
+       \def\gls@add@space{ }%
+       \let\@mfu@checkword\mfu@checkword
+       \@@cap@nofmtphrase}%
+  }%
+  \@mfu@capfmtwordsnext
+}%
+\def\@capitalise@fmtwords#1{%
+  \@mfu@ifnil#1\relax\relax\@mfu@end@nil
+  {%
+    \def\@mfu@capfmtwordsnext{#1}%
+  }%
+  {%
+    \def\gls@argi{#1}%
+    \ifx\gls@argi\@MFU@protect
+      \def\@mfu@capfmtwordsnext{\@capitalise@fmtwords}%
+    \else
+      \def\@gls@tmp{\ #1}%
+      \@onelevel@sanitize\@gls@tmp
+      \expandafter\@gls@checkcs\@gls@tmp\relax\relax
+      \if@glscs
+       \def\@mfu@capfmtwordsnext{\@@capitalisefmtwords#1}%
+      \else
+       \ifx\gls@argi\@empty
+         \def\@mfu@capfmtwordsnext{\@@capnofmtphrase{}}%
+       \else
+         \def\@mfu@capfmtwordsnext{\@@capnofmtphrase#1}%
+       \fi
+      \fi
+    \fi
+  }%
+  \@mfu@capfmtwordsnext
+}
+\def\@@capitalisefmtwords#1{%
+  \@ifnextchar\bgroup{\@@capfmtsubphrase#1}{\@@capnofmtphrase#1}%
+}
+\def\@@capnofmtphrase{%
+  \@ifnextchar\bgroup{\@@cap@g@nofmtphrase}{\@@cap@ng@nofmtphrase}%
+}
+\def\@@cap@ng@nofmtphrase#1\@mfu@nil{%
+  \gls@add@space
+  \@mfu@mid@capitalisewords{#1}%
+  \def\gls@add@space{ }%
+}
+\def\@@cap@g@nofmtphrase#1{%
+  \@@cap@ng@nofmtphrase{{#1}}%
+}
+\newcommand*\@mfu@terminator{\hbox{}}
+\def\@@capfmtsubphrase#1#2#3{%
+  #1{\@capitalisefmtwords#2{\@mfu@terminator} \@mfu@nil{} \unskip}%
+  \def\gls@add@space{ }%
+  \let\@mfu@checkword\mfu@checkword
+  \@mfu@ifnil#1\relax\relax\@mfu@end@nil
+  {\let\@mfu@fmtsubphrasenext\relax}%
+  {\def\@mfu@fmtsubphrasenext{#3}}%
+  \@mfu@fmtsubphrasenext
+}
+\def\@@cap@nofmtphrase#1 {%
+  \@mfu@ifnil#1\relax\relax\@mfu@end@nil
+  {%
+    \def\@mfu@capnofmtwordsnext{#1 }%
+  }%
+  {%
+    \def\@mfu@capnofmtwordsnext{%
+      \@capitalisefmtwords#1 \@mfu@nil{} \unskip
+      \def\gls@add@space{ }%
+      \let\@mfu@checkword\mfu@checkword
+      \@capitalisefmtwords
+    }%
+  }%
+  \@mfu@capnofmtwordsnext
+}
+\newcommand*{\xcapitalisefmtwords}{%
+  \@ifstar\@s@xcapitalisefmtwords\@ns@xcapitalisefmtwords
+}
+\newcommand*{\@s@xcapitalisefmtwords}[1]{%
+  \expandafter\@s@capitalisefmtwords\expandafter{#1}%
+}
+\newcommand*{\@ns@xcapitalisefmtwords}[1]{%
+  \expandafter\@ns@capitalisefmtwords\expandafter{#1}%
+}
+\newrobustcmd*{\ecapitalisefmtwords}{%
+  \@ifstar\@s@ecapitalisefmtwords\@ns@ecapitalisefmtwords
+}
+\newcommand*{\@s@ecapitalisefmtwords}[1]{%
+  \protected@edef\@MFU@caparg{#1}%
+  \expandafter\@s@capitalisefmtwords\expandafter{\@MFU@caparg}%
+}
+\newcommand*{\@ns@ecapitalisefmtwords}[1]{%
+  \protected@edef\@MFU@caparg{#1}%
+  \expandafter\@ns@capitalisefmtwords\expandafter{\@MFU@caparg}%
+}
+\newif\if@glscs
+\newtoks\@glsmfirst
+\newtoks\@glsmrest
+\newrobustcmd*{\@org@makefirstuc}[1]{%
+  \@MFU@p@makefirstuc#1\relax\relax\relax\@end@MFU@protected{#1}%
+}
+\newcommand*{\@MFU@protect}{\protect}
+\newcommand*{\@MFU@skippunc}{\MFUskippunc}
+\def\@MFU@p@makefirstuc#1#2#3\@end@MFU@protected#4{%
+  \def\gls@argi{#1}%
+  \ifx\gls@argi\@MFU@protect
+   \@makefirstuc{#2#3}%
+  \else
+    \ifx\gls@argi\@MFU@skippunc
+      #2\@makefirstuc{#3}%
+    \else
+      \@makefirstuc{#4}%
+    \fi
+  \fi
+}
+\newcommand*{\@makefirstuc}[1]{%
+  \def\gls@argi{#1}%
+  \ifx\gls@argi\@empty
+  \else
+    \def\@gls@tmp{\ #1}%
+    \@onelevel@sanitize\@gls@tmp
+    \expandafter\@gls@checkcs\@gls@tmp\relax\relax
+    \if@glscs
+     \expandafter\def\expandafter\@gls@tmp\expandafter{\expandafter
+       \ \@gobble #1}%
+     \@onelevel@sanitize\@gls@tmp
+     \expandafter\@gls@checkcs\@gls@tmp\relax\relax
+     \if@glscs\@glscsfalse\else\@glscstrue\fi
+    \fi
+    \if@glscs
+      \@gls@getbody #1{}\@nil
+      \ifx\@gls@rest\@empty
+        \glsmakefirstuc{#1}%
+      \else
+        \expandafter\@gls@split\@gls@rest\@nil
+        \ifx\@gls@first\@empty
+           \glsmakefirstuc{#1}%
+        \else
+           \edef\@gls@tmp\expandafter{\noexpand\ \expandonce\@gls@first}%
+           \@onelevel@sanitize\@gls@tmp
+           \expandafter\@gls@checkcs\@gls@tmp\relax\relax
+           \if@glscs
+             \edef\@gls@domfirstuc{\expandonce\@gls@body
+              {\noexpand\makefirstuc{\expandonce\@gls@first
+               \expandonce\@gls@rest}%
+              }%
+             }%
+           \else
+             \expandafter\@glsmfirst\expandafter{\@gls@first}%
+             \expandafter\@glsmrest\expandafter{\@gls@rest}%
+             \edef\@gls@domfirstuc{\noexpand\@gls@body
+               {\noexpand\glsmakefirstuc{\the\@glsmfirst}}%
+               \the\@glsmrest}%
+           \fi
+           \@gls@domfirstuc
+        \fi
+      \fi
+    \else
+      \glsmakefirstuc{#1}%
+    \fi
+  \fi
+}
+\ifdef\dtl@getfirst@UTFviii
+{%
+  \def\@gls@split#1#2\@nil{%
+   \ifbool{@dtl@utf8}
+    {%
+      \expandafter\dtl@if@two@octets#1#2\relax\dtl@end@if@two@octets
+      {%
+        \dtl@getfirst@UTFviii#1#2\@nil\end@dtl@getfirst@UTFviii
+        \let\@gls@first\dtl@first
+        \let\@gls@rest\dtl@rest
+      }%
+      {%
+        \def\@gls@first{#1}\def\@gls@rest{#2}%
+      }%
+    }%
+    {%
+      \def\@gls@first{#1}\def\@gls@rest{#2}%
+    }%
+  }
+}%
+{%
+  \def\@gls@split#1#2\@nil{%
+    \def\@gls@first{#1}\def\@gls@rest{#2}%
+  }
+}
+\def\@gls@checkcs#1 #2#3\relax{%
+  \def\@gls@argi{#1}\def\@gls@argii{#2}%
+  \ifx\@gls@argi\@gls@argii
+    \@glscstrue
+  \else
+    \@glscsfalse
+  \fi
+}
+\ifdef\dtl@getfirst@UTFviii
+{%
+  \def\@mfu@applytofirst#1#2\@mfu@end@applytofirst#3{%
+    \expandafter\dtl@if@two@octets#1#2\relax\dtl@end@if@two@octets
+    {%
+       \dtl@getfirst@UTFviii#1#2\@nil\end@dtl@getfirst@UTFviii
+       \expandafter#3\expandafter{\dtl@first}\dtl@rest
+    }%
+    {%
+      #3{#1}#2%
+    }%
+  }%
+}%
+{%
+  \def\@mfu@applytofirst#1#2\@mfu@end@applytofirst#3{%
+      #3{#1}#2%
+  }
+}
+\ifdef\dtl@getfirst@UTFviii
+{%
+  \newcommand*{\MFUapplytofirst}[2]{%
+    \ifbool{@dtl@utf8}
+    {%
+       \ifblank{#2}%
+       {#1{#2}}%
+       {%
+         \ifblank{#1}%
+         {#1#2}%
+         {%
+           \@mfu@applytofirst#2\@mfu@end@applytofirst#1\relax
+         }%
+       }%
+    }%
+    {%
+      #1#2%
+    }%
+  }
+}%
+{%
+  \newcommand*{\MFUapplytofirst}[2]{%
+     #1#2%
+  }
+}
+\def\@gls@makefirstuc#1{\MFUsentencecase{#1}}
+\def\@gls@getbody#1#{\def\@gls@body{#1}\@gls@gobbletonil}
+\def\@gls@gobbletonil#1\@nil{\def\@gls@rest{#1}}
+\endinput
+%%
+%% End of file `mfirstuc.sty'.

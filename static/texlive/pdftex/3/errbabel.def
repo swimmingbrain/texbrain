@@ -1,0 +1,259 @@
+%%
+%% This is file `errbabel.def',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% babel.dtx  (with options: `errors')
+%% 
+%%
+%% Copyright (C) 2012-2026 Javier Bezos and Johannes L. Braams.
+%% Copyright (C) 1989-2012 Johannes L. Braams and
+%%           any individual authors listed elsewhere in this file.
+%% All rights reserved.
+%%
+%%
+%% This file is part of the Babel system.
+%% --------------------------------------
+%%
+%% It may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License, either version 1.3
+%% of this license or (at your option) any later version.
+%% The latest version of this license is in
+%%   http://www.latex-project.org/lppl.txt
+%% and version 1.3 or later is part of all distributions of LaTeX
+%% version 2003/12/01 or later.
+%%
+%% This work has the LPPL maintenance status "maintained".
+%%
+%% The Current Maintainer of this work is Javier Bezos.
+%%
+%% The list of derived (unpacked) files belonging to the distribution
+%% and covered by LPPL is defined by the unpacking scripts (with
+%% extension |.ins|) which are part of the distribution.
+%%
+\catcode`\{=1  \catcode`\}=2  \catcode`\#=6
+\catcode`\:=12 \catcode`\,=12 \catcode`\.=12 \catcode`\-=12
+\catcode`\'=12 \catcode`\(=12 \catcode`\)=12
+\catcode`\@=11 \catcode`\^=7
+\ifx\MessageBreak\@undefined
+  \gdef\bbl@error@i#1#2{%
+    \begingroup
+      \newlinechar=`\^^J
+      \def\\{^^J(babel) }%
+      \errhelp{#2}\errmessage{\\#1}%
+    \endgroup}
+\else
+  \gdef\bbl@error@i#1#2{%
+    \begingroup
+      \def\\{\MessageBreak}%
+      \PackageError{babel}{#1}{#2}%
+    \endgroup}
+\fi
+\def\bbl@errmessage#1#2#3{%
+  \expandafter\gdef\csname bbl@err@#1\endcsname##1##2##3{%
+    \bbl@error@i{#2}{#3}}}
+\gdef\bbl@error#1{\csname bbl@err@#1\endcsname}
+\bbl@errmessage{not-yet-available}
+    {Not yet available}%
+    {Find an armchair, sit down and wait}
+\bbl@errmessage{bad-package-option}%
+   {Bad option '#1=#2'. Either you have misspelled the\\%
+    key or there is a previous setting of '#1'. Valid\\%
+    keys are, among others, 'shorthands', 'main', 'bidi',\\%
+    'strings', 'config', 'headfoot', 'safe', 'math'.}%
+   {See the manual for further details.}
+\bbl@errmessage{base-on-the-fly}
+   {For a language to be defined on the fly 'base'\\%
+    is not enough, and the whole package must be\\%
+    loaded. Either delete the 'base' option or\\%
+    request the languages explicitly}%
+   {See the manual for further details.}
+\bbl@errmessage{undefined-language}
+   {You haven't defined the language '#1' yet.\\%
+    Perhaps you misspelled it or your installation\\%
+    is not complete}%
+   {Your command will be ignored, type <return> to proceed}
+\bbl@errmessage{invalid-ini-name}
+     {'#1' not valid with the 'ini' mechanism.\\%
+      I think you want '#2' instead. You may continue,\\%
+      but you should fix the name. See the babel manual\\%
+      for the available locales with 'provide'}%
+     {See the manual for further details.}
+\bbl@errmessage{shorthand-is-off}
+   {I can't declare a shorthand turned off (\string#2)}
+   {Sorry, but you can't use shorthands which have been\\%
+    turned off in the package options}
+\bbl@errmessage{not-a-shorthand}
+   {The character '\string #1' should be made a shorthand character;\\%
+    add the command \string\useshorthands\string{#1\string} to
+    the preamble.\\%
+    I will ignore your instruction}%
+   {You may proceed, but expect unexpected results}
+\bbl@errmessage{not-a-shorthand-b}
+   {I can't switch '\string#2' on or off--not a shorthand\\%
+    This character is not a shorthand. Maybe you made\\%
+    a typing mistake?}%
+   {I will ignore your instruction.}
+\bbl@errmessage{unknown-attribute}
+   {The attribute #2 is unknown for language #1.}%
+   {Your command will be ignored, type <return> to proceed}
+\bbl@errmessage{missing-group}
+   {Missing group for string \string#1}%
+   {You must assign strings to some category, typically\\%
+    captions or extras, but you set none}
+\bbl@errmessage{only-lua-xe}
+   {This macro is available only in LuaLaTeX and XeLaTeX.}%
+   {Consider switching to these engines.}
+\bbl@errmessage{only-lua}
+   {This macro is available only in LuaLaTeX}%
+   {Consider switching to that engine.}
+\bbl@errmessage{unknown-provide-key}
+   {Unknown key '#1' in \string\babelprovide}%
+   {See the manual for valid keys}%
+\bbl@errmessage{unknown-mapfont}
+   {Option '\bbl@KVP@mapfont' unknown for\\%
+    mapfont. Use 'direction'}%
+   {See the manual for details.}
+\bbl@errmessage{no-ini-file}
+   {There is no ini file for the requested language\\%
+    (#1: \languagename). Perhaps you misspelled it or your\\%
+    installation is not complete}%
+   {Fix the name or reinstall babel.}
+\bbl@errmessage{digits-is-reserved}
+   {The counter name 'digits' is reserved for mapping\\%
+    decimal digits}%
+   {Use another name.}
+\bbl@errmessage{limit-two-digits}
+   {Currently two-digit years are restricted to the\\
+    range 0-9999}%
+   {There is little you can do. Sorry.}
+\bbl@errmessage{alphabetic-too-large}
+ {Alphabetic numeral too large (#1)}%
+ {Currently this is the limit.}
+\bbl@errmessage{no-ini-info}
+   {I've found no info for the current locale.\\%
+    The corresponding ini file has not been loaded\\%
+    Perhaps it doesn't exist}%
+   {See the manual for details.}
+\bbl@errmessage{unknown-ini-field}
+   {Unknown field '#1' in \string\BCPdata.\\%
+    Perhaps you misspelled it}%
+   {See the manual for details.}
+\bbl@errmessage{unknown-locale-key}
+   {Unknown key for locale '#2':\\%
+    #3\\%
+    \string#1 will be set to \string\relax}%
+   {Perhaps you misspelled it.}%
+\bbl@errmessage{adjust-only-vertical}
+   {Currently, #1 related features can be adjusted only\\%
+    in the main vertical list}%
+   {Maybe things change in the future, but this is what it is.}
+\bbl@errmessage{layout-only-vertical}
+   {Currently, layout related features can be adjusted only\\%
+    in vertical mode}%
+   {Maybe things change in the future, but this is what it is.}
+\bbl@errmessage{bidi-only-lua}
+   {The bidi method 'basic' is available only in\\%
+    luatex. I'll continue with 'bidi=default', so\\%
+    expect wrong results.\\%
+    Suggested actions:\\%
+    * If possible, switch to luatex, as xetex is not\\%
+      recommend anymore.\\
+    * If you can’t, try 'bidi=bidi' with xetex.\\%
+    * With pdftex, only 'bidi=default' is available.}%
+   {See the manual for further details.}
+\bbl@errmessage{multiple-bidi}
+   {Multiple bidi settings inside a group\\%
+    I'll insert a new group, but expect wrong results.\\%
+    Suggested action:\\%
+    * Add a new group where appropriate.}
+   {See the manual for further details.}
+\bbl@errmessage{unknown-package-option}
+   {Unknown option '\CurrentOption'.\\%
+    Suggested actions:\\%
+    * Make sure you haven’t misspelled it\\%
+    * Check in the babel manual that it's supported\\%
+    * If supported and it's a language, you may\\%
+    \space\space  need in some distributions a separate\\%
+    \space\space  installation\\%
+    * If installed, check there isn’t an old\\%
+    \space\space version of the required files in your system\\%
+    * If it's an unsupported language, create it with\\%
+    \string\babelprovide (see the manual)}
+   {Valid options are, among others: shorthands=, KeepShorthandsActive,\\%
+    activeacute, activegrave, noconfigs, safe=, main=, math=\\%
+    headfoot=, strings=, config=, hyphenmap=, or a language name.}
+\bbl@errmessage{config-not-found}
+   {Local config file '\bbl@opt@config.cfg' not found.\\%
+    Suggested actions:\\%
+    * Make sure you haven’t misspelled it in config=\\%
+    * Check it exists and it’s in the correct path}%
+   {Perhaps you misspelled it.}
+\bbl@errmessage{late-after-babel}
+   {Too late for \string\AfterBabelLanguage}%
+   {Languages have been loaded, so I can do nothing}
+\bbl@errmessage{double-hyphens-class}
+   {Double hyphens aren't allowed in \string\babelcharclass\\%
+    because it's potentially ambiguous}%
+   {See the manual for further info}
+\bbl@errmessage{unknown-interchar}
+   {'#1' for '\languagename' cannot be enabled.\\%
+    Maybe there is a typo}%
+   {See the manual for further details.}
+\bbl@errmessage{unknown-interchar-b}
+   {'#1' for '\languagename' cannot be disabled.\\%
+    Maybe there is a typo}%
+   {See the manual for further details.}
+\bbl@errmessage{charproperty-only-vertical}
+   {\string\babelcharproperty\space can be used only in\\%
+    vertical mode (preamble or between paragraphs)}%
+   {See the manual for further info}
+\bbl@errmessage{unknown-char-property}
+   {No property named '#2'. Allowed values are\\%
+    direction (bc), mirror (bmg), and linebreak (lb)}%
+   {See the manual for further info}
+\bbl@errmessage{bad-transform-option}
+   {Bad option '#1' in a transform.\\%
+    I’ll ignore it but expect more errors}%
+   {See the manual for further info.}
+\bbl@errmessage{font-conflict-transforms}
+   {Transforms cannot be re-assigned to different\\%
+    fonts. The conflict is in '\bbl@kv@label'.\\%
+    Apply the same fonts or use a different label}%
+   {See the manual for further details.}
+\bbl@errmessage{transform-not-available}
+   {'#1' for '\languagename' cannot be enabled.\\%
+    Maybe there is a typo or it’s a font-dependent transform}%
+   {See the manual for further details.}
+\bbl@errmessage{transform-not-available-b}
+   {'#1' for '\languagename' cannot be disabled.\\%
+    Maybe there is a typo or it’s a font-dependent transform}%
+   {See the manual for further details.}
+\bbl@errmessage{year-out-range}
+   {Year out of range.\\%
+    The allowed range is #1}%
+   {See the manual for further details.}
+\bbl@errmessage{only-pdftex-lang}
+   {The '#1' ldf style doesn't work with #2,\\%
+    but you can use the ini locale instead.\\%
+    Try adding 'provide=*' to the option list. You may\\%
+    also want to set 'bidi=' to some value}%
+   {See the manual for further details.}
+\bbl@errmessage{hyphenmins-args}
+   {\string\babelhyphenmins\ accepts either the optional\\%
+    argument or the star, but not both at the same time}%
+   {See the manual for further details.}
+\bbl@errmessage{no-locale-for-meta}
+   {There isn't currently a locale for the 'lang' requested\\%
+    in the PDF metadata ('#1'). To fix it, you can\\%
+    set explicitly a similar language (using the same\\%
+    script) with the key main= when loading babel. If you\\%
+    continue, I'll fallback to the 'nil' language, with\\%
+    tag 'und' and script 'Latn', but expect a bad font\\%
+    rendering with other scripts. You may also need set\\%
+    explicitly captions and date, too}%
+   {See the manual for further details.}
+\endinput
+%%
+%% End of file `errbabel.def'.

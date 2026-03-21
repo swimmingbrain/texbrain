@@ -1,0 +1,557 @@
+%--------------------------------------------
+%
+% Package pgfplots
+%
+% Provides a user-friendly interface to create function plots (normal
+% plots, semi-logplots and double-logplots).
+% 
+% It is based on Till Tantau's PGF package.
+%
+% Copyright 2007-2015 by Christian Feuersänger.
+%
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+% 
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%
+%--------------------------------------------
+
+% This file essentially belongs to the 'mesh' plot handler.
+% It implements the (rather involved) feature 'mesh input=image'.
+%
+% 'mesh input=image' is implemented during the visualization phase
+% and, partially, during the survey phase. The survey phase merely
+% updates the data limits. The visualization phase has the complete
+% knowledge about the input matrix size and can compute the cells.
+
+\def\pgfplotsplothandlersurveystart@mesh@image{%
+	\let\pgfplotsplothandlermesh@image@lastA=\pgfutil@empty
+	\let\pgfplotsplothandlermesh@image@lastlastA=\pgfutil@empty
+	\let\pgfplotsplothandlermesh@image@lastB=\pgfutil@empty
+	\def\b@pgfplotsplothandlermesh@image@updatedlimits@A@next{1}%
+	\def\b@pgfplotsplothandlermesh@image@updatedlimits@B@next{0}%
+	\def\c@pgfplotsplothandlermesh@image@numscanlines{0}%
+	%
+	\if\pgfplots@plot@mesh@ordering0%
+		% ordering = x varies= rowwise -> scanline is cols!
+		\def\pgfplotsplothandlermesh@image@A@dir{x}%
+		\def\pgfplotsplothandlermesh@image@B@dir{y}%
+		\def\pgfplotsplothandlermesh@image@updatelimits@AB##1##2##3{%
+			\pgfplotsaxisupdatelimitsforcoordinate{##1}{##2}{##3}%
+		}%
+	\else
+		% ordering = y varies = colwise: scanline is rows!
+		\def\pgfplotsplothandlermesh@image@A@dir{y}%
+		\def\pgfplotsplothandlermesh@image@B@dir{x}%
+		\def\pgfplotsplothandlermesh@image@updatelimits@AB##1##2##3{%
+			\pgfplotsaxisupdatelimitsforcoordinate{##2}{##1}{##3}%
+		}%
+	\fi
+}%
+\def\pgfplotsplothandlersurveyend@mesh@image{%
+	\if1\pgfplotsaxisplothasjumps
+		% the approach to interpolate cell corners using the adjacent cell midpoints becomes extremely complicated once 
+		% we allow all kinds of holes in the input matrix.
+		% If you want to make invisible cells, you can add "nan" as color data
+		\pgfplots@error{Sorry, 'matrix plot' supports no holes (jumps) in the input data. Please implement jumps using an unbounded point meta value (i.e. inf or nan)}%
+	\fi
+	%
+}%
+\def\pgfplotsplothandlersurveypoint@mesh@image{%
+	% already called:
+	%\pgfplotsplothandlersurveypoint@default
+	%
+	% The 'update limits' routine for 'mesh input=image' is a
+	% HEURISTICS.
+	%
+	% It works well for "real" image plots, i.e. for those which are
+	% not skewed or changed parametrically.
+	%
+	% The main challenge is that we have to update the matrix limits
+	% while we pass through the scanlines.
+	%
+	% The idea is:
+	% - update cell midpoint limits using the standard PGFPlots
+	%   methods. We would like to have the cell limits instead,
+	%   though... to this end:
+	% - update the lower x cell limit for the first encountered X in every
+	%   scanline
+	% - update the upper x cell limit for the last encountered X in every
+	%   scanline
+	% - update the lower AND upper y cell limit for the first encountered Y
+	%   in every scanline.
+	%
+	% That means: 
+	% - we do NOT update X limits for mid points
+	% - we do NOT update Y limits for the second, third, ..., nth
+	%   point on scanlines. Only for the first.
+	%
+	% For parametric image plots, these limits will be inaccurate. I
+	% suppose these are rather exotic anyway, so I accept that to
+	% simplify the implementation.
+	%
+	\expandafter\let\expandafter\pgfplotsplothandlermesh@cur\csname pgfplots@current@point@\pgfplotsplothandlermesh@image@A@dir\endcsname
+	\expandafter\let\expandafter\pgfplotsplothandlermesh@cur@B\csname pgfplots@current@point@\pgfplotsplothandlermesh@image@B@dir\endcsname
+	%
+	\if1\b@pgfplotsplothandlermesh@image@updatedlimits@A@next
+		\ifx\pgfplotsplothandlermesh@cur\pgfutil@empty
+		\else
+			\ifx\pgfplotsplothandlermesh@image@lastA\pgfutil@empty
+			\else
+				\pgfplotscoordmath{\pgfplotsplothandlermesh@image@A@dir}{parse}{\pgfplotsplothandlermesh@image@lastA - 0.5*(\pgfplotsplothandlermesh@cur - \pgfplotsplothandlermesh@image@lastA)}%
+				\pgfplots@if{pgfplots@\pgfplotsplothandlermesh@image@A@dir islinear}{}{%
+					\pgfplotscoordmath{\pgfplotsplothandlermesh@image@A@dir}{parsenumber}{\pgfmathresult}%
+				}
+				\let\pgfplots@current@point@xh=\pgfmathresult
+				\pgfplotsplothandlermesh@image@updatelimits@AB\pgfplots@current@point@xh\pgfplotsplothandlermesh@cur@B\pgfplots@current@point@z
+				%
+				\def\b@pgfplotsplothandlermesh@image@updatedlimits@A@next{0}%
+			\fi
+		\fi
+	\fi
+	%
+	\if1\b@pgfplotsplothandlermesh@image@updatedlimits@B@next
+		\ifx\pgfplotsplothandlermesh@cur@B\pgfutil@empty
+		\else
+			\ifx\pgfplotsplothandlermesh@image@lastB\pgfutil@empty
+			\else
+				\pgfplotscoordmath{\pgfplotsplothandlermesh@image@B@dir}{parse}{\pgfplotsplothandlermesh@image@lastB - 0.5*(\pgfplotsplothandlermesh@cur@B - \pgfplotsplothandlermesh@image@lastB)}%
+				\pgfplots@if{pgfplots@\pgfplotsplothandlermesh@image@B@dir islinear}{}{%
+					\pgfplotscoordmath{\pgfplotsplothandlermesh@image@B@dir}{parsenumber}{\pgfmathresult}%
+				}
+				\let\pgfplots@current@point@yh=\pgfmathresult
+				\pgfplotsplothandlermesh@image@updatelimits@AB\pgfplotsplothandlermesh@cur\pgfplots@current@point@yh\pgfplots@current@point@z
+				%
+				%
+				\pgfplotscoordmath{\pgfplotsplothandlermesh@image@B@dir}{parse}{\pgfplotsplothandlermesh@cur@B + 0.5*(\pgfplotsplothandlermesh@cur@B - \pgfplotsplothandlermesh@image@lastB)}%
+				\pgfplots@if{pgfplots@\pgfplotsplothandlermesh@image@B@dir islinear}{}{%
+					\pgfplotscoordmath{\pgfplotsplothandlermesh@image@B@dir}{parsenumber}{\pgfmathresult}%
+				}
+				\let\pgfplots@current@point@yh=\pgfmathresult
+				\pgfplotsplothandlermesh@image@updatelimits@AB\pgfplotsplothandlermesh@cur\pgfplots@current@point@yh\pgfplots@current@point@z
+				%
+				\def\b@pgfplotsplothandlermesh@image@updatedlimits@B@next{0}%
+			\fi
+		\fi
+	\fi
+	\let\pgfplotsplothandlermesh@image@lastlastA=\pgfplotsplothandlermesh@image@lastA
+	\let\pgfplotsplothandlermesh@image@lastA=\pgfplotsplothandlermesh@cur
+	%
+	\let\pgfplotsplothandlermesh@image@lastB=\pgfplotsplothandlermesh@cur@B
+}%
+
+\def\pgfplotsplothandlersurveyend@mesh@image@scanlinecomplete{%
+	\ifx\pgfplotsplothandlermesh@image@lastlastA\pgfutil@empty
+	\else
+		\ifx\pgfplotsplothandlermesh@image@lastA\pgfutil@empty
+		\else
+			\expandafter\let\expandafter\pgfplotsplothandlermesh@cur@B\csname pgfplots@current@point@\pgfplotsplothandlermesh@image@B@dir\endcsname
+			\pgfplotscoordmath{\pgfplotsplothandlermesh@image@A@dir}{parse}{\pgfplotsplothandlermesh@image@lastA + 0.5*(\pgfplotsplothandlermesh@image@lastA - \pgfplotsplothandlermesh@image@lastlastA)}%
+			\pgfplots@if{pgfplots@\pgfplotsplothandlermesh@image@A@dir islinear}{}{%
+				\pgfplotscoordmath{\pgfplotsplothandlermesh@image@A@dir}{parsenumber}{\pgfmathresult}%
+			}
+			\let\pgfplots@current@point@xh=\pgfmathresult
+			\pgfplotsplothandlermesh@image@updatelimits@AB\pgfplots@current@point@xh\pgfplotsplothandlermesh@cur@B\pgfplots@current@point@z
+		\fi
+	\fi
+	%
+	\def\b@pgfplotsplothandlermesh@image@updatedlimits@B@next{1}%
+	%
+	\let\pgfplotsplothandlermesh@image@lastlastA=\pgfutil@empty
+	\let\pgfplotsplothandlermesh@image@lastA=\pgfutil@empty
+	\def\b@pgfplotsplothandlermesh@image@updatedlimits@A@next{1}%
+	%
+	\pgfplotsutil@advancestringcounter\c@pgfplotsplothandlermesh@image@numscanlines
+}%
+
+%
+% The 'mesh' plot handler has a "visualization pipeline" as part of
+% its visualization:
+%
+% if it is active, the coordinate stream used for the visualization
+% (\pgfplotsplothandlermesh@stream) invokes
+% \pgfplotsplothandlermesh@PIPE@DECODE as first item. This, in turn,
+% fires other elements of the mesh plot pipeline, but its most
+% important task is to assemble patches while it goes. 
+%
+% That's where 'mesh input=image' hooks in: it simply generates special patches.
+
+% this is part of the implementation of mesh input=image
+% the pgf@plotstreampoint routine for the first scan line:
+\def\pgfplotsplothandlermesh@PIPE@DECODE@image@fillscanline#1{%
+	\pgfplotsplothandlermesh@PIPE@DECODE@matrix@fillscanline@common{#1}%
+	\ifnum\c@pgfplots@scanlineindex=\pgfplotsplothandlermesh@scanlinelength\relax
+		% second line!
+		\let\pgfplotsplothandlermesh@PIPE@DECODE=\pgfplotsplothandlermesh@PIPE@DECODE@image@secondscanline%%
+		\c@pgfplots@scanlineindex=0
+		\def\c@pgfplotsplothandlermesh@image@nextrownum{2}%
+	\fi
+}%
+
+% IDEA: 
+%
+% 1. The first scanline is merely buffered and collected into the deque 'lastscanline' (just as any mesh plot).
+% 2. The second scanline 
+%  - generates cells for the first scanline _and_
+%  - appends the computed intermediate vertices to the deque 'lastinterpscanline'.
+%  - during the sweep, a single cell of the first scanline is
+%  generated
+%  - only the _last_ element of the scanline generates two cells
+% 3. All scanlines after the second 
+%  - pop the intermediate vertices from the deque 
+%  - use them to construct cells for the previous scanline
+%  - append their computed intermediate vertices to the deque 'lastinterpscanline'.
+%  - during the sweep, a single cell of the first scanline is
+%  generated
+%  - only the _last_ element of the scanline generates two cells (just as in step 2)
+% 4. the last scanline is special in that it generates cells for the
+% previous scanline _and_ the last scanline.
+%
+% The "computed intermediate vertices" are mean values and
+% extrapolation points. My idea is to make this special cell-based
+% mesh more flexible than a simple imagesc, hoping that this pays off.
+\def\pgfplotsplothandlermesh@PIPE@DECODE@image@secondscanline#1{%
+	\pgfplotsplothandlermesh@PIPE@DECODE@matrix@collect@and@callback{#1}{%
+		%
+		% create cell:
+		\pgfplotsplothandlermesh@PIPE@DECODE@image@sweep@create@cell{1}%
+		%
+		\advance\c@pgfplots@scanlineindex by1
+		\ifnum\c@pgfplots@scanlineindex=\pgfplotsplothandlermesh@scanlinelength\relax
+			% ok, we have to extrapolate the last column.
+			\pgfplotsplothandlermesh@PIPE@DECODE@image@sweep@create@cell@lastcolumn{1}%
+		\fi
+		\advance\c@pgfplots@scanlineindex by-1
+	}{%
+		% if scanline is completed, switch states:
+		\let\pgfplotsplothandlermesh@PIPE@DECODE=\pgfplotsplothandlermesh@PIPE@DECODE@image@after@second%%
+		\c@pgfplots@scanlineindex=0
+		\pgfplotsutil@advancestringcounter\c@pgfplotsplothandlermesh@image@nextrownum
+	}%
+}%
+\def\pgfplotsplothandlermesh@PIPE@DECODE@image@after@second#1{%
+	\pgfplotsplothandlermesh@PIPE@DECODE@matrix@collect@and@callback{#1}{%
+		\pgfplotsplothandlermesh@PIPE@DECODE@image@sweep@create@cell{0}%
+		%
+		\advance\c@pgfplots@scanlineindex by1
+		\ifnum\c@pgfplots@scanlineindex=\pgfplotsplothandlermesh@scanlinelength\relax
+			% ok, we have to extrapolate the last column.
+			\pgfplotsplothandlermesh@PIPE@DECODE@image@sweep@create@cell@lastcolumn{0}%
+		\fi
+		\advance\c@pgfplots@scanlineindex by-1
+	}{%
+		% if scanline is completed: advance to next
+		\c@pgfplots@scanlineindex=0
+		\pgfplotsutil@advancestringcounter\c@pgfplotsplothandlermesh@image@nextrownum
+	}%
+}%
+
+% To be used within the DECODE "loop" only! It assembles temporary
+% variables for the next iteration (and consumes it).
+%
+% #1: '1' if topmost row is to be extrapolated, '0' if it should be
+% acquired from the datastructure 'lastinterpscanline'
+\def\pgfplotsplothandlermesh@PIPE@DECODE@image@sweep@create@cell#1{%
+		\let\pgfplotsplothandlermesh@patchclass\pgfplotsplothandlermesh@patchclass@input
+		%
+		% we have to compute the four corners by means of
+		% averaging/extrapolation.
+		%
+		% We place the rectangle around (i-1,j-1), i.e. imjm
+		% Notation: the four corners are aa, ab, ba, and bb.
+		%  aa -----  ab
+		%  |         |
+		%  |         |
+		%  |   imjm  |          
+		%  |         |     
+		%  |         |
+		%  ba ------ bb
+		%
+		% bb is the average of the four cell mid points of our
+		% scanline, the others are acquired from previous iterations
+		% or from extrapolation schemes.
+		%
+		% compute bb:
+		\pgfplotspatchvertexaccumstart
+		\pgfplotspatchvertexaccum@configure@ignore@unboundedmetadata
+		\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@im@jm\times{0.25}%
+		\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@im@j\times{0.25}%
+		\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@i@j\times{0.25}%
+		\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@i@jm\times{0.25}%
+		\pgfplotspatchvertexfinish\pgfplotsplothandlermesh@bb
+		\pgfplotspatchvertexcopymetaifbounded\pgfplotsplothandlermesh@i@j\to\pgfplotsplothandlermesh@bb
+		%
+		%
+		\if1#1%
+			% Ah -- this here is the very first row! That means we
+			% have to extrapolate the topmost coordinates.
+			%
+			% Apply extrapolation for ab:
+			%
+			% compute ab = bb + 2* ( 1/2 (imj + imjm) - bb)
+			% which resolves to the following:
+			\pgfplotspatchvertexaccumstart
+			\pgfplotspatchvertexaccum@configure@ignore@unboundedmetadata
+			\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@bb\times{-1.0}%
+			\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@im@j\times{1.0}%
+			\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@im@jm\times{1.0}%
+			\pgfplotspatchvertexfinish\pgfplotsplothandlermesh@ab
+			\pgfplotspatchvertexcopymetaifbounded\pgfplotsplothandlermesh@im@j\to\pgfplotsplothandlermesh@ab
+		\else
+			\ifnum\c@pgfplots@scanlineindex=1
+				\pgfplotsdequepopfront{lastinterpscanline}\to\pgfplotsplothandlermesh@aa
+			\fi
+			\pgfplotsdequepopfront{lastinterpscanline}\to\pgfplotsplothandlermesh@ab
+		\fi
+		%
+		\ifnum\c@pgfplots@scanlineindex=1
+			% ah, we have to apply special treatment for the leftmost
+			% cell.
+			%
+			%
+			% compute ba = bb + 2* ( 1/2 (imjm + ijm) - bb)
+			% which resolves to the following:
+			\pgfplotspatchvertexaccumstart
+			\pgfplotspatchvertexaccum@configure@ignore@unboundedmetadata
+			\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@bb\times{-1.0}%
+			\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@i@jm\times{1.0}%
+			\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@im@jm\times{1.0}%
+			\pgfplotspatchvertexfinish\pgfplotsplothandlermesh@ba
+			\pgfplotspatchvertexcopymetaifbounded\pgfplotsplothandlermesh@i@jm\to\pgfplotsplothandlermesh@ba
+			%
+			\if1#1%
+				% ok, extrapolate 'aa' as well:
+				%
+				% compute aa = ba + (ab - bb) 
+				% which resolves to the following:
+				\pgfplotspatchvertexaccumstart
+				\pgfplotspatchvertexaccum@configure@ignore@unboundedmetadata
+				\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@bb\times{-1.0}%
+				\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@ba\times{1.0}%
+				\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@ab\times{1.0}%
+				\pgfplotspatchvertexfinish\pgfplotsplothandlermesh@aa
+				\pgfplotspatchvertexcopymetaifbounded\pgfplotsplothandlermesh@im@jm\to\pgfplotsplothandlermesh@aa
+			\else
+				% in this case, 'aa' has been fetched from the deque
+				% (from the previous scanline)
+			\fi
+			%
+			% as soon as we process the next scanline, we need to know the
+			% interpolated values -- they will become the top row of the
+			% next scanline's cells.
+			\expandafter\pgfplotsdequepushback\pgfplotsplothandlermesh@ba\to{lastinterpscanline}%
+		\else
+			% ok, we take the left edge (ba and aa) from the previous
+			% iteration (see the end of this code where the previous
+			% loop iteration prepared them).
+		\fi
+		%
+		\pgfplotsplothandlermesh@image@set@first@color@to\pgfplotsplothandlermesh@im@jm\to\pgfplotsplothandlermesh@aa
+		\expandafter\pgfplotsplothandlermesh@setnextvertex\expandafter{\pgfplotsretval}%
+		\expandafter\pgfplotsplothandlermesh@setnextvertex\expandafter{\pgfplotsplothandlermesh@ab}%
+		\expandafter\pgfplotsplothandlermesh@setnextvertex\expandafter{\pgfplotsplothandlermesh@bb}%
+		\expandafter\pgfplotsplothandlermesh@setnextvertex\expandafter{\pgfplotsplothandlermesh@ba}%
+		%
+		% ... and communicate this as well to the next scanline (see
+		% \pgfplotsplothandlermesh@PIPE@DECODE@image@after@second)
+		\expandafter\pgfplotsdequepushback\pgfplotsplothandlermesh@bb\to{lastinterpscanline}%
+		%
+		\ifnum\c@pgfplotsplothandlermesh@image@nextrownum=\pgfplotsplothandlermesh@numscanlines\relax
+			\pgfplotsplothandlermesh@PIPE@DECODE@image@sweep@create@cell@lastrow
+		\fi
+		%
+		% merely shift the current points such that the next loop
+		% iteration can use them without modifications:
+		\let\pgfplotsplothandlermesh@ba=\pgfplotsplothandlermesh@bb
+		\let\pgfplotsplothandlermesh@aa=\pgfplotsplothandlermesh@ab
+		%
+}%
+
+% The color handling of 'matrix input=image' is quite involved.
+% There are the following requirements:
+% 1. the point meta of the cell's first vertex _must_ be equal to the point meta of the cell mid point, i.e. equal to the user input. 
+% 2. All other vertices should be interpolated "as smart as possible". This interpolation scheme should work even if adjacent cell midpoints have _no_ bounded meta data!
+% 3. The routines which glue adjacent cells together have to ensure that they do not accidentally intermix (1) and (2). This is complicated since the sweep loop intermingles both responsibilities (sigh).
+%
+% This helper function ensures (1): it copies the point meta of the \pgfplotspatchvertex #1 to the values of of #2 and assigns the result to \pgfplotsretval.
+% #1 a valid \pgfplotspatchvertex
+% #2 a valid \pgfplotspatchvertex
+%
+% POSTCONDITION: \pgfplotsretval contains the result, i.e. a copy of '#2' which contains the point meta of '#1'.
+\def\pgfplotsplothandlermesh@image@set@first@color@to#1\to#2{%
+	\let\pgfplotsretval=#2%
+	\pgfplotspatchvertexcopymeta#1\to\pgfplotsretval
+}%
+
+\def\pgfplotsplothandlermesh@PIPE@DECODE@image@sweep@create@cell@lastrow{%
+	%
+	\let\pgfplotsplothandlermesh@last@aa=\pgfplotsplothandlermesh@ba
+	\let\pgfplotsplothandlermesh@last@ab=\pgfplotsplothandlermesh@bb
+	%
+	% ASSUMPTION: we want to compute Laa, Lab, Lba and Lbb in the following setup:
+	%
+	%  aa -----  ab
+	%  |         |
+	%  |         |
+	%  |   imjm  |          
+	%  |         |     
+	%  |         |
+	%  ba ------ bb
+	% =Laa       =Lab
+	%  |         |
+	%  |         |
+	%  |   ijm   |          
+	%  |         |     
+	%  |         |
+	%  Lba------ Lbb
+	%
+	% compute Lbb = bb + 2 * (1/2 ( ijm + ij) - bb ). We assume that
+	% we can still access 'bb', the coordinate of the current point.
+	% This resolves to the following:
+	\pgfplotspatchvertexaccumstart
+	\pgfplotspatchvertexaccum@configure@ignore@unboundedmetadata
+	\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@bb\times{-1.0}%
+	\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@i@jm\times{1.0}%
+	\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@i@j\times{1.0}%
+	\pgfplotspatchvertexfinish\pgfplotsplothandlermesh@last@bb
+	% FIXME : which is the correctly extrapolated cdata!?
+	%\pgfplotspatchvertexcopymetaifbounded\pgfplotsplothandlermesh@i@j\to\pgfplotsplothandlermesh@last@bb
+	%
+	\ifnum\c@pgfplots@scanlineindex=1
+		% compute Lba = Lbb + Laa - Lab
+		\pgfplotspatchvertexaccumstart
+		\pgfplotspatchvertexaccum@configure@ignore@unboundedmetadata
+		\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@last@bb\times{1.0}%
+		\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@last@aa\times{1.0}%
+		\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@last@ab\times{-1.0}%
+		\pgfplotspatchvertexfinish\pgfplotsplothandlermesh@last@ba
+		% FIXME : which is the correctly extrapolated cdata!?
+		%\pgfplotspatchvertexcopymetaifbounded\pgfplotsplothandlermesh@i@jm\to\pgfplotsplothandlermesh@last@ba
+	\else
+		% transported from previous iteration.
+	\fi
+	%
+	\pgfplotsplothandlermesh@image@set@first@color@to\pgfplotsplothandlermesh@i@jm\to\pgfplotsplothandlermesh@last@aa
+	\expandafter\pgfplotsplothandlermesh@setnextvertex\expandafter{\pgfplotsretval}%
+	\expandafter\pgfplotsplothandlermesh@setnextvertex\expandafter{\pgfplotsplothandlermesh@last@ab}%
+	\expandafter\pgfplotsplothandlermesh@setnextvertex\expandafter{\pgfplotsplothandlermesh@last@bb}%
+	\expandafter\pgfplotsplothandlermesh@setnextvertex\expandafter{\pgfplotsplothandlermesh@last@ba}%
+	%
+	\let\pgfplotsplothandlermesh@last@ba=\pgfplotsplothandlermesh@last@bb
+}%
+
+\def\pgfplotsplothandlermesh@PIPE@DECODE@image@sweep@create@cell@lastrow@lastcol{%
+	%
+	% ASSUMPTION: we want to compute Laa, Lab, Lba and Lbb in the following setup:
+	%
+	%  aa -----  ab
+	%  |         |
+	%  |         |
+	%  |   imj   |          
+	%  |         |     
+	%  |         |
+	%  ba ------ bb
+	% =Laa       =Lab
+	%  |         |
+	%  |         |
+	%  |   ij    |          
+	%  |         |     
+	%  |         |
+	%  Lba------ Lbb
+	\let\pgfplotsplothandlermesh@last@aa=\pgfplotsplothandlermesh@ba
+	\let\pgfplotsplothandlermesh@last@ab=\pgfplotsplothandlermesh@bb
+	%
+	% I mirrored the formula for lastrow.
+	\pgfplotspatchvertexaccumstart
+	\pgfplotspatchvertexaccum@configure@ignore@unboundedmetadata
+	\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@last@bb\times{1.0}%
+	\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@last@aa\times{-1.0}%
+	\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@last@ab\times{1.0}%
+	\pgfplotspatchvertexfinish\pgfplotsplothandlermesh@last@bb
+	\pgfplotspatchvertexcopymetaifbounded\pgfplotsplothandlermesh@i@j\to\pgfplotsplothandlermesh@last@bb
+	%
+	\pgfplotsplothandlermesh@image@set@first@color@to\pgfplotsplothandlermesh@i@j\to\pgfplotsplothandlermesh@last@aa
+	\expandafter\pgfplotsplothandlermesh@setnextvertex\expandafter{\pgfplotsretval}%
+	\expandafter\pgfplotsplothandlermesh@setnextvertex\expandafter{\pgfplotsplothandlermesh@last@ab}%
+	\expandafter\pgfplotsplothandlermesh@setnextvertex\expandafter{\pgfplotsplothandlermesh@last@bb}%
+	% this value is transported from previous iteration:
+	\expandafter\pgfplotsplothandlermesh@setnextvertex\expandafter{\pgfplotsplothandlermesh@last@ba}%
+}%
+
+\def\pgfplotsplothandlermesh@PIPE@DECODE@image@sweep@create@cell@lastcolumn#1{%
+	\let\pgfplotsplothandlermesh@patchclass\pgfplotsplothandlermesh@patchclass@input
+	%
+	% we have to compute the four corners by means of
+	% averaging/extrapolation.
+	%
+	% We place the rectangle around (i-1,j), i.e. imj.
+	% This is in contrast to
+	% \pgfplotsplothandlermesh@PIPE@DECODE@image@sweep@create@cell
+	% where we placed the rectangle around (i-1,j-1).
+	%
+	% Notation: the four corners are aa, ab, ba, and bb.
+	%  aa -----  ab
+	%  |         |
+	%  |         |
+	%  |   imj   |          
+	%  |         |     
+	%  |         |
+	%  ba ------ bb
+	%
+	% We can simply copy aa and ba from the previous cell (as in
+	% the standard case). Note that this has already been prepared
+	% for us, i.e. the variables have already been set by the
+	% previous iteration.
+	%
+	% compute ab and bb by means of extrapolation:
+	%
+	% compute bb:
+	\pgfplotspatchvertexaccumstart
+	\pgfplotspatchvertexaccum@configure@ignore@unboundedmetadata
+	\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@ba\times{-1.0}%
+	\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@im@j\times{1.0}%
+	\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@i@j\times{1.0}%
+	\pgfplotspatchvertexfinish\pgfplotsplothandlermesh@bb
+	% FIXME : which is the correctly extrapolated cdata!?
+	%
+	%
+	\if1#1%
+		% Ah -- this here is the very first row! That means we
+		% have to extrapolate the topmost coordinates.
+		%
+		% Apply extrapolation for ab:
+		%
+		% compute ab = bb + (aa - ba)
+		\pgfplotspatchvertexaccumstart
+		\pgfplotspatchvertexaccum@configure@ignore@unboundedmetadata
+		\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@bb\times{1.0}%
+		\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@aa\times{1.0}%
+		\expandafter\pgfplotspatchvertexadd\pgfplotsplothandlermesh@ba\times{-1.0}%
+		\pgfplotspatchvertexfinish\pgfplotsplothandlermesh@ab
+		% FIXME : which is the correctly extrapolated cdata!?
+	\else
+		\pgfplotsdequepopfront{lastinterpscanline}\to\pgfplotsplothandlermesh@ab
+	\fi
+	%
+	\pgfplotsplothandlermesh@image@set@first@color@to\pgfplotsplothandlermesh@im@j\to\pgfplotsplothandlermesh@aa
+	\expandafter\pgfplotsplothandlermesh@setnextvertex\expandafter{\pgfplotsretval}%
+	\expandafter\pgfplotsplothandlermesh@setnextvertex\expandafter{\pgfplotsplothandlermesh@ab}%
+	\expandafter\pgfplotsplothandlermesh@setnextvertex\expandafter{\pgfplotsplothandlermesh@bb}%
+	\expandafter\pgfplotsplothandlermesh@setnextvertex\expandafter{\pgfplotsplothandlermesh@ba}%
+	%
+	% ... and communicate this as well to the next scanline (see
+	% \pgfplotsplothandlermesh@PIPE@DECODE@image@after@second)
+	\expandafter\pgfplotsdequepushback\pgfplotsplothandlermesh@bb\to{lastinterpscanline}%
+	%
+	\ifnum\c@pgfplotsplothandlermesh@image@nextrownum=\pgfplotsplothandlermesh@numscanlines\relax
+		\pgfplotsplothandlermesh@PIPE@DECODE@image@sweep@create@cell@lastrow@lastcol
+	\fi
+}%

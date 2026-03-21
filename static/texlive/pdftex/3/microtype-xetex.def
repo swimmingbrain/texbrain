@@ -1,0 +1,479 @@
+%%
+%% This is file `microtype-xetex.def',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% microtype.dtx  (with options: `xetex-def')
+%% 
+%% ------------------------------------------------------------------------
+%% 
+%%                       The `microtype' package
+%%         Subliminal refinements towards typographical perfection
+%%           Copyright (c) 2004--2021 R Schlicht <w.m.l@gmx.net>
+%% 
+%% This work may be distributed and/or modified under the conditions of the
+%% LaTeX Project Public License, either version 1.3c of this license or (at
+%% your option) any later version. The latest version of this license is in:
+%% http://www.latex-project.org/lppl.txt, and version 1.3c or later is part
+%% of all distributions of LaTeX version 2005/12/01 or later.
+%% 
+%% This work has the LPPL maintenance status `author-maintained'.
+%% 
+%% This work consists of the files microtype.dtx and microtype.ins and the
+%% derived files microtype.sty, microtype-pdftex.def, microtype-luatex.def,
+%% microtype-xetex.def, microtype.lua and letterspace.sty.
+%% 
+%% ------------------------------------------------------------------------
+%%   This file contains enginge-specific definitions.
+%% ------------------------------------------------------------------------ 
+%%
+\ProvidesFile
+  {microtype-xetex.def}
+  [2021/03/14 v2.8c
+   Definitions specific to
+   xetex
+   (RS)]
+\ifdim 0\XeTeXrevision pt < 0.9997pt
+  \def\MT@xetex@no{1}
+\else
+  \def\MT@xetex@no{2}
+\fi
+\ifnum
+  \csname MT@\MT@engine tex@no\endcsname < 2
+  \MT@warning@nl{You
+      are using a \MT@engine tex version older than
+      0.9997%
+      .\MessageBreak
+      `\MT@MT' does not work with this version.\MessageBreak
+      Please install a newer version of \MT@engine tex%
+      .\MessageBreak I will quit now}
+  \MT@clear@options
+\endinput\fi
+\def\MT@ifint#1{%
+  \if!\ifnum9<1#1!\else?\fi
+    \expandafter\@firstoftwo
+  \else
+    \expandafter\@secondoftwo
+  \fi
+}
+\def\MT@ifdimen#1{%
+  \setbox\z@=\hbox{%
+    \MT@count=1#1\relax
+    \ifnum\MT@count=\@ne
+      \aftergroup\@secondoftwo
+    \else
+      \aftergroup\@firstoftwo
+    \fi
+  }%
+}
+\def\MT@ifstreq#1#2{%
+  \ifnum\strcmp{#1}{#2}=\z@
+    \expandafter\@firstoftwo
+  \else
+    \expandafter\@secondoftwo
+  \fi
+}
+\def\MT@do@font#1{%
+  \@tempcnta=\z@
+  \MT@loop
+    \iffontchar\MT@font\@tempcnta #1\fi
+    \advance\@tempcnta\@ne
+    \ifnum\@tempcnta < \XeTeXlastfontchar\MT@font \MT@repeat
+}
+  \def\MT@ledmac@setup{%
+    \ifMT@protrusion
+      \MT@ifdefined@c@TF\l@dunhbox@line{%
+        \MT@info@nl{Patching ((r)e)ledmac to enable character protrusion}%
+        \let\MT@led@unhbox@line\l@dunhbox@line
+        \renewcommand*{\l@dunhbox@line}[1]{%
+          \ifhbox##1%
+            \kern\leftmarginkern##1%
+            \expandafter\MT@led@unhbox@line\expandafter##1\expandafter
+            \kern\rightmarginkern##1%
+          \fi
+        }%
+      }{%
+        \MT@warning@nl{%
+          Character protrusion in paragraphs with line\MessageBreak
+          numbering will only work if you update ledmac,\MessageBreak
+          or use one of its successors, eledmac or reledmac}%
+      }%
+    \fi
+  }
+\def\MT@setupfont{%
+  \MT@font
+  \MT@setupfont@hook}
+\g@addto@macro\MT@setupfont{%
+  \MT@exp@two@c\MT@split@name\string\MT@font/\@nil
+  \MT@exp@one@n\MT@find@file\MT@family
+  \ifx\MT@familyalias\@empty \else
+    \MT@exp@one@n\MT@find@file\MT@familyalias\fi
+}
+\g@addto@macro\MT@setupfont{%
+  \MT@check@font
+  \ifMT@inlist@
+  \else
+    \MT@vinfo{Setting up font `\MT@@font'\on@line}%
+    \MT@info@notracking
+  \MT@protrusion
+}
+\g@addto@macro\MT@setupfont{%
+    \MT@register@font
+  \fi
+}
+\def\MT@fix@fontdimen@six{%
+  \ifnum\fontdimen6\MT@font=\z@
+    \fontdimen6\MT@font=%
+      \MT@size pt
+    \MT@info{Fixing zero \string\fontdimen 6 for font `\MT@@font'\MessageBreak
+             (new value: \the\fontdimen6\MT@font)}%
+    \MT@glet@nc{\MT@@font-fake6}\@empty
+  \fi
+  \edef\MT@dimen@six{\number\fontdimen6\MT@font}%
+}
+\def\MT@protrusion{\MT@maybe@do{pr}}
+\def\MT@set@pr@codes{%
+  \MT@nofamilyfalse
+  \MT@if@list@exists{%
+    \ifMT@nofamily
+      \MT@ifdefined@n@TF{\MT@encoding-\MT@family-settings}\relax{%
+        \MT@info@nl{Loading generic protrusion settings for font family\MessageBreak
+                    `\MT@family' (encoding: \MT@encoding).\MessageBreak
+                    For optimal results, create family-specific settings.\MessageBreak
+                    See the microtype manual for details}%
+        \MT@glet@nc{\MT@encoding-\MT@family-settings}\@empty
+      }%
+    \fi
+    \MT@get@opt
+    \MT@reset@pr@codes
+    \MT@get@inh@list
+    \MT@set@inputenc{c}%
+    \MT@load@list\MT@pr@c@name
+    \MT@set@listname
+    \MT@let@cn\@tempc{MT@pr@c@\MT@pr@c@name}%
+    \expandafter\MT@set@codes\@tempc,\relax,%
+  }\MT@reset@pr@codes
+}
+\def\MT@set@all@pr#1#2{%
+  \let\MT@temp\@empty
+  \MT@ifempty{#1}\relax{\g@addto@macro\MT@temp{\lpcode\MT@font\@tempcnta=#1}}%
+  \MT@ifempty{#2}\relax{\g@addto@macro\MT@temp{\rpcode\MT@font\@tempcnta=#2}}%
+  \MT@do@font\MT@temp
+}
+\def\MT@reset@pr@codes@{\MT@set@all@pr\z@\z@}
+\let\MT@reset@pr@codes\relax
+\def\MT@the@pr@code{\@tempcntb}
+\def\MT@set@codes#1,{%
+  \ifx\relax#1\@empty\else
+    \MT@split@codes #1==\relax
+    \expandafter\MT@set@codes
+  \fi
+}
+\def\MT@split@codes#1=#2=#3\relax{%
+  \def\@tempa{#1}%
+  \ifx\@tempa\@empty \else
+    \MT@get@slot
+    \ifx\MT@char\@empty \else
+      \MT@get@char@unit
+      \csname MT@\MT@feat @split@val\endcsname#2\relax
+    \fi
+  \fi
+}
+\def\MT@pr@split@val#1,#2\relax{%
+  \def\@tempb{#1}%
+  \MT@ifempty\@tempb\relax{%
+    \MT@scale@to@em
+    \lpcode\MT@font\MT@char=\MT@the@pr@code
+  }%
+  \def\@tempb{#2}%
+  \MT@ifempty\@tempb\relax{%
+    \MT@scale@to@em
+    \rpcode\MT@font\MT@char=\MT@the@pr@code
+  }%
+  \MT@ifdefined@c@T\MT@pr@inh@name{%
+    \MT@ifdefined@n@T{MT@inh@\MT@pr@inh@name @\MT@char @}{%
+      \MT@exp@cs\MT@map@tlist@c
+        {MT@inh@\MT@pr@inh@name @\MT@char @}%
+        \MT@set@pr@heirs
+    }%
+  }%
+}
+\def\MT@scale@to@em{%
+  \@tempcntb=\MT@count\relax
+  \MT@scale\@tempcntb \@tempb \MT@dimen@six
+  \ifnum\@tempcntb=\z@ \else
+    \MT@scale@factor
+  \fi
+}
+\def\MT@get@charwd{%
+  \ifnum\MT@char@<\z@
+    \setbox\z@=\hbox{\MT@font \XeTeXglyph-\MT@char@}%
+    \MT@count=\wd\z@
+  \else
+    \MT@count=\fontcharwd\MT@font\MT@char@\relax
+  \fi
+  \ifnum\MT@count=\z@ \MT@info@missing@char \fi
+}
+\def\MT@set@pr@heirs#1{%
+  \lpcode\MT@font #1=\lpcode\MT@font\MT@char\relax
+  \rpcode\MT@font #1=\rpcode\MT@font\MT@char\relax
+}
+\def\MT@preset@pr{%
+  \expandafter\expandafter\expandafter\MT@preset@pr@
+    \csname MT@pr@c@\MT@pr@c@name @preset\endcsname\@nil
+}
+\def\MT@preset@pr@#1,#2\@nil{%
+  \ifx\MT@pr@unit@\@empty
+    \MT@warn@preset@towidth{pr}%
+    \let\MT@preset@aux\MT@preset@aux@factor
+  \else
+    \def\MT@preset@aux{\MT@preset@aux@space2}%
+  \fi
+  \MT@ifempty{#1}{\let\@tempa\@empty}{\MT@preset@aux{#1}\@tempa}%
+  \MT@ifempty{#2}{\let\@tempb\@empty}{\MT@preset@aux{#2}\@tempb}%
+  \MT@set@all@pr\@tempa\@tempb
+}
+\def\MT@preset@aux@factor#1#2{%
+  \@tempcntb=#1\relax
+  \MT@scale@factor
+  \edef#2{\number\@tempcntb}%
+}
+\def\MT@preset@aux@space#1#2#3{%
+  \def\@tempb{#2}%
+  \MT@get@space@unit#1%
+  \MT@scale@to@em
+  \edef#3{\number\@tempcntb}%
+}
+\def\MT@warn@preset@towidth#1{%
+  \MT@warning@nl{%
+    Cannot preset characters relative to their widths\MessageBreak
+    for \@nameuse{MT@abbr@#1} list `\@nameuse{MT@#1@c@name}'. Presetting them%
+    \MessageBreak relative to 1em instead}%
+}
+\DeclareRobustCommand\lsstyle{%
+  \MT@error{Letterspacing currently doesn't work with xetex}
+           {Run pdftex or luatex, or use the `soul' package instead.}%
+  \MT@glet\lsstyle\relax
+}
+\def\MT@get@slot@{%
+  \ifnum\XeTeXfonttype\MT@font=\z@
+  \ifnum\MT@char > \m@ne
+    \ifMT@norest \else
+      \MT@warn@rest
+      \let\MT@char\@empty
+    \fi
+  \else
+    \MT@warn@unknown
+    \let\MT@char\@empty
+  \fi
+  \else
+    \ifnum\MT@char=47\relax
+      \ifMT@norest \edef\MT@char{U47}%
+      \else
+        \@tempcnta=\XeTeXglyphindex"\expandafter\@gobble\@tempa"\relax
+        \ifnum\@tempcnta=\z@
+          \MT@warn@unknown
+          \let\MT@char\@empty
+        \else
+          \edef\MT@char{\@tempa\space}%
+          \edef\MT@char@{-\the\@tempcnta}%
+        \fi
+      \fi
+    \else
+      \ifnum\MT@char > \m@ne
+        \ifMT@norest
+          \@tempcnta=\XeTeXcharglyph\MT@char\relax
+          \ifnum\@tempcnta=\z@
+            \MT@info@missing@char
+            \let\MT@char\@empty
+          \else
+            \edef\MT@char{U\MT@char}%
+          \fi
+        \else
+          \MT@warn@rest
+          \let\MT@char\@empty
+        \fi
+      \else
+        \MT@warn@unknown
+        \let\MT@char\@empty
+      \fi
+    \fi
+  \fi
+}
+\def\MT@max@char
+  {1114111 }
+\def\MT@max@slot
+  {1114111 }
+\renewcommand*\DisableLigatures[2][]{%
+  \MT@error{Disabling ligatures of a font is only possible\MessageBreak
+    with pdftex version 1.30 or newer.\MessageBreak
+    Ignoring \string\DisableLigatures}{%
+    Use
+    pdftex.}%
+}
+\def\SetProtrusion{%
+  \MT@begin@catcodes
+  \MT@SetProtrusion
+}
+\newcommand*\MT@SetProtrusion[3][]{%
+  \let\MT@extra@context\@empty
+  \MT@set@named@keys{MT@pr@c}{#1}%
+  \def\MT@permutelist{pr@c}%
+  \setkeys{MT@cfg}{#2}%
+  \MT@permute
+  \MT@gdef@n{MT@pr@c@\MT@pr@c@name}{#3}%
+  \MT@end@catcodes
+}
+  \define@key{MT@pr@c}{context}[]{%
+    \MT@error{Protrusion contexts only work with pdftex
+        \MessageBreak or luatex.
+        Ignoring `context' key\on@line}%
+      {Use pdftex or luatex.}%
+  }
+\define@key{MT@pr@c}{unit}[character]{%
+  \MT@glet@nc{MT@pr@c@\MT@curr@set@name @unit}\@empty
+  \def\@tempa{#1}%
+  \MT@ifstreq\@tempa{character}\relax{%
+    \MT@ifdimen\@tempa
+      {\MT@glet@nc{MT@pr@c@\MT@curr@set@name @unit}\@tempa}%
+      {\MT@warn@nodim{character widths}}%
+  }%
+}
+\def\MT@inh@split#1=#2=#3\relax{%
+  \def\@tempa{#1}%
+  \ifx\@tempa\@empty \else
+    \MT@get@slot
+    \ifx\MT@char\@empty\else
+      \let\MT@val\MT@char
+      \MT@map@clist@n{#2}{%
+        \def\@tempa{##1}%
+        \ifx\@tempa\@empty \else
+          \MT@get@slot
+          \ifx\MT@char\@empty\else
+            \MT@exp@cs\MT@xadd{MT@inh@\MT@listname @\MT@val @}{{\MT@char}}%
+          \fi
+        \fi
+      }%
+    \fi
+  \fi
+}
+\MT@def@bool@opt{DVIoutput}{%
+  \csname if\@tempa\endcsname
+    \MT@warning@nl{Ignoring `DVIoutput' option}%
+  \fi
+}
+  \MT@def@bool@opt{copyfonts}{%
+    \csname if\@tempa\endcsname
+      \MT@error
+        {The `copyfonts' option does not work with xetex}
+        {Use pdftex or luatex instead.}%
+    \fi
+  }
+\def\MT@define@optionX#1#2{%
+  \define@key{MTX}{#1}[true]{%
+    \edef\@tempb{\csname MT@rbba@#1\endcsname}%
+    \MT@map@clist@n{##1}{%
+      \KV@@sp@def\MT@val{####1}%
+      \MT@ifempty\MT@val\relax{%
+        \@tempcnta=\m@ne
+        \MT@ifstreq\MT@val{true}{%
+          \MT@checksetup{#1}{%
+            \@tempcnta=\csname MT@\@tempb @level\endcsname
+            \MT@vinfo{Enabling #1
+                    (level \number\csname MT@\@tempb @level\endcsname)\on@line}%
+          }%
+        }{%
+          \MT@ifstreq\MT@val{false}{%
+            \@tempcnta=\z@
+            \MT@vinfo{Disabling #1\on@line}%
+          }{%
+            \MT@ifstreq\MT@val{compatibility}{%
+              \MT@checksetup{#1}{%
+                \@tempcnta=\@ne
+                \MT@let@nc{MT@\@tempb @level}\@ne
+                \MT@vinfo{Setting #1 to level 1\on@line}%
+              }%
+            }{%
+              \MT@ifstreq\MT@val{nocompatibility}{%
+                \MT@checksetup{#1}{%
+                  \@tempcnta=\tw@
+                  \MT@let@nc{MT@\@tempb @level}\tw@
+                  \MT@vinfo{Setting #1 to level 2\on@line}%
+                }%
+              }{\MT@error{Value `\MT@val' for key `#1' not recognised}
+                         {Use any of `true', `false', `compatibility' or
+                          `nocompatibility'.}%
+              }%
+            }%
+          }%
+        }%
+        \ifnum\@tempcnta>\m@ne
+          #2\@tempcnta\relax
+        \fi
+      }%
+    }%
+  }%
+}
+\def\MT@checksetup#1{%
+  \csname ifMT@#1\endcsname
+    \expandafter\@firstofone
+  \else
+    \MT@error{You cannot enable #1 if it was disabled\MessageBreak
+              in the package options}{Load microtype with #1 enabled.}%
+    \expandafter\@gobble
+  \fi
+}
+\MT@define@optionX{protrusion}\MT@protrudechars
+\let\MT@protrudechars\XeTeXprotrudechars
+\define@key{MTX}{expansion}[true]{\MT@warning{Ignoring expansion setup}}
+\define@key{MTX}{tracking}[true]{\MT@warning{Ignoring tracking setup}}
+\define@key{MTX}{kerning}[true]{\MT@warning{Ignoring kerning setup}}
+\define@key{MTX}{spacing}[true]{\MT@warning{Ignoring spacing setup}}
+\define@key{MTX}{activate}[true]{%
+  \setkeys{MTX}{protrusion={#1}}%
+}
+\let\MT@setup@PDF\relax
+\let\MT@setup@copies\relax
+\def\MT@setup@protrusion{%
+  \ifMT@protrusion
+    \edef\MT@active@features{\MT@active@features,pr}%
+    \MT@protrudechars\MT@pr@level
+    \MT@info@nl{Character protrusion enabled (level \number\MT@pr@level)%
+      \ifnum\MT@pr@factor=\MT@factor@default \else,\MessageBreak
+        factor: \number\MT@pr@factor\fi
+      \ifx\MT@pr@unit\@empty \else,\MessageBreak unit: \MT@pr@unit\fi}%
+    \MT@check@active@set{pr}%
+  \else
+    \let\MT@protrusion\relax
+    \MT@info@nl{No character protrusion}%
+  \fi
+}
+\def\MT@setup@expansion{%
+  \ifMT@expansion
+    \ifMT@opt@expansion
+      \MT@error{Font expansion does not work with xetex}
+               {Use pdftex or luatex instead.}%
+    \fi
+  \fi
+}
+  \def\MT@error@doesnt@work#1{%
+    \csname ifMT@#1\endcsname
+      \MT@error{The #1 feature only works with pdftex 1.40\MessageBreak
+        or newer. Switching it off}
+        {Use pdftex instead.}%
+      \csname MT@#1false\endcsname
+      \MT@let@nc{MT@#1}\relax
+    \else
+      \MT@info@nl{No adjustment of #1%
+      }%
+    \fi
+  }
+  \def\MT@setup@tracking{\MT@error@doesnt@work{tracking}}
+  \def\MT@setup@kerning {\MT@error@doesnt@work{kerning}}
+  \def\MT@setup@spacing {\MT@error@doesnt@work{spacing}}
+\let\MT@setup@warntracking\relax
+\let\MT@setup@noligatures\relax
+\endinput
+%%
+%% End of file `microtype-xetex.def'.

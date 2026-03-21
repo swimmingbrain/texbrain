@@ -1,0 +1,172 @@
+%%
+%% This is file `subcaption.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% subcaption.dtx  (with options: `package')
+%% 
+%% Copyright (C) 1994-2020 Axel Sommerfeldt (axel.sommerfeldt@f-m.fm)
+%% 
+%% https://gitlab.com/axelsommerfeldt/caption
+%% 
+%% --------------------------------------------------------------------------
+%% 
+%% This work may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License, either version 1.3
+%% of this license or (at your option) any later version.
+%% The latest version of this license is in
+%%   http://www.latex-project.org/lppl.txt
+%% and version 1.3 or later is part of all distributions of LaTeX
+%% version 2003/12/01 or later.
+%% 
+%% This work has the LPPL maintenance status "maintained".
+%% 
+%% This Current Maintainer of this work is Axel Sommerfeldt.
+%% 
+%% This work consists of the files
+%%   caption.ins, caption.dtx, caption-light.dtx, caption2.dtx, caption3.dtx,
+%%   caption-ams-smf.dtx, caption-beamer.dtx, caption-elsarticle.dtx,
+%%   caption-koma.dtx, caption-memoir.dtx, caption-ntg.dtx,
+%%   caption-thesis.dtx, bicaption.dtx, ltcaption.dtx, subcaption.dtx,
+%% the derived files
+%%   caption.sty, caption-light.sty, caption2.sty, caption3.sty,
+%%   caption-ams-smf.sto, caption-beamer.sto, caption-elsarticle.sto,
+%%   caption-koma.sto, caption-memoir.sto, caption-ntg.sto,
+%%   caption-thesis.sto, bicaption.sty, ltcaption.sty, subcaption.sty,
+%% and the user manuals
+%%   caption-deu.tex, caption-eng.tex, caption-rus.tex.
+%% 
+\NeedsTeXFormat{LaTeX2e}[1994/12/01]
+\ProvidesPackage{subcaption}[2020/10/07 v1.3j Sub-captions (AR)]
+\RequirePackage{caption}[2020/09/28] % needs v3.5c or newer
+\newcommand*\subcaption@Error[1]{%
+  \PackageError{subcaption}{#1}{\caption@@eh{subcaption}}}
+\newcommand*\subcaption@CheckCompatibility{%
+  \caption@ifcompatibility{%
+    \subcaption@Error
+      {This package does not work with\MessageBreak
+       caption option `compatibility=v1'}%
+    \endinput}{}%
+  \@ifpackageloaded{subfigure}{%
+    \subcaption@Error
+      {This package can't be used in cooperation\MessageBreak
+       with the subfigure package}%
+    \endinput}{}%
+  \@ifpackageloaded{subfig}{%
+    \subcaption@Error
+      {This package can't be used in cooperation\MessageBreak
+       with the subfig package}%
+    \endinput}{}%
+}
+\subcaption@CheckCompatibility
+\caption@AtBeginDocument{%
+  \subcaption@CheckCompatibility
+  \let\subcaption@CheckCompatibility\@undefined}
+\def\subcaption{%
+  \caption@iftype
+    {\setcaptionsubtype*\caption}%
+    {\subcaption@Error{\noexpand\subcaption outside float}%
+     \caption@gobble}}%
+\g@addto@macro\caption@subtypehook{%
+  \let\subcaption\caption}
+\newcommand*\phantomsubcaption{%
+  \caption@iftype
+    {\setcaptionsubtype*\phantomcaption}%
+    {\subcaption@Error{\noexpand\phantomsubcaption outside float}}}%
+\g@addto@macro\caption@subtypehook{%
+  \let\phantomsubcaption\phantomcaption}
+\ForEachCaptionSubType{%
+  \newenvironment{#1}%
+    {\@ifnextchar[%]
+       \subcaption@iminipage
+       {\subcaption@iminipage[c]}}%
+    {\subcaption@endminipage
+     \endminipage}}
+\def\subcaption@iminipage[#1]{%
+  \caption@withoptargs{\subcaption@iiminipage{#1}}}
+\newcommand*\subcaption@iiminipage[3]{%
+  \let\subcaption@endminipage\@empty
+  \if#1B%
+    \minipage[b]#2{#3}%
+    \def\subcaption@endminipage{\vspace{0pt}}%
+  \else\if#1T%
+    \minipage[t]#2{#3}%
+    \vspace{0pt}%
+  \else
+    \minipage[#1]#2{#3}%
+  \fi\fi
+  \@subfloatboxreset
+  \setcaptionsubtype\relax}
+\providecommand*\@subfloatboxreset{}
+\newcommand*\subcaptionbox{%
+  \caption@withoptargs{\caption@ibox\setcaptionsubtype}}
+\g@addto@macro\caption@subtypehook{%
+  \ifx\label\subcaption@label \else
+    \let\subcaption@ORI@label\label
+    \let\label\subcaption@label
+  \fi}
+\newcommand*\subcaption@label{%
+  \caption@withoptargs\subcaption@@label}
+\newcommand*\subcaption@@label[2]{%
+  \@bsphack\begingroup
+    \subcaption@ORI@label#1{#2}%
+    \let\SK@\@gobbletwo
+    \protected@edef\@currentlabel{\csname thesub\@captype\endcsname}%
+    \subcaption@ORI@label#1{sub@#2}%
+  \endgroup\@esphack}
+\DeclareRobustCommand*\subref{%
+  \@ifstar
+    {\caption@withoptargs\subcaption@ref*}%
+    {\caption@withoptargs\@subref}}
+\newcommand*\@subref[2]{%
+  \caption@ifundefined\hyperref
+    {\subcaption@ref{#1}{#2}}%
+    {\hyperref[{#2}]{\subcaption@ref{*#1}{#2}}}}
+\newcommand*\subcaption@ref[2]{%
+  \begingroup
+    \caption@setoptions{sub}%
+    \subcaption@reffmt\p@subref{\ref#1{sub@#2}}%
+  \endgroup}
+\newcommand*\p@subref{}
+\DeclareCaptionOption{subrefformat}{\subcaption@setrefformat{#1}}
+\newcommand*\subcaption@setrefformat[1]{%
+  \@ifundefined{caption@labelformat@#1}%
+    {\subcaption@Error{Undefined label format `#1'}}%
+    {\expandafter\let\expandafter\subcaption@reffmt\csname caption@labelformat@#1\endcsname}}
+\subcaption@setrefformat{simple}
+\DeclareCaptionLabelFormat{subsimple}{#2}
+\DeclareCaptionLabelFormat{subparens}{(#2)}
+\caption@SetupOptions{subcaption}{\captionsetup[sub]{#2}}%
+\caption@ExecuteOptions{subcaption}{%
+  font+=smaller,labelformat=parens,labelsep=space,skip=6pt,list=0,hypcap=0}
+\caption@ProcessOptions*{subcaption}
+\ForEachCaptionType{\DeclareCaptionSubType{#1}}
+\caption@AtBeginDocument{\providecommand*\subfloat{%
+  \@ifnextchar[%]
+    \subcaption@subfloat
+    \subcaption@subfloat@}}
+\long\def\subcaption@subfloat[#1]{%
+  \@ifnextchar[%]
+    {\subcaption@@subfloat{#1}}%
+    {\subcaption@@@subfloat\subcaptionbox{#1}}}
+\long\def\subcaption@@subfloat#1[#2]{%
+  \subcaption@@@subfloat{\subcaptionbox[{#1}]}{#2}}
+\long\def\subcaption@@@subfloat#1#2#3{%
+  \caption@getlabel{#3}%
+  #1{#2\caption@thelabel}{\let\label\caption@gobble#3}%
+  \global\let\caption@thelabel\relax
+  \ignorespaces}
+\def\subcaption@subfloat@#1{%
+  \setbox\@tempboxa\hbox{#1}%
+  \caption@iiiibox
+    \setcaptionsubtype
+    {\phantomcaption\@gobble}{\phantomcaption\@gobble}% no box with \caption
+    {}% no optional arguments for \caption
+    {}% no sub-caption
+    [\wd\@tempboxa][\captionbox@innerpos@default]%
+    {\unhbox\@tempboxa}%
+  \ignorespaces}
+\endinput
+%%
+%% End of file `subcaption.sty'.

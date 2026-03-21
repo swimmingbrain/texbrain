@@ -1,0 +1,111 @@
+\ProvidesFile{debug.bbx}
+[\abx@bbxid]
+
+\ExecuteBibliographyOptions{sorting=debug}
+\DeclareFieldFormat{entrykey}{\ttfamily[#1]}
+\DeclareFieldFormat{shorthandwidth}{#1}
+
+\defbibenvironment{bibliography}
+  {\list
+     {}
+     {\setlength{\leftmargin}{8em}%
+      \setlength{\itemindent}{-\leftmargin}%
+      \setlength{\itemsep}{0pt}%
+      \setlength{\parsep}{0pt}%
+      \interlinepenalty\@M
+      \raggedbottom\raggedright
+      \frenchspacing
+      \normalfont\footnotesize}}
+  {\endlist}
+  {\item}
+
+\defbibenvironment{shorthand}
+  {\list
+     {\printfield[shorthandwidth]{shorthand}}
+     {\setlength{\labelwidth}{8em}%
+      \setlength{\leftmargin}{\labelwidth}%
+      \addtolength{\labelwidth}{-\labelsep}%
+      \setlength{\itemsep}{0pt}%
+      \setlength{\parsep}{0pt}%
+      \renewcommand*{\makelabel}[1]{##1\hss}%
+      \interlinepenalty\@M
+      \raggedbottom\raggedright
+      \frenchspacing
+      \normalfont\footnotesize}}
+  {\endlist}
+  {\item}
+
+\@ifpackageloaded{biblatex_legacy}
+  {\DeclareNameFormat{debug}{%
+     \bbx@mklabel{\currentname}%
+     \ifblank{#3}{}{\detokenize{#3}\space}%
+     \ifblank{#5}{}{\detokenize{#5}\ifpunctmark{'}{}{\space}}%
+     \detokenize{#1}%
+     \ifblank{#7}{}{\space\detokenize{#7}}%
+     \ifblank{#3}{}{\bbx@mksublabel{given}\detokenize{#3}}%
+     \ifblank{#1}{}{\bbx@mksublabel{family}\detokenize{#1}}%
+     \ifblank{#5}{}{\bbx@mksublabel{prefix}\detokenize{#5}}%
+     \ifblank{#7}{}{\bbx@mksublabel{affix}\detokenize{#7}}%
+     \bbx@mksublabel{inits}%
+     \ifblank{#4}{}{\detokenize{#4}\space}%
+     \ifblank{#6}{}{\detokenize{#6}\ifpunctmark{'}{}{\space}}%
+     \detokenize{#2}%
+     \ifblank{#8}{}{\space\detokenize{#8}}}}
+  {\DeclareNameFormat{debug}{%
+     \bbx@mklabel{\currentname}%
+     \ifdefvoid{\namepartgiven}{}{\expandafter\detokenize\expandafter{\namepartgiven}\space}%
+     \ifdefvoid{\namepartprefix}{}{\expandafter\detokenize\expandafter{\namepartprefix}\ifpunctmark{'}{}{\space}}%
+     \expandafter\detokenize\expandafter{\namepartfamily}%
+     \ifdefvoid{\namepartsuffix}{}{\expandafter\space\expandafter\detokenize\expandafter{\namepartsuffix}}%
+     \ifdefvoid{\namepartgiven}{}{\bbx@mksublabel{given}\expandafter\detokenize\expandafter{\namepartgiven}}%
+     \ifdefvoid{\namepartfamily}{}{\bbx@mksublabel{family}\expandafter\detokenize\expandafter{\namepartfamily}}%
+     \ifdefvoid{\namepartprefix}{}{\bbx@mksublabel{prefix}\expandafter\detokenize\expandafter{\namepartprefix}}%
+     \ifdefvoid{\namepartsuffix}{}{\bbx@mksublabel{suffix}\expandafter\detokenize\expandafter{\namepartsuffix}}%
+     \bbx@mksublabel{inits}%
+     \ifdefvoid{\namepartgiveni}{}{\expandafter\detokenize\expandafter{\namepartgiveni}\space}%
+     \ifdefvoid{\namepartprefixi}{}{\expandafter\detokenize\expandafter{\namepartprefixi}\ifpunctmark{'}{}{\space}}%
+     \expandafter\detokenize\expandafter{\namepartfamilyi}%
+     \ifdefvoid{\namepartsuffixi}{}{\expandafter\space\expandafter\detokenize\expandafter{\namepartsuffixi}}}}
+
+\DeclareListFormat{debug}{%
+  \bbx@mklabel{\currentlist}%
+  \detokenize{#1}}
+
+\DeclareFieldFormat{debug}{%
+  \bbx@mklabel{\currentfield}%
+  \detokenize{#1}}
+
+\newcommand*{\bbx@mklabel}[1]{%
+  \item
+  \makebox[\leftmargin][l]{\ttfamily [#1]}}
+
+\newcommand*{\bbx@mksublabel}[1]{%
+  \par\nobreak
+  \makebox[6em][l]{\ttfamily [#1]}}
+
+\DeclareBibliographyDriver{debug}{%
+  \item\begingroup\ttfamily\leavevmode
+  \xleaders\hbox to 0.75em{\hss-\hss}\hfill\kern\z@
+  \space\printfield{entrykey}\space
+  \xleaders\hbox to 0.75em{\hss-\hss}\hfill\kern\z@
+  \endgroup
+  \def\do{\printnames[debug][-\thelisttotal]}%
+  \abx@donames
+  \def\do{\printlist[debug][-\thelisttotal]}%
+  \abx@dolists
+  \def\do{\printfield[debug]}%
+  \abx@dointernalfields
+  \abx@dofields\do{options}\do{execute}%
+  \item\begingroup\ttfamily\leavevmode
+  \xleaders\hbox to 0.75em{\hss-\hss}\hfill\kern\z@
+  \endgroup
+  \clearpage}
+
+\def\do#1{\DeclareBibliographyAlias{#1}{debug}}
+\abx@doentrytypes
+\do{*}
+
+\DeclareBibliographyDriver{shorthand}{%
+  \texttt{\printfield{entrykey}}}
+
+\endinput

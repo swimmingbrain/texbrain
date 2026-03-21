@@ -1,0 +1,574 @@
+%% tikzlibrarycd.code.tex [2021/05/04 v1.0 Commutative diagrams with TikZ]
+%% Copyright 2011, 2012, 2014, 2018, 2021 Augusto Stoffel
+%
+% This work may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either version 1.3
+% of this license or (at your option) any later version.
+% The latest version of this license is in
+%   http://www.latex-project.org/lppl.txt
+% and version 1.3 or later is part of all distributions of LaTeX
+% version 2005/12/01 or later.
+%
+% This work has the LPPL maintenance status `maintained'.
+%
+% The Current Maintainer of this work is Augusto Stoffel.
+%
+% This work consists of the files tikzlibrarycd.code.tex, tikz-cd.sty
+% and tikz-cd-doc.tex.
+
+\usetikzlibrary{matrix,quotes,arrows.meta}
+
+\newif\iftikzcd@mathmode
+
+\def\tikzcdset{\pgfqkeys{/tikz/commutative diagrams}}
+
+\tikzcdset{
+  arrows/.code={\tikzcdset{every arrow/.append style={#1}}},
+  labels/.code={\tikzcdset{every label/.append style={#1}}},
+  cells/.code={\tikzcdset{every cell/.append style={#1}}},
+  diagrams/.code={\tikzcdset{every diagram/.append style={#1}}},
+  execute before arrows/.code={%
+    \expandafter\def%
+    \expandafter\tikzcd@before@paths@hook%
+    \expandafter{\tikzcd@before@paths@hook#1}},
+  to/.code={\tikzcd@setarrowend\tikzcd@ar@target{#1}},
+  from/.code={\tikzcd@setarrowend\tikzcd@ar@start{#1}},
+  shorten/.style={
+    /tikz/shorten <=#1,
+    /tikz/shorten >=#1},
+  description/.style={
+    /tikz/anchor=center,
+    /tikz/fill=\pgfkeysvalueof{/tikz/commutative diagrams/background color}},
+  marking/.style={
+    /tikz/font=,
+    /tikz/sloped,
+    /tikz/shape=asymmetrical rectangle,
+    /tikz/anchor=center},
+  phantom/.style={
+    /tikz/draw=none,
+    /tikz/commutative diagrams/labels={
+      /tikz/font=,
+      /tikz/anchor=center}},
+  crossing over/.style={
+    /tikz/preaction={
+      /tikz/draw=\pgfkeysvalueof{/tikz/commutative diagrams/background color},
+      /tikz/arrows=-,
+      /tikz/line width=\pgfkeysvalueof{/tikz/commutative diagrams/crossing over clearance}}},
+  cramped/.code={\tikzcdset{
+    every matrix/.append style={inner sep=+-0.3em},
+    every cell/.append style={inner sep=+0.3em}}},
+  row sep/.code={\tikzcd@sep{row}{#1}},
+  column sep/.code={\tikzcd@sep{column}{#1}},
+  sep/.code={\tikzcdset{row sep={#1},column sep={#1}}},
+  math mode/.is if=tikzcd@mathmode,
+  arrow style/.is choice}
+
+\def\tikzcd@sep#1#2{%
+  \pgfkeysifdefined{/tikz/commutative diagrams/#1 sep/#2}%
+    {\pgfkeysgetvalue{/tikz/commutative diagrams/#1 sep/#2}\tikzcd@temp%
+     \pgfkeysalso{/tikz/#1 sep/.expand once=\tikzcd@temp}}%
+    {\pgfkeysalso{/tikz/#1 sep={#2}}}}
+
+\def\tikzcd@setarrowend#1#2{%
+  \pgfutil@ifundefined{pgf@sh@ns@\tikzcdmatrixname-#2}%
+    {%
+      \c@pgf@counta=0%
+      \c@pgf@countb=0%
+      \let\tikzcd@temp=\tikzcd@parse%
+      \expandafter\tikzcd@temp#2\relax%
+      \ifx\tikzcd@temp\pgfutil@empty% true if it was a direction parameter
+        \advance\c@pgf@counta by\tikzcd@currentrow%
+        \advance\c@pgf@countb by\tikzcd@currentcolumn%
+        \edef#1{\tikzcdmatrixname-\the\c@pgf@counta-\the\c@pgf@countb}%
+      \else%
+        \def#1{#2}%
+      \fi%
+    }{%
+      \def#1{\tikzcdmatrixname-#2}%
+    }}
+    
+% The unknown key handler and direction argument parser
+\tikzcdset{
+  .unknown/.code={%
+    \ifpgfkeysaddeddefaultpath%
+      \c@pgf@counta=0%
+      \c@pgf@countb=0%
+      \let\tikzcd@temp=\tikzcd@parse%
+      \expandafter\tikzcd@temp\pgfkeyscurrentname\relax%
+      \ifx\tikzcd@temp\pgfutil@empty% true if it was a direction parameter
+        \advance\c@pgf@counta by\tikzcd@currentrow%
+        \advance\c@pgf@countb by\tikzcd@currentcolumn%
+        \edef\tikzcd@ar@target{\tikzcdmatrixname-\the\c@pgf@counta-\the\c@pgf@countb}%
+      \else%
+        \pgfqkeys{/tikz}{\pgfkeyscurrentname={#1}}%
+      \fi%
+    \else%
+      \def\pgfutilnext{\pgfkeysvalueof{/handlers/.unknown/.@cmd}#1\pgfeov}\pgfutilnext%
+    \fi}}
+
+\def\tikzcd@parse#1{% parser for arrow direction argument
+  \ifx#1r\advance\c@pgf@countb by1\else%
+   \ifx#1d\advance\c@pgf@counta by1\else%
+    \ifx#1l\advance\c@pgf@countb by-1\else%
+     \ifx#1u\advance\c@pgf@counta by-1\else%
+      \ifx#1\relax\let\tikzcd@temp\pgfutil@empty%
+       \else\let\tikzcd@temp\pgfutil@gobble@until@relax\fi\fi\fi\fi\fi%
+  \tikzcd@temp}
+
+% The `tikzcd' environment
+\def\tikzcd{%
+  \iffalse{\fi\ifnum0=`}\fi% standard trick to allow nesting of tabular-like environments (cf. the tabularx manual)
+  \pgfutil@ifnextchar&% if we get an & here, it will be returned with the wrong catcode to the input stream
+    {\expandafter\tikzcd@@\expandafter\pgfmatrixnextcell\pgfutil@gobble}%
+    {\tikzcd@@}}
+
+\def\tikzcd@@{\pgfutil@ifnextchar[{\tikzcd@handle@shortcuts@next\tikzcd@}{\tikzcd@[]}}
+
+\def\tikzcd@[#1]{%
+  \tikzpicture[/tikz/commutative diagrams/.cd,every diagram,#1]%
+  \ifx\arrow\tikzcd@arrow%
+    \pgfutil@packageerror{tikz-cd}{Diagrams cannot be nested}{}%
+  \fi%
+  \let\arrow\tikzcd@arrow%
+  \let\ar\tikzcd@arrow%
+  \def\rar{\tikzcd@xar{r}}%
+  \def\lar{\tikzcd@xar{l}}%
+  \def\dar{\tikzcd@xar{d}}%
+  \def\uar{\tikzcd@xar{u}}%
+  \def\urar{\tikzcd@xar{ur}}%
+  \def\ular{\tikzcd@xar{ul}}%
+  \def\drar{\tikzcd@xar{dr}}%
+  \def\dlar{\tikzcd@xar{dl}}%
+  \global\let\tikzcd@savedpaths\pgfutil@empty%
+  \matrix[%
+    /tikz/matrix of \iftikzcd@mathmode math \fi nodes,%
+    /tikz/every cell/.append code={\tikzcdset{every cell}},%
+    /tikz/commutative diagrams/.cd,every matrix]%
+  \bgroup}
+
+\def\endtikzcd{%
+  \pgfmatrixendrow\egroup%
+  \pgfextra{\global\let\tikzcdmatrixname\tikzlastnode};%
+  \tikzcdset{\the\pgfmatrixcurrentrow-row diagram/.try}%
+  \begingroup%
+    \pgfkeys{% `quotes' library support
+      /handlers/first char syntax/the character "/.initial=\tikzcd@forward@quotes,%
+      /tikz/edge quotes mean={%
+        edge node={node [execute at begin node=\iftikzcd@mathmode$\fi,%$
+                         execute at end node=\iftikzcd@mathmode$\fi,%$
+                         /tikz/commutative diagrams/.cd,every label,##2]{##1}}}}%
+    \let\tikzcd@errmessage\errmessage% improve error messages
+    \def\errmessage##1{\tikzcd@errmessage{##1^^J...^^Jl.\tikzcd@lineno\space%
+        I think the culprit is a tikzcd arrow in cell \tikzcd@currentrow-\tikzcd@currentcolumn}}%
+    \tikzcd@before@paths@hook%
+    \tikzcd@savedpaths%
+  \endgroup%
+  \endtikzpicture%
+  \ifnum0=`{}\fi}
+
+% The arrow commands
+\def\tikzcd@arrow{%
+  \relax% this was added to avoid errors when a cell starts with \arrow, but it seems unnecessary now
+  \edef\tikzcd@temp{%
+    \noexpand\def\noexpand\tikzcd@currentcolumn{\the\pgfmatrixcurrentcolumn}%
+    \noexpand\def\noexpand\tikzcd@currentrow{\the\pgfmatrixcurrentrow}%
+    \noexpand\def\noexpand\tikzcd@lineno{\the\inputlineno}}%
+  \expandafter\pgfutil@g@addto@macro\expandafter\tikzcd@savedpaths\expandafter{\tikzcd@temp}%
+  \pgfutil@ifnextchar[{\tikzcd@handle@shortcuts@next\tikzcd@@arrow}{\tikzcd@ar@old[]}}
+
+\def\tikzcd@@arrow[#1]{\pgfutil@ifnextchar\bgroup{\tikzcd@ar@old[#1]}{\tikzcd@ar@new[#1]}}
+
+\def\tikzcd@ar@new[#1]{% new syntax
+  \pgfutil@g@addto@macro\tikzcd@savedpaths{%
+    \path[/tikz/commutative diagrams/.cd,every arrow,#1]%
+    (\tikzcd@ar@start\tikzcd@startanchor) to (\tikzcd@ar@target\tikzcd@endanchor); }}
+
+\def\tikzcd@ar@old[#1]#2{% old syntax
+  \pgfutil@ifnextchar[%
+    {\tikzcd@handle@shortcuts@next\tikzcd@ar@getlabel{to={#2},#1}}%
+    {\pgfutil@ifnextchar\bgroup%
+      {\tikzcd@ar@getlabel{to={#2},#1}[]}%
+      {\tikzcd@ar@new[to={#2},#1]}}}
+
+\def\tikzcd@ar@getlabel#1[#2]#3{%
+  \pgfutil@ifnextchar[%
+    {\tikzcd@handle@shortcuts@next\tikzcd@ar@getlabel{#1,"{#3}"{#2}}}%
+    {\pgfutil@ifnextchar\bgroup%
+      {\tikzcd@ar@getlabel{#1,"{#3}"{#2}}[]}%
+      {\tikzcd@ar@new[#1,"{#3}"{#2}]}}}
+
+\def\tikzcd@xar#1{\relax\pgfutil@ifnextchar[{\tikzcd@handle@shortcuts@next\tikzcd@@xar{#1}}{\tikzcd@arrow[]{#1}}}
+\def\tikzcd@@xar#1[#2]{\tikzcd@arrow[#2]{#1}}
+
+\def\tikzcd@handle@shortcuts@next{% expand next macro using standard catcodes
+  \iftikz@handle@active@code%
+    \begingroup%
+      \tikz@switchoff@shorthands\expandafter%
+    \endgroup\expandafter%
+  \fi}
+
+\def\tikzcd@ar@target{\tikzcdmatrixname-\tikzcd@currentrow-\tikzcd@currentcolumn}
+\def\tikzcd@ar@start{\tikzcdmatrixname-\tikzcd@currentrow-\tikzcd@currentcolumn}
+
+\def\tikzcd@forward@quotes#1{\tikzset{every to/.append style={#1}}}
+
+\let\tikzcd@before@paths@hook\pgfutil@empty
+
+% `start anchor', `end anchor', and `shift' keys
+\def\tikzcd@setanchor#1[#2]#3\relax{%
+  \ifx\relax#2\relax\else%
+    \tikzcdset{@#1transform/.append style={#2},@shiftabletopath}%
+  \fi%
+  \ifx\relax#3\relax%
+    \pgfutil@namelet{tikzcd@#1anchor}{pgfutil@empty}%
+  \else%
+    \pgfutil@namedef{tikzcd@#1anchor}{.#3}%
+  \fi}
+
+\tikzcdset{
+  @shiftabletopath/.style={
+    /tikz/execute at begin to={%
+      \begingroup%
+        \def\tikz@tonodes{coordinate[pos=0,commutative diagrams/@starttransform/.try](tikzcd@nodea) %
+                          coordinate[pos=1,commutative diagrams/@endtransform/.try](tikzcd@nodeb)}%
+        \path (\tikztostart) \tikz@to@path;%
+      \endgroup%
+      \def\tikztostart{tikzcd@nodea}%
+      \def\tikztotarget{tikzcd@nodeb}%
+      \tikzset{insert path={(tikzcd@nodea)}}},
+    /tikz/commutative diagrams/@shiftabletopath/.code={}},
+  start anchor/.code={%
+    \pgfutil@ifnextchar[{\tikzcd@setanchor{start}}{\tikzcd@setanchor{start}[]}#1\relax},%]
+  end anchor/.code={%
+    \pgfutil@ifnextchar[{\tikzcd@setanchor{end}}{\tikzcd@setanchor{end}[]}#1\relax},%]
+  start anchor=,
+  end anchor=,
+  shift left/.style={
+    /tikz/commutative diagrams/@shiftabletopath,
+    /tikz/execute at begin to={%
+      \pgfpointnormalised{%
+        \pgfpointdiff{\pgfpointanchor{tikzcd@nodeb}{center}}{\pgfpointanchor{tikzcd@nodea}{center}}}%
+      \pgfgetlastxy{\tikzcd@x}{\tikzcd@y}%
+      \pgfmathparse{#1}%
+      \ifpgfmathunitsdeclared\else
+        \pgfmathparse{\pgfmathresult*\pgfkeysvalueof{/tikz/commutative diagrams/shift left/.@def}}
+      \fi
+      \coordinate (tikzcd@nodea) at ([shift={(\pgfmathresult*\tikzcd@y,-\pgfmathresult*\tikzcd@x)}]tikzcd@nodea);%
+      \coordinate (tikzcd@nodeb) at ([shift={(\pgfmathresult*\tikzcd@y,-\pgfmathresult*\tikzcd@x)}]tikzcd@nodeb);%
+      \tikzset{insert path={(tikzcd@nodea)}}}},
+  shift right/.style={
+    /tikz/commutative diagrams/shift left={-(#1)}},
+  transform nodes/.style={
+    /tikz/commutative diagrams/@shiftabletopath,
+    /tikz/commutative diagrams/@starttransform/.append style={#1},
+    /tikz/commutative diagrams/@endtransform/.append style={#1}},
+  shift/.style={
+    /tikz/shift={#1},% we need this for labels to receive a shift
+    /tikz/commutative diagrams/transform nodes={/tikz/shift={#1}}},
+  xshift/.style={
+    /tikz/xshift={#1},
+    /tikz/commutative diagrams/transform nodes={/tikz/xshift={#1}}},
+  yshift/.style={
+    /tikz/yshift={#1},
+    /tikz/commutative diagrams/transform nodes={/tikz/yshift={#1}}}}
+
+% pgfmath functions to obtain math fontdimens
+\pgfutil@ifluatex
+
+  \directlua{tex.enableprimitives('tikzcd@', {'Umathaxis', 'Umathfractionrule'})}
+
+  \pgfmathdeclarefunction{axis_height}{0}{%
+    \begingroup%
+      $\relax$% update fontdimens
+      \pgfmathreturn\the\tikzcd@Umathaxis\textstyle%
+    \endgroup}
+
+  \pgfmathdeclarefunction{rule_thickness}{0}{%
+    \begingroup%
+      $\relax$%
+      \pgfmathreturn\the\tikzcd@Umathfractionrule\textstyle%
+    \endgroup}
+
+\else% if using (pdf)tex
+
+  \pgfmathdeclarefunction{axis_height}{0}{%
+    \begingroup%
+      $\relax$% update fontdimens
+      \pgfmathreturn\the\fontdimen22\textfont2%
+    \endgroup}
+
+  \pgfmathdeclarefunction{rule_thickness}{0}{%
+    \begingroup%
+      $\relax$%
+      \pgfmathreturn\the\fontdimen8\textfont3%
+    \endgroup}
+
+\fi
+
+% The shape used inside matrices
+\pgfdeclareshape{asymmetrical rectangle} {
+  \inheritsavedanchors[from={rectangle}]
+  \inheritanchor[from={rectangle}]{base}
+  \inheritanchor[from={rectangle}]{north}
+  \inheritanchor[from={rectangle}]{south}
+  \inheritanchor[from={rectangle}]{base west}
+  \inheritanchor[from={rectangle}]{north west}
+  \inheritanchor[from={rectangle}]{south west}
+  \inheritanchor[from={rectangle}]{base east}
+  \inheritanchor[from={rectangle}]{north east}
+  \inheritanchor[from={rectangle}]{south east}
+  \inheritanchor[from={rectangle}]{mid}
+  \inheritanchor[from={rectangle}]{mid west}
+  \inheritanchor[from={rectangle}]{mid east}
+  \inheritbackgroundpath[from={rectangle}]
+  \anchor{center}{\pgf@anchor@rectangle@center\pgfmathsetlength\pgf@y%
+    {\pgfkeysvalueof{/tikz/commutative diagrams/center yshift}}}
+  \anchor{west}{\pgf@anchor@rectangle@west\pgfmathsetlength\pgf@y%
+    {\pgfkeysvalueof{/tikz/commutative diagrams/center yshift}}}
+  \anchor{east}{\pgf@anchor@rectangle@east\pgfmathsetlength\pgf@y%
+    {\pgfkeysvalueof{/tikz/commutative diagrams/center yshift}}}
+  \anchor{real center}{\pgf@anchor@rectangle@center}
+  \anchor{real west}{\pgf@anchor@rectangle@west}
+  \anchor{real east}{\pgf@anchor@rectangle@east}
+  \anchorborder{%
+    \pgfmathsetlength\pgfutil@tempdima%
+      {\pgfkeysvalueof{/tikz/commutative diagrams/center yshift}}%
+    \pgf@xb=\pgf@x% xb/yb is target
+    \pgf@yb=\pgf@y%
+    \southwest%
+    \pgf@xa=\pgf@x% xa/ya is se
+    \pgf@ya=\pgf@y%
+    \northeast%
+    \advance\pgf@x by-\pgf@xa%
+    \advance\pgf@y by-\pgf@ya%
+    \pgf@xc=.5\pgf@x% x/y is half width/height
+    \pgf@yc=.5\pgf@y%
+    \advance\pgf@xa by\pgf@xc% xa/ya becomes center
+    \advance\pgf@ya by\pgf@yc%
+    \ifdim\pgf@yb>0pt%
+      \northeast%
+      \pgf@yc=\pgf@y%
+      \advance\pgf@yc by-\pgfutil@tempdima%
+    \else%
+      \southwest%
+      \pgf@yc=-\pgf@y%
+      \advance\pgf@yc by\pgfutil@tempdima%
+    \fi
+    \edef\pgf@marshal{%
+      \noexpand\pgfpointborderrectangle
+      {\noexpand\pgfqpoint{\the\pgf@xb}{\the\pgf@yb}}
+      {\noexpand\pgfqpoint{\the\pgf@xc}{\the\pgf@yc}}%
+    }%
+    \pgf@process{\pgf@marshal}%
+    \advance\pgf@x by\pgf@xa%
+    \advance\pgf@y by\pgfutil@tempdima%
+  }%
+}%
+
+% Computer modern arrow tips
+\pgfkeys{
+  cm to/.tip={Computer Modern Rightarrow[length=+0pt 6.2]},
+  cm bold to/.tip={cm to[scale=0.667]},
+  cm double to/.tip={cm to[sep=+0pt -2.6]cm to},
+  cm bar/.tip={Bar[width=+0pt 8.2 0.89,line cap=round]},
+  cm left hook/.tip={Hooks[width=+0pt 10.8,length=+0pt 3.6,harpoon,line cap=round]},
+  cm implies/.tip={Implies},
+  cm left to/.tip={cm to[left]},
+  cm right to/.tip={cm to[right]},
+  cm right hook/.tip={cm left hook[swap]},
+  cm to reversed/.tip={cm to[reversed]},
+  cm */.tip={Circle[length=+0pt 7.6]},
+  cm o/.tip={cm *[open]},
+  cm |/.tip={cm bar}}%|
+
+% The `Glyph' meta arrow tip
+\pgfqkeys{/pgf/arrow keys}{
+  glyph math command/.code={% if csname #1 is undefined, we want it to remain so
+    \pgfarrowsaddtooptions{\def\tikzcd@glyph{$\begingroup\expandafter\endgroup\csname #1\endcsname$}}},
+  glyph axis/.code={\pgfarrowsaddtooptions{\pgfmathsetlengthmacro\tikzcd@glyph@axis{#1}}},
+  glyph length/.code={\pgfarrowsaddtooptions{\pgfmathsetlengthmacro\tikzcd@glyph@len{#1}}},
+  glyph shorten/.code={\pgfarrowsaddtooptions{\pgfmathsetlengthmacro\tikzcd@glyph@shorten{#1}}}}
+
+\pgfdeclarearrow{
+  name=Glyph,
+  cache=false,
+  bending mode=none,
+  parameters={\tikzcd@glyph@len,\tikzcd@glyph@shorten},
+  setup code={%
+    \pgfarrowssettipend{\tikzcd@glyph@len\advance\pgf@x by\tikzcd@glyph@shorten}},
+  defaults={
+    glyph axis=axis_height,
+    glyph length=+0.9ex,
+    glyph shorten=+-0.1ex},
+  drawing code={%
+    \pgfpathrectangle{\pgfpoint{+0pt}{+-1ex}}{\pgfpoint{+\tikzcd@glyph@len}{+2ex}}%
+    \pgfusepathqclip%
+    \pgftransformxshift{+\tikzcd@glyph@len}%
+    \pgftransformyshift{+-\tikzcd@glyph@axis}%
+    \pgftext[right,base]{\tikzcd@glyph}}}
+
+% Arrow tip selection styles
+\tikzcdset{
+  double line/.code={\tikzset{%
+    double equal sign distance,
+    double=\pgfkeysvalueof{/tikz/commutative diagrams/background color}}},
+  dashed/.style={/tikz/dash pattern={on 7\pgflinewidth off 4\pgflinewidth}},
+  tikzcd to/.tip={cm to},
+  tikzcd bar/.tip={cm bar},
+  tikzcd left hook/.tip={cm left hook},
+  tikzcd double to/.tip={cm double to},
+  tikzcd implies/.tip={Implies},
+  tikzcd right hook/.tip={tikzcd left hook[swap]},
+  tikzcd left to/.tip={tikzcd to[harpoon]},
+  tikzcd right to/.tip={tikzcd left to[swap]},
+  tikzcd to reversed/.tip={tikzcd to[reversed]},
+  tikzcd cap/.tip={},
+  tikzcd implies cap/.tip={},
+  tikzcd implies bar/.tip={tikzcd bar},
+  no tail/.code={\pgfsetarrowsstart{tikzcd cap}},
+  to head/.code={\pgfsetarrowsend{tikzcd to}},
+  maps to/.code={\pgfsetarrowsstart{tikzcd bar}},
+  hook/.code={\pgfsetarrowsstart{tikzcd right hook}},
+  hook'/.code={\pgfsetarrowsstart{tikzcd left hook}},
+  harpoon/.code={\pgfsetarrowsend{tikzcd left to}},
+  harpoon'/.code={\pgfsetarrowsend{tikzcd right to}},
+  two heads/.code={\pgfsetarrowsend{tikzcd double to}},
+  tail/.code={\pgfsetarrowsstart{tikzcd to reversed}},
+  rightarrow/.code={\pgfsetarrows{tikzcd cap-tikzcd to}},
+  Rightarrow/.code={\tikzcdset{double line}\pgfsetarrows{tikzcd implies cap-tikzcd implies}},
+  leftarrow/.code={\pgfsetarrows{tikzcd to-tikzcd cap}},
+  Leftarrow/.code={\tikzcdset{double line}\pgfsetarrows{tikzcd implies-tikzcd implies cap}},
+  leftrightarrow/.code={\pgfsetarrows{tikzcd to-tikzcd to}},
+  Leftrightarrow/.code={\tikzcdset{double line}\pgfsetarrows{tikzcd implies-tikzcd implies}},
+  mapsto/.code={\pgfsetarrows{tikzcd bar-tikzcd to}},
+  mapsfrom/.code={\pgfsetarrows{tikzcd to-tikzcd bar}},
+  Mapsto/.code={\tikzcdset{double line}\pgfsetarrows{tikzcd implies bar-tikzcd implies}},
+  Mapsfrom/.code={\tikzcdset{double line}\pgfsetarrows{tikzcd implies-tikzcd implies bar}},
+  hookrightarrow/.code={\pgfsetarrows{tikzcd right hook-tikzcd to}},
+  hookleftarrow/.code={\pgfsetarrows{tikzcd to-tikzcd left hook}},
+  rightharpoonup/.code={\pgfsetarrows{tikzcd cap-tikzcd left to}},
+  rightharpoondown/.code={\pgfsetarrows{tikzcd cap-tikzcd right to}},
+  leftharpoonup/.code={\pgfsetarrows{tikzcd right to-tikzcd cap}},
+  leftharpoondown/.code={\pgfsetarrows{tikzcd left to-tikzcd cap}},
+  rightarrowtail/.code={\pgfsetarrows{tikzcd to reversed-tikzcd to}},
+  leftarrowtail/.code={\pgfsetarrows{tikzcd to-tikzcd to reversed}},
+  twoheadrightarrow/.code={\pgfsetarrows{tikzcd cap-tikzcd double to}},
+  twoheadleftarrow/.code={\pgfsetarrows{tikzcd double to-tikzcd cap}},
+  no head/.code={\pgfsetarrowsend{tikzcd cap}},
+  dash/.code={\pgfsetarrows{tikzcd cap-tikzcd cap}},
+  dashrightarrow/.code={\tikzcdset{rightarrow,dashed}},
+  dashleftarrow/.code={\tikzcdset{leftarrow,dashed}},
+  equal/.code={\tikzcdset{double line}\pgfsetarrows{tikzcd implies cap-tikzcd implies cap}},
+  equals/.code={\tikzcdset{equal}},
+  rightsquigarrow/.code={\tikzcdset{rightarrow,squiggly}},
+  leftsquigarrow/.code={\tikzcdset{leftarrow,squiggly}},
+  leftrightsquigarrow/.code={\tikzcdset{leftrightarrow,squiggly}},
+  squiggly/.code={%
+    \pgfutil@ifundefined{tikz@library@decorations.pathmorphing@loaded}%
+      {\pgfutil@packageerror{tikz-cd}{You need to say %
+      \string\usetikzlibrary{decorations.pathmorphing} to use squiggly arrows}{}}{}%
+    \pgfkeysalso{
+      /tikz/decorate,
+      /tikz/decoration={
+        zigzag,
+        segment length=9.25\pgflinewidth,
+        amplitude=1.9\pgflinewidth,
+        post=lineto, post length=6\pgflinewidth,
+        pre=lineto, pre length=6\pgflinewidth,
+        #1}}}}
+
+% The `Latin Modern' arrow style
+\pgfkeysdef{/tikz/commutative diagrams/arrow style/Latin Modern}{%
+  \tikzcdset{
+    tikzcd bar/.tip={Bar[width=+0pt 12 .992,line cap=round]},
+    tikzcd left hook/.tip={Hooks[width=+0pt 15,length=+0pt 4.2,arc=190,harpoon,line cap=round]}}}
+
+% The `tikz' arrow style
+\pgfkeysdef{/tikz/commutative diagrams/arrow style/tikz}{%
+  \tikzcdset{
+    tikzcd to/.tip={>},
+    tikzcd bar/.tip={Bar[width=+3pt 4 0.9]},
+    tikzcd left hook/.tip={Hooks[harpoon]},
+    tikzcd double to/.tip={tikzcd to[]tikzcd to}}}
+
+% The `math font' arrow style
+%
+% If your font does not define the command \mapsfrom, do so by saying
+%   \def\mapsfrom{\pgfpicture\pgfsetbaseline{+0pt}\pgftransformxscale{-1}\pgftext[base]{$\mapsto$}\endpgfpicture}
+%
+% The method used to guess the correct value of `double distance'
+% inside the `double line' style is not robust at all.  If it fails,
+% set
+%   \tikzcdset{double line/.append style={double distance=2*rule_thickness}}
+% and find the correct value for `double distance' by trial and error
+% (or measure the distance between the \Rightarrow stems in a font
+% editor).
+%
+\pgfkeysdef{/tikz/commutative diagrams/arrow style/math font}{%
+  \tikzcdset{
+    tikzcd to/.tip={Glyph[glyph math command=rightarrow]},
+    tikzcd cap/.tip={Glyph[glyph math command=leftarrow]},
+    tikzcd to reversed/.tip={Glyph[glyph math command=leftarrowtail]},
+    tikzcd bar/.tip={Glyph[glyph math command=mapsfrom]},
+    tikzcd left hook/.tip={Glyph[glyph math command=hookleftarrow]},
+    tikzcd right hook/.tip={Glyph[glyph math command=hookleftarrow, swap]},
+    tikzcd implies/.tip={Glyph[glyph math command=Rightarrow, glyph length=1.2ex]},
+    tikzcd implies cap/.tip={Glyph[glyph math command=Leftarrow]},
+    tikzcd implies bar/.tip={Glyph[glyph math command=Mapsfrom]},
+    tikzcd double to/.tip={Glyph[glyph math command=twoheadrightarrow, glyph length=1.4ex]},
+    tikzcd left to/.tip={Glyph[glyph math command=rightharpoonup]},
+    tikzcd right to/.tip={Glyph[glyph math command=rightharpoonup,swap]},
+    double line/.append code={\tikzset{double distance={2*(height("$=$")-axis_height-rule_thickness)}}},
+    dashed/.code={\tikzset{dash pattern=on 0.8ex off 0.4ex, dash phase=0.8ex}},
+    squiggly/.default={pre length=1ex, post length=1ex}}}
+
+% Default settings
+\tikzcdset{
+  every arrow/.style={
+    /tikz/draw,
+    /tikz/line width=rule_thickness,
+    /tikz/commutative diagrams/rightarrow},
+  every label/.style={
+    /tikz/auto,
+    /tikz/font=\everymath\expandafter{\the\everymath\scriptstyle},
+    /tikz/inner sep=+0.5ex},
+  every cell/.style={
+    /tikz/shape={asymmetrical rectangle},
+    /tikz/inner xsep=+1ex,
+    /tikz/inner ysep=+0.85ex},
+  every matrix/.style={/tikz/inner sep=+0pt},
+  every diagram/.style={
+    /tikz/commutative diagrams/row sep=normal,
+    /tikz/commutative diagrams/column sep=normal,
+    /tikz/baseline=+0pt},
+  1-row diagram/.style={/tikz/baseline/.expanded=(\tikzcdmatrixname.base)},
+  math mode=true,
+  center yshift/.initial=axis_height,
+  row sep/huge/.initial=+3.6em,
+  row sep/large/.initial=+2.7em,
+  row sep/normal/.initial=+1.8em,
+  row sep/scriptsize/.initial=+1.35em,
+  row sep/small/.initial=+0.9em,
+  row sep/tiny/.initial=+0.45em,
+  column sep/huge/.initial=+4.8em,
+  column sep/large/.initial=+3.6em,
+  column sep/normal/.initial=+2.4em,
+  column sep/scriptsize/.initial=+1.8em,
+  column sep/small/.initial=+1.2em,
+  column sep/tiny/.initial=+0.6em,
+  crossing over clearance/.initial=+1.5ex,
+  shift left/.default=+0.56ex,
+  shift right/.default=1,
+  background color/.initial=white}
+
+% ConTeXt-specific stuff
+\pgfutil@IfUndefined{starttikzpicture}{}{%
+  \def\starttikzcd{\tikzcd}
+  \def\stoptikzcd{\endtikzcd}
+  \tikzcdset{
+    every matrix/.append code={%
+      \def\NC{\pgfmatrixnextcell}%
+      \def\NR{\pgfmatrixendrow}}}
+}
+
+\endinput

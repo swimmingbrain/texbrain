@@ -1,0 +1,2365 @@
+%%
+%% This is file `databar.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% datatool.dtx  (with options: `databar.sty,package')
+%% 
+%%  datatool.dtx
+%%  Copyright 2025 Nicola Talbot
+%% 
+%%  This work may be distributed and/or modified under the
+%%  conditions of the LaTeX Project Public License, either version 1.3
+%%  of this license or (at your option) any later version.
+%%  The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%%  and version 1.3 or later is part of all distributions of LaTeX
+%%  version 2005/12/01 or later.
+%% 
+%%  This work has the LPPL maintenance status `maintained'.
+%% 
+%%  The Current Maintainer of this work is Nicola Talbot.
+%% 
+%%  This work consists of the files datatool.dtx and datatool.ins and the derived files datatool-base.sty, datatool-undetermined.ldf, datatool-latin1.ldf, datatool-utf8.ldf, datatool-l3fp.def, datatool-lua.def, datatool-fp.def, datatool-fp.sty, datatool-pgfmath.def, datatool-pgfmath.sty, datatool.sty, datagidx.sty, databib.sty, databar.sty, datapie.sty, dataplot.sty, person.sty, databib.bst, databar-2019-09-27.sty, databib-2019-09-27.sty, datagidx-2019-09-27.sty, datapie-2019-09-27.sty, dataplot-2019-09-27.sty, datatool-2019-09-27.sty, datatool-base-2019-09-27.sty, datatool-fp-2019-09-27.sty, datatool-pgfmath-2019-09-27.sty, person-2019-09-27.sty.
+%% 
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\NeedsTeXFormat{LaTeX2e}
+\DeclareRelease{v2.32}{2019-09-27}{databar-2019-09-27.sty}
+\DeclareCurrentRelease{v3.4.3}{2025-12-04}
+\ProvidesPackage{databar}[2025/12/04 v3.4.3 (NLCT)]
+\newif\ifDTLcolorbarchart
+\DTLcolorbarcharttrue
+\newif\ifDTLverticalbars
+\DTLverticalbarstrue
+\newcommand\DTLbarXlabelalign{%
+ \ifDTLverticalbars left,rotate=-90\else right\fi
+}
+\newcommand\DTLbarXupperlabelalign{%
+ \ifDTLverticalbars bottom,center\else left\fi
+}
+\newcommand\DTLbarXneglabelalign{%
+ \ifDTLverticalbars right,rotate=-90\else left\fi
+}
+\newcommand\DTLbarXnegupperlabelalign{%
+ \ifDTLverticalbars top,center\else right\fi
+}
+\newcommand\DTLbarYticklabelalign{%
+ \ifDTLverticalbars right\else top,center\fi
+}
+\ExplSyntaxOn
+\keys_define:nn { datatool }
+{
+  color .legacy_if_set:n = DTLcolorbarchart,
+  gray .legacy_if_set_inverse:n = DTLcolorbarchart,
+  verticalbars .legacy_if_set:n = DTLverticalbars ,
+  vertical .code:n =
+   {
+     \DTLverticalbarstrue
+   },
+  horizontal .code:n =
+   {
+     \DTLverticalbarsfalse
+   },
+}
+\ExplSyntaxOff
+\IfPackageLoadedTF{datatool}
+{
+  \ProcessKeyOptions[datatool]
+}
+{
+  \DeclareOption*{\PassOptionsToPackage{\CurrentOption}{datatool}}
+  \ProcessOptions
+}
+\RequirePackage{datatool}
+\ExplSyntaxOn
+\keys_define:nn { datatool }
+{
+  color .undefine: ,
+  gray .undefine: ,
+  verticalbars .undefine: ,
+  vertical .undefine: ,
+  horizontal .undefine: ,
+}
+\ExplSyntaxOff
+\RequirePackage{dataplot}
+\ExplSyntaxOn
+\tl_new:N \l__databar_content_tl
+\tl_new:N \DTLtotalbars
+\tl_new:N \DTLbartotalvariables
+\tl_new:N \DTLtotalbargroups
+\tl_new:N \DTLbarchartwidth
+\dim_new:N \l__databar_miny_dim
+\dim_new:N \l__databar_maxy_dim
+\tl_new:N \DTLbarvariable
+\seq_new:N \l__databar_variables_seq
+\fp_new:N \l__databar_start_fp
+\tl_new:N \l__databar_mid_tl
+\dim_new:N \l__databar_mid_dim
+\dim_new:N \l__databar_extent_dim
+\tl_new:N \l__databar_start_tl
+\tl_new:N \l__databar_end_tl
+\dim_new:N \l__databar_group_label_offset_dim
+\fp_new:N \l__databar_extent_fp
+\fp_new:N \l__databar_unit_fp
+\tl_new:N \l__databar_label_current_offset_tl
+\tl_new:N \l__databar_label_current_align_tl
+\tl_new:N \l__databar_barlabel_tl
+\tl_new:N \l__databar_lowerbarlabel_tl
+\seq_new:N \l__databar_multibarlabels_seq
+\tl_new:N \l__databar_groupgap_tl
+\tl_set:Nn \l__databar_groupgap_tl { 1 }
+\tl_new:N \l__databar_bargap_tl
+\tl_set:Nn \l__databar_bargap_tl { 0 }
+\tl_new:N \l__databar_upperbarlabel_tl
+\seq_new:N \l__databar_uppermultibarlabels_seq
+\clist_new:N \l__databar_yticpoints_clist
+\seq_new:N \l__databar_yticpoints_seq
+\tl_new:N \l__databar_yticgap_tl
+\fp_new:N \l__databar_yticgap_fp
+\seq_new:N \l__databar_yticlabels_seq
+\tl_new:N \l__databar_ylabel_tl
+\newcommand{\DTLyAxisLabelStyle}{%
+ bottom, center \ifDTLverticalbars , rotate = 90 \fi
+}
+\tl_new:N \l__databar_ylabel_offset_tl
+\tl_set:Nn \l__databar_ylabel_offset_tl
+ { \baselineskip }
+\tl_new:N \l__databar_ylabel_pos_tl
+\tl_set:Nn \l__databar_ylabel_pos_tl
+ { \c__databar_ylabel_pos_centred_tl }
+\tl_const:Nn \c__databar_ylabel_pos_centred_tl
+ {
+   \ifDTLverticalbars
+     \exp_not:N \pgfpoint
+      {
+        - \exp_not:N \l__dataplot_y_tic_label_width_dim
+      }
+      {
+        \dim_eval:n
+         {
+            0.5 \DTLbarchartlength + \l__databar_miny_dim
+         }
+      }
+   \else
+     \exp_not:N \pgfpoint
+      {
+        \dim_eval:n
+         {
+            0.5 \DTLbarchartlength + \l__databar_miny_dim
+         }
+      }
+      {
+        - \exp_not:N \l__dataplot_y_tic_label_width_dim
+      }
+   \fi
+ }
+\tl_const:Nn \c__databar_ylabel_pos_min_tl
+ {
+   \ifDTLverticalbars
+     \exp_not:N \pgfpoint
+      {
+        - \exp_not:N \l__dataplot_y_tic_label_width_dim
+      }
+      { \exp_not:N \l__databar_miny_dim }
+   \else
+     \exp_not:N \pgfpoint
+      { \exp_not:N \l__databar_miny_dim }
+      {
+        - \exp_not:N \l__dataplot_y_tic_label_width_dim
+      }
+   \fi
+ }
+\tl_const:Nn \c__databar_ylabel_pos_max_tl
+ {
+   \ifDTLverticalbars
+     \exp_not:N \pgfpoint
+      {
+        - \exp_not:N \l__dataplot_y_tic_label_width_dim
+      }
+      { \exp_not:N \l__databar_maxy_dim }
+   \else
+     \exp_not:N \pgfpoint
+      { \exp_not:N \l__databar_maxy_dim }
+      {
+        - \exp_not:N \l__dataplot_y_tic_label_width_dim
+      }
+   \fi
+ }
+\tl_const:Nn \c__databar_ylabel_pos_zero_tl
+ {
+   \ifDTLverticalbars
+     \exp_not:N \pgfpoint
+      {
+        - \exp_not:N \l__dataplot_y_tic_label_width_dim
+      }
+      { \exp_not:N \c_zero_dim }
+   \else
+     \exp_not:N \pgfpoint
+      { \exp_not:N \c_zero_dim }
+      {
+        - \exp_not:N \l__dataplot_y_tic_label_width_dim
+      }
+   \fi
+ }
+\newcommand{\DTLbarindex}{0}
+\newcommand{\DTLbargroupindex}{0}
+\newcommand\DTLbargrouplabelalign{\DTLbarXlabelalign}
+\newlength\DTLbarchartlength
+\DTLbarchartlength=3in
+\newlength\DTLbarwidth
+\DTLbarwidth=1cm
+\tl_new:N \DTLbarmax
+\cs_new:Nn \__databar_set_max:n
+ {
+   \tl_if_empty:nTF { #1 }
+    {
+     \tl_clear:N \DTLbarmax
+    }
+    {
+     \fp_compare:nNnTF
+      { #1 } < { \c_zero_fp }
+     {
+       \PackageError { databar }
+        {
+          max ~ must ~ be ~ zero ~ or ~ positive ~ (or ~
+          empty ~ for ~ the ~ default)
+        }
+        { }
+     }
+     {
+       \tl_set:Nn \DTLbarmax { #1 }
+     }
+   }
+ }
+\tl_new:N \DTLnegextent
+\cs_new:Nn \__databar_set_max_depth:n
+ {
+   \tl_if_empty:nTF { #1 }
+    {
+     \tl_clear:N \DTLnegextent
+    }
+    {
+     \fp_compare:nNnTF
+      { #1 } > { \c_zero_fp }
+     {
+       \PackageError { databar }
+        {
+          maxdepth ~ must ~ be ~ zero ~ or ~ negative ~ (or ~
+          empty ~ for ~ the ~ default)
+        }
+        { }
+     }
+     {
+       \tl_set:Nn \DTLnegextent { #1 }
+     }
+   }
+ }
+\newlength\DTLbarlabeloffset
+\setlength\DTLbarlabeloffset{10pt}
+\tl_new:N \l__databar_upper_label_offset_tl
+\tl_set:Nn \l__databar_upper_label_offset_tl
+ { \DTLbarlabeloffset }
+\tl_new:N \l__databar_label_pos_offset_tl
+\tl_set:Nn \l__databar_label_pos_offset_tl
+ { \dim_to_decimal:n { -\DTLbarlabeloffset } pt }
+\tl_new:N \l__databar_label_neg_offset_tl
+\tl_set:Nn \l__databar_label_neg_offset_tl
+ { \dim_to_decimal:n { \DTLbarlabeloffset } pt }
+\tl_new:N \l__databar_upper_label_pos_offset_tl
+\tl_set:Nn \l__databar_upper_label_pos_offset_tl
+ { \dim_to_decimal:n { \l__databar_upper_label_offset_tl } pt }
+\tl_new:N \l__databar_upper_label_neg_offset_tl
+\tl_set:Nn \l__databar_upper_label_neg_offset_tl
+ { \dim_to_decimal:n { -\l__databar_upper_label_offset_tl } pt }
+\newcommand*{\DTLBarXAxisStyle}{-}
+\newcommand*{\DTLBarYAxisStyle}{-}
+\newcommand*{\DTLBarStyle}{}
+\newcounter{DTLbarroundvar}
+\setcounter{DTLbarroundvar}{1}
+\tl_new:N \l__databar_ytic_round_tl
+\tl_set:Nn \l__databar_ytic_round_tl { \int_use:N \c@DTLbarroundvar }
+\newcommand*{\DTLbardisplayYticklabel}[1]{#1}
+\newcommand*{\DTLdisplaylowerbarlabel}[1]{#1}
+\newcommand*{\DTLdisplaybargrouplabel}[1]{#1}
+\newcommand*{\DTLdisplaylowermultibarlabel}[1]{#1}
+\newcommand*{\DTLdisplayupperbarlabel}[1]{#1}
+\newcommand*{\DTLdisplayuppermultibarlabel}[1]{#1}
+\newcommand*{\DTLbaratbegintikz}{}
+\newcommand*{\DTLbaratendtikz}{}
+\newif\ifDTLbarxaxis
+\newif\ifDTLbaryaxis
+\newif\ifDTLbarytics
+
+\cs_new:Npn \__databar_noop:N #1
+{
+  \PackageError { databar }
+  {
+    Can't ~ use ~ \token_to_str:N #1 \c_space_tl ~ outside ~
+    \token_to_str:N \DTLbarchart \c_space_tl ~ or ~
+    \token_to_str:N \DTLmultibarchart
+  }
+  { }
+}
+\int_new:N \l__databar_max_colors_int
+\int_new:N \l__databar_max_neg_colors_int
+\NewDocumentCommand \DTLsetbarcolor { m m }
+{
+ \tl_set:cn { dtlbar@col\romannumeral#1 } { #2 }
+ \int_compare:nNnT { #1 } > { \l__databar_max_colors_int }
+  {
+   \int_set:Nn \l__databar_max_colors_int { #1 }
+  }
+}
+\NewDocumentCommand \DTLclearbarcolors { }
+{
+  \int_step_inline:nn { \l__databar_max_colors_int }
+   {
+     \cs_undefine:c { dtlbar@col\romannumeral##1 }
+   }
+  \int_zero:N \l__databar_max_colors_int
+}
+\NewDocumentCommand \DTLsetnegbarcolor { m m }
+{
+ \tl_set:cn { dtlbar@negcol\romannumeral#1 } { #2 }
+ \int_compare:nNnT { #1 } > { \l__databar_max_neg_colors_int }
+  {
+   \int_set:Nn \l__databar_max_neg_colors_int { #1 }
+  }
+}
+\NewDocumentCommand \DTLclearnegbarcolors { }
+{
+  \int_step_inline:nn { \l__databar_max_neg_colors_int }
+   {
+     \cs_undefine:c { dtlbar@negcol\romannumeral##1 }
+   }
+   \int_zero:N \l__databar_max_neg_colors_int
+}
+\tl_new:N \l__databar_color_max_index_tl
+\tl_set:Nn \l__databar_color_max_index_tl { \c_zero_int }
+\tl_new:N \l__databar_neg_color_max_index_tl
+\tl_set:Nn \l__databar_neg_color_max_index_tl
+  { \l__databar_color_max_index_tl }
+\cs_new:Nn \__databar_cycle_index:nn
+{
+  \int_eval:n
+   {
+     \__databar_cycle_index_adjust:on
+      {
+        \int_mod:nn { #1 } { \l__databar_color_max_index_tl }
+      }
+      {  \l__databar_color_max_index_tl }
+   }
+}
+\cs_new:Nn \__databar_cycle_index_adjust:nn
+{
+  \int_if_zero:nTF { #1 } { #2 } { #1 }
+}
+\cs_generate_variant:Nn \__databar_cycle_index_adjust:nn { on }
+\newcommand*{\DTLgetbarcolor}[1]{%
+ \int_compare:nNnTF
+   { \l__databar_color_max_index_tl } > { \c_zero_int }
+  {
+    \__databar_get_bar_col:n
+     {
+       \__databar_cycle_index:nn
+        { #1 } { \l__databar_color_max_index_tl }
+     }
+  }
+  {
+    \__databar_get_bar_col:n { #1 }
+  }
+}
+\cs_new:Nn \__databar_get_bar_col:n
+{
+  \cs_if_exist_use:cF { dtlbar@col\romannumeral#1 } { white }
+}
+\newcommand*{\DTLgetnegbarcolor}[1]{%
+ \int_compare:nNnTF
+   { \l__databar_neg_color_max_index_tl } > { \c_zero_int }
+  {
+    \__databar_get_neg_bar_col:n
+     {
+       \__databar_cycle_index:nn
+        { #1 } { \l__databar_neg_color_max_index_tl }
+     }
+  }
+  {
+    \__databar_get_neg_bar_col:n { #1 }
+  }
+}
+\cs_new:Nn \__databar_get_neg_bar_col:n
+{
+  \cs_if_exist_use:cF { dtlbar@negcol\romannumeral#1 }
+    { \__databar_get_bar_col:n { #1 } }
+}
+\NewDocumentCommand \DTLdobarcolor { o m }
+{
+  \IfValueTF { #1 }
+   {
+     \fp_compare:nNnTF { #1 } < { \c_zero_fp }
+      {
+        \__databar_do_col_or_nothing:x { \DTLgetnegbarcolor { #2 } }
+      }
+      {
+        \__databar_do_col_or_nothing:x { \DTLgetbarcolor { #2 } }
+      }
+   }
+   {
+     \__databar_do_col_or_nothing:x { \DTLgetbarcolor { #2 } }
+   }
+}
+\cs_new:Nn \__databar_do_col_or_nothing:n
+{
+  \tl_if_empty:nF { #1 } { \color { #1 } }
+}
+\cs_generate_variant:Nn \__databar_do_col_or_nothing:n { x }
+\NewDocumentCommand \DTLdocurrentbarcolor { }
+{
+ \int_compare:nNnTF
+   { \int_use:N \l__databar_index_int } > { \c_zero_int }
+  {
+    \tl_if_exist:N \DTLbarvalue
+     {
+       \exp_args:NV \tl_if_head_eq_meaning:nNTF
+         \DTLbarvalue \__datatool_datum:nnnn
+        {
+          \fp_compare:nNnTF
+             { \DTLdatumvalue \DTLbarvalue } < { \c_zero_int }
+           {
+             \__databar_do_col_or_nothing:x
+               { \DTLgetnegbarcolor { \l__databar_index_int } }
+           }
+           {
+             \__databar_do_col_or_nothing:x
+               { \DTLgetbarcolor { \l__databar_index_int } }
+           }
+        }
+        {
+          \fp_compare:nNnTF
+             { \DTLbarvalue } < { \c_zero_int }
+           {
+             \__databar_do_col_or_nothing:x
+               { \DTLgetnegbarcolor { \l__databar_index_int } }
+           }
+           {
+             \__databar_do_col_or_nothing:x
+               { \DTLgetbarcolor { \l__databar_index_int } }
+           }
+        }
+     }
+     {
+       \__databar_do_col_or_nothing:x
+        { \DTLgetbarcolor { \l__databar_index_int } }
+     }
+  }
+  {
+    \int_compare:nNnTF
+      { \l__datatool_row_idx_int } > { \c_zero_int }
+    {
+      \exp_args:NV \DTLdobarcolor \l__datatool_row_idx_int
+    }
+    {
+      \int_compare:nNnTF { \dtlforeachlevel } > { 0 }
+       {
+         \exp_args:Nv \DTLdobarcolor
+            { c@DTLrow\romannumeral\dtlforeachlevel }
+       }
+       {
+         \__databar_noop:N \DTLdocurrentbarcolor
+       }
+    }
+  }
+}
+\newcommand*{\DTLbaroutlinecolor}{black}
+\newlength\DTLbaroutlinewidth
+\DTLbaroutlinewidth=0pt
+\ifDTLcolorbarchart
+ \DTLsetbarcolor{1}{red}
+ \DTLsetbarcolor{2}{green}
+ \DTLsetbarcolor{3}{blue}
+ \DTLsetbarcolor{4}{yellow}
+ \DTLsetbarcolor{5}{magenta}
+ \DTLsetbarcolor{6}{cyan}
+ \DTLsetbarcolor{7}{orange}
+ \DTLsetbarcolor{8}{white}
+\else
+ \DTLsetbarcolor{1}{black!15}
+ \DTLsetbarcolor{2}{black!25}
+ \DTLsetbarcolor{3}{black!35}
+ \DTLsetbarcolor{4}{black!45}
+ \DTLsetbarcolor{5}{black!55}
+ \DTLsetbarcolor{6}{black!65}
+ \DTLsetbarcolor{7}{black!75}
+ \DTLsetbarcolor{8}{black!85}
+\fi
+\newcommand*{\DTLeverybarhook}{}
+\newcommand*{\DTLeveryprebarhook}{}
+\newcommand*{\DTLeverybargrouphook}{}
+\NewDocumentCommand \DTLbarsetupperlabelalign { o m }
+{
+  \IfValueT { #1 }
+   {
+     \tl_set:Nn \DTLbarXnegupperlabelalign { #1 }
+   }
+  \tl_set:Nn \DTLbarXupperlabelalign { #2 }
+}
+\cs_new:Npn \__databar_set_upper_align:w #1 \q_stop
+{
+  \tl_if_head_eq_charcode:nNTF { #1 } [
+   {
+     \__databar_set_upper_align_both:w #1 \q_stop
+   }
+   {
+     \tl_if_single:NTF { #1 }
+      {
+        \DTLbarsetupperlabelalign #1
+      }
+      {
+        \DTLbarsetupperlabelalign { #1 }
+      }
+   }
+}
+\cs_new:Npn \__databar_set_upper_align_both:w [ #1 ] #2 \q_stop
+{
+  \tl_if_single:NTF { #2 }
+   {
+     \DTLbarsetupperlabelalign [ #1 ] #2
+   }
+   {
+     \DTLbarsetupperlabelalign [ #1 ] { #2 }
+   }
+}
+\tl_new:N \l__databar_init_tl
+\tl_new:N \l__databar_pre_init_tl
+\keys_define:nn { datatool/bar }
+{
+  variable .code:n =
+   {
+     \tl_if_single:nTF { #1 }
+      {
+        \tl_set:Nn \DTLbarvariable { #1 }
+      }
+      {
+        \PackageError { databar }
+        {
+          Invalid ~ value ~ in ~ `variable = \tl_to_str:n { #1 }'
+        }
+        {
+          A ~ single ~ control ~ sequence ~ expected ~ as ~ the ~
+          value ~ for ~ the ~ `variable' ~ setting
+        }
+      }
+   } ,
+  variables .code:n =
+   {
+     \seq_set_from_clist:Nn
+       \l__databar_variables_seq { #1 }
+   },
+  round .int_set:N = \c@DTLbarroundvar ,
+  y-tick-round .code:n =
+   {
+     \tl_if_empty:nTF { #1 }
+      {
+        \tl_set:Nn \l__databar_ytic_round_tl
+         { \int_use:N \c@DTLbarroundvar }
+      }
+      {
+        \tl_set:Nn \l__databar_ytic_round_tl { #1 }
+      }
+   } ,
+  y-tick-round .default:n = { } ,
+  ytic-round .code:n =
+   {
+     \tl_if_empty:nTF { #1 }
+      {
+        \tl_set:Nn \l__databar_ytic_round_tl
+         { \int_use:N \c@DTLbarroundvar }
+      }
+      {
+        \tl_set:Nn \l__databar_ytic_round_tl { #1 }
+      }
+   } ,
+  ytic-round .default:n = { } ,
+  barwidth .dim_set:N = \DTLbarwidth,
+  bar-width .dim_set:N = \DTLbarwidth,
+  barlabel .tl_set:N = \l__databar_barlabel_tl ,
+  bar-label .tl_set:N = \l__databar_barlabel_tl ,
+  multibarlabels .code:n =
+   {
+     \seq_set_from_clist:Nn
+      \l__databar_multibarlabels_seq { #1 }
+   },
+  multi-bar-labels .code:n =
+   {
+     \seq_set_from_clist:Nn
+      \l__databar_multibarlabels_seq { #1 }
+   },
+  bargap .tl_set:N = \l__databar_bargap_tl ,
+  bar-gap .tl_set:N = \l__databar_bargap_tl ,
+  groupgap .tl_set:N = \l__databar_groupgap_tl ,
+  group-gap .tl_set:N = \l__databar_groupgap_tl ,
+  upperbarlabel .tl_set:N = \l__databar_upperbarlabel_tl ,
+  upper-bar-label .tl_set:N = \l__databar_upperbarlabel_tl ,
+  uppermultibarlabels .code:n =
+   {
+     \seq_set_from_clist:Nn
+       \l__databar_uppermultibarlabels_seq { #1 }
+   },
+  upper-multi-bar-labels .code:n =
+   {
+     \seq_set_from_clist:Nn
+       \l__databar_uppermultibarlabels_seq { #1 }
+   },
+  yticpoints .code:n =
+   {
+     \clist_set:Nn
+       \l__databar_yticpoints_clist { #1 }
+     \DTLbaryticstrue
+     \DTLbaryaxistrue
+   },
+  y-tick-points .code:n =
+   {
+     \clist_set:Nn
+       \l__databar_yticpoints_clist { #1 }
+     \DTLbaryticstrue
+     \DTLbaryaxistrue
+   },
+  yticgap .code:n =
+   {
+     \tl_set:Nn \l__databar_yticgap_tl { #1 }
+     \DTLbaryticstrue
+     \DTLbaryaxistrue
+   },
+  y-tick-gap .code:n =
+   {
+     \tl_set:Nn \l__databar_yticgap_tl { #1 }
+     \DTLbaryticstrue
+     \DTLbaryaxistrue
+   },
+  yticlabels .code:n =
+   {
+     \seq_set_from_clist:Nn
+       \l__databar_yticlabels_seq { #1 }
+     \DTLbaryticstrue
+     \DTLbaryaxistrue
+   },
+  y-tick-labels .code:n =
+   {
+     \seq_set_from_clist:Nn
+       \l__databar_yticlabels_seq { #1 }
+     \DTLbaryticstrue
+     \DTLbaryaxistrue
+   },
+  ylabel .tl_set:N = \l__databar_ylabel_tl ,
+  ylabel-position .choice: ,
+  ylabel-position / center .code:n =
+   {
+     \tl_set:Nn \l__databar_ylabel_pos_tl
+      { \c__databar_ylabel_pos_centred_tl }
+   },
+  ylabel-position / min .code:n =
+   {
+     \tl_set:Nn \l__databar_ylabel_pos_tl
+      { \c__databar_ylabel_pos_min_tl }
+   },
+  ylabel-position / max .code:n =
+   {
+     \tl_set:Nn \l__databar_ylabel_pos_tl
+      { \c__databar_ylabel_pos_max_tl }
+   },
+  ylabel-position / zero .code:n =
+   {
+     \tl_set:Nn \l__databar_ylabel_pos_tl
+      { \c__databar_ylabel_pos_zero_tl }
+   },
+  vertical .code:n =
+   {
+     \DTLverticalbarstrue
+   },
+  horizontal .code:n =
+   {
+     \DTLverticalbarsfalse
+   },
+  verticalbars .legacy_if_set:n = DTLverticalbars ,
+  upper-label-align .code:n =
+   {
+     \tl_if_empty:nTF { #1 }
+      {
+        \tl_set:Nn \DTLbarXupperlabelalign
+         {
+           \ifDTLverticalbars
+             bottom, center
+           \else
+            left
+           \fi
+         }
+        \tl_set:Nn \DTLbarXnegupperlabelalign
+         {
+           \ifDTLverticalbars
+            top, center
+           \else
+            right
+           \fi
+         }
+      }
+      {
+       \__databar_set_upper_align:w #1 \q_stop
+      }
+   },
+  upper-label-align .default:n = { } ,
+  lower-label-style .choice: ,
+  lower-label-style / below .code:n =
+   {
+     \tl_set:Nn \DTLbarXlabelalign
+      {
+        \ifDTLverticalbars
+         left, rotate=-90
+        \else
+         right
+        \fi
+      }
+     \tl_set:Nn \DTLbarXneglabelalign
+      {
+        \ifDTLverticalbars
+         left, rotate=-90
+        \else
+         right
+        \fi
+      }
+     \tl_set:Nn \l__databar_label_pos_offset_tl
+       { \dim_to_decimal:n { -\DTLbarlabeloffset } pt }
+     \tl_set:Nn \l__databar_label_neg_offset_tl
+       { \dim_to_decimal:n { -\DTLbarlabeloffset } pt }
+   } ,
+  lower-label-style / above .code:n =
+   {
+     \tl_set:Nn \DTLbarXlabelalign
+      {
+        \ifDTLverticalbars
+          right, rotate=-90
+        \else
+          left
+        \fi
+      }
+    \tl_set:Nn \DTLbarXneglabelalign
+      {
+        \ifDTLverticalbars
+          right, rotate=-90
+        \else
+          left
+        \fi
+      }
+     \tl_set:Nn \l__databar_label_pos_offset_tl
+       { \dim_to_decimal:n { \DTLbarlabeloffset } pt }
+     \tl_set:Nn \l__databar_label_neg_offset_tl
+       { \dim_to_decimal:n { \DTLbarlabeloffset } pt }
+   } ,
+  lower-label-style / same .code:n =
+   {
+    \tl_set:Nn \DTLbarXlabelalign
+     {
+       \ifDTLverticalbars
+         right, rotate=-90
+       \else
+         left
+       \fi
+     }
+    \tl_set:Nn \DTLbarXneglabelalign
+     {
+       \ifDTLverticalbars
+         left, rotate=-90
+       \else
+         right
+       \fi
+     }
+    \tl_set:Nn \l__databar_label_pos_offset_tl
+      { \dim_to_decimal:n { \DTLbarlabeloffset } pt }
+    \tl_set:Nn \l__databar_label_neg_offset_tl
+      { \dim_to_decimal:n { -\DTLbarlabeloffset } pt }
+   } ,
+  lower-label-style / opposite .code:n =
+   {
+    \tl_set:Nn \DTLbarXneglabelalign
+     {
+       \ifDTLverticalbars
+         right, rotate=-90
+       \else
+         left
+       \fi
+     }
+    \tl_set:Nn \DTLbarXlabelalign
+     {
+       \ifDTLverticalbars
+         left, rotate=-90
+       \else
+         right
+       \fi
+     }
+    \tl_set:Nn \l__databar_label_pos_offset_tl
+      { \dim_to_decimal:n { -\DTLbarlabeloffset } pt }
+    \tl_set:Nn \l__databar_label_neg_offset_tl
+      { \dim_to_decimal:n { \DTLbarlabeloffset } pt }
+   } ,
+  max .code:n =
+   {
+     \__databar_set_max:n { #1 }
+   } ,
+  max .default:n = { } ,
+  length .dim_set:N = \DTLbarchartlength,
+  maxdepth .code:n =
+   {
+     \__databar_set_max_depth:n { #1 }
+   },
+  maxdepth .default:n = { } ,
+  max-depth .code:n =
+   {
+     \__databar_set_max_depth:n { #1 }
+   },
+  max-depth .default:n = { } ,
+  axes .choice: ,
+  axes .default:n = { both } ,
+  axes / both .code:n =
+   {
+     \DTLbarxaxistrue
+     \DTLbaryaxistrue
+     \DTLbaryticstrue
+   },
+  axes / x .code:n =
+   {
+     \DTLbarxaxistrue
+     \DTLbaryaxisfalse
+     \DTLbaryticsfalse
+   },
+  axes / y .code:n =
+   {
+     \DTLbarxaxisfalse
+     \DTLbaryaxistrue
+     \DTLbaryticstrue
+   },
+  axes / none .code:n =
+   {
+     \DTLbarxaxisfalse
+     \DTLbaryaxisfalse
+     \DTLbaryticsfalse
+   },
+  yaxis .legacy_if_set:n = DTLbaryaxis,
+  y-axis .legacy_if_set:n = DTLbaryaxis,
+  y-ticks .choice:   ,
+  y-ticks / true .code:n =
+   {
+     \DTLbaryaxistrue
+     \DTLbaryticstrue
+   },
+  y-ticks / false .code:n =
+   {
+     \DTLbaryticsfalse
+   },
+  y-ticks .default:n = true,
+  ytics .choice:   ,
+  ytics / true .code:n =
+   {
+     \DTLbaryaxistrue
+     \DTLbaryticstrue
+   },
+  ytics / false .code:n =
+   {
+     \DTLbaryticsfalse
+   },
+  ytics .default:n = true,
+  x-axis-style .tl_set:N = \DTLBarXAxisStyle ,
+  y-axis-style .tl_set:N = \DTLBarYAxisStyle ,
+  color-style .choice: ,
+  color-style / cycle .code:n =
+   {
+     \tl_set:Nn \l__databar_color_max_index_tl
+      { \l__databar_max_colors_int }
+   },
+  color-style / single .code:n =
+   {
+     \tl_set:Nn \l__databar_color_max_index_tl
+      { \c_one_int }
+   },
+  color-style / default .code:n =
+   {
+     \tl_set:Nn \l__databar_color_max_index_tl
+      { \c_zero_int }
+   },
+  bar-colors .code:n =
+   {
+     \seq_set_from_clist:Nn \l__datatool_tmp_seq { #1 }
+     \seq_map_indexed_function:NN
+       \l__datatool_tmp_seq
+       \DTLsetbarcolor
+   },
+  bar-default-colors .code:n =
+   {
+     \DTLcolorbarcharttrue
+     \DTLsetbarcolor{1}{red}
+     \DTLsetbarcolor{2}{green}
+     \DTLsetbarcolor{3}{blue}
+     \DTLsetbarcolor{4}{yellow}
+     \DTLsetbarcolor{5}{magenta}
+     \DTLsetbarcolor{6}{cyan}
+     \DTLsetbarcolor{7}{orange}
+     \DTLsetbarcolor{8}{white}
+   },
+  bar-default-colors .value_forbidden:n = true,
+  bar-default-gray .code:n =
+   {
+     \DTLcolorbarchartfalse
+     \DTLsetbarcolor{1}{black!15}
+     \DTLsetbarcolor{2}{black!25}
+     \DTLsetbarcolor{3}{black!35}
+     \DTLsetbarcolor{4}{black!45}
+     \DTLsetbarcolor{5}{black!55}
+     \DTLsetbarcolor{6}{black!65}
+     \DTLsetbarcolor{7}{black!75}
+     \DTLsetbarcolor{8}{black!85}
+   },
+  bar-default-gray .value_forbidden:n = true,
+  negative-bar-colors .code:n =
+   {
+     \seq_set_from_clist:Nn \l__datatool_tmp_seq { #1 }
+     \seq_map_indexed_function:NN
+       \l__datatool_tmp_seq
+       \DTLsetnegbarcolor
+   },
+  negative-color-style .choice: ,
+  negative-color-style / cycle .code:n =
+   {
+     \tl_set:Nn \l__databar_neg_color_max_index_tl
+      { \l__databar_max_neg_colors_int }
+   },
+  negative-color-style / single .code:n =
+   {
+     \tl_set:Nn \l__databar_neg_color_max_index_tl
+      { \c_one_int }
+   },
+  negative-color-style / default .code:n =
+   {
+     \tl_set:Nn \l__databar_neg_color_max_index_tl
+      { \l__databar_color_max_index_tl }
+   },
+  outline-color .tl_set:N = \DTLbaroutlinecolor,
+  outline-width .dim_set:N = \DTLbaroutlinewidth,
+  label-offset .dim_set:N = \DTLbarlabeloffset ,
+  upper-label-offset .tl_set:N = \l__databar_upper_label_offset_tl ,
+  group-label-align .tl_set:N = \DTLbargrouplabelalign ,
+  y-tick-label-align .tl_set:N = \DTLbarYticklabelalign ,
+  y-tic-label-align .tl_set:N = \DTLbarYticklabelalign ,
+  ytic-label-align .tl_set:N = \DTLbarYticklabelalign ,
+  init .tl_set:N = \l__databar_init_tl ,
+  pre-init .tl_set:N = \l__databar_pre_init_tl ,
+  pre-init .groups:n = { pre-parse },
+  include-if .cs_set:Np = \__databar_filter:T #1,
+  include-if-fn .code:n =
+   {
+     \cs_set_eq:NN \__databar_filter:T #1
+   },
+  condition .code:n =
+   {
+     \PackageWarning{databar}{Deprecated ~ option ~ `condition'. ~
+      Use ~ `include-if' ~ instead}
+     \cs_set:Npn = \__databar_filter:T ##1 { #1 }
+   }
+}
+\keys_define:nn { datatool }
+{
+  bar .code:n = { \keys_set:nn { datatool/bar } { #1 } }
+}
+\cs_new:Npn \__databar_filter:T #1 { #1 }
+\int_new:N \l__databar_index_int
+\cs_new:Npn \__databar_filtered_map:nn #1 #2
+{
+  \int_zero:N \l__databar_index_int
+  \DTLmapdata
+  {
+    \DTLmapgetvalues { #1 }
+    \__databar_filter:T
+     {
+       \int_incr:N \l__databar_index_int
+       #2
+     }
+  }
+}
+\bool_new:N \l_databar_multi_bars_bool
+\bool_set_false:N \l_databar_multi_bars_bool
+\NewDocumentCommand \DTLbarchart { o m m m }
+{
+  \group_begin:
+   \bool_set_false:N \l_databar_multi_bars_bool
+   \tl_set:Nn \DTLbargroupindex { 0 }
+   \IfValueT { #1 }
+   {
+     \cs_set:Npn \__databar_filter:T ##1
+     {
+       \ifthenelse { #1 } { ##1 } { }
+     }
+   }
+   \tl_if_blank:nF { #3 }
+    {
+      \DTLsetup { default-name = { #3 } }
+    }
+   \keys_set_groups:nnn { datatool/bar } { pre-parse } { #2 }
+   \l__databar_pre_init_tl
+   \keys_set:nn { datatool/bar } { #2 }
+   \l__databar_init_tl
+   \cs_set_eq:NN \__databar_do:n \use:n
+   \tl_if_empty:NT \DTLbarvariable
+   {
+     \cs_set_eq:NN \__databar_do:n \use_none:n
+     \seq_if_empty:NTF \l__databar_variables_seq
+     {
+       \PackageError { databar }
+       {
+         \token_to_str:N \DTLbarchart \c_space_tl ~ missing ~ variable
+       }
+       {
+         You ~ need ~ to ~ set ~ the ~ `variable' ~
+         key ~ to ~ the ~ placeholder ~ command
+       }
+     }
+     {
+       \PackageError { databar }
+       {
+         \token_to_str:N \DTLbarchart \c_space_tl ~ missing ~ variable
+       }
+       {
+         Remember ~ that ~ you ~ need ~ to ~ use ~ `variable' ~
+         not ~ `variables' ~ with ~ \token_to_str:N \DTLbarchart
+       }
+     }
+   }
+   \tl_if_empty:NF \l__databar_yticgap_tl
+    {
+      \fp_set:Nn \l__databar_yticgap_fp
+        { \l__databar_yticgap_tl }
+      \fp_compare:nNnT { \l__databar_yticgap_fp } < { \c_zero_fp }
+        {
+          \PackageError { databar }
+          {
+            y-tick ~ gap ~ `\tl_to_str:o { \l__databar_yticgap_tl } ' ~
+            is ~ negative
+          }
+          {
+            The ~ y ~ tick ~ gap ~ specification ~ evaluates ~ to ~
+            a ~ negative ~ number ~ ( \fp_to_decimal:N \l__databar_yticgap_fp) ~
+            so ~ the ~ yticgap ~ setting ~ will ~ be ~ ignored
+          }
+          \tl_clear:N \l__databar_yticgap_tl
+          \fp_zero:N \l__databar_yticgap_fp
+        }
+    }
+   \__databar_do:n
+   {
+     \__databar_do_chart:n { #4 }
+   }
+  \group_end:
+}
+\cs_new:Nn \__databar_do_chart:n
+{
+ \exp_args:NV \tl_clear:N \DTLbarvariable
+ \tl_clear:N \DTLtotalbars
+ \__datatool_calc_bar_lengths:n { #1 }
+ \tl_if_empty:NT \DTLtotalbars
+  {
+    \__databar_filtered_map:nn { #1 } { }
+    \tl_set:NV \DTLtotalbars \l__databar_index_int
+  }
+ \tl_set_eq:NN \DTLbarchartwidth \DTLtotalbars
+ \tl_if_eq:NnF \l__databar_bargap_tl { 0 }
+  {
+    \tl_set:Nx \DTLbarchartwidth
+     {
+       \fp_eval:n
+       {
+         \DTLbarchartwidth
+           + \l__databar_bargap_tl
+            * (\DTLtotalbars - \c_one_fp )
+       }
+     }
+  }
+ \__databar_calc_scale:
+ \__databar_construct_ytics:
+ \__databar_chart:n { #1 }
+}
+\cs_new:cn { __datatool_action_ bar ~ chart : }
+{
+ \group_begin:
+   \tl_if_empty:NF \l__datatool_action_name_tl
+    {
+      \tl_set_eq:NN
+        \l__datatool_default_dbname_tl
+        \l__datatool_action_name_tl
+    }
+   \bool_set_false:N \l_databar_multi_bars_bool
+   \cs_set_eq:NN \__databar_do:n \use:n
+   \tl_set:Nn \DTLbargroupindex { 0 }
+   \__datatool_optional_key_xor_column_get_key:nTF
+    {
+    }
+    {
+      \tl_set:Nn \DTLbarvariable
+        { \l__databar_action_variable_tl }
+      \clist_put_right:Nx \l__datatool_action_assign_clist
+       {
+         \exp_not:N \l__databar_action_variable_tl =
+          \l__datatool_action_key_tl
+       }
+    }
+    {
+      \cs_set_eq:NN \__databar_do:n \cs_none:n
+    }
+  \__databar_do:n
+   {
+     \clist_if_empty:NTF \l__datatool_action_options_clist
+      {
+        \l__databar_pre_init_tl
+      }
+      {
+        \keys_set_groups:nnV { datatool/bar } { pre-parse }
+          \l__datatool_action_options_clist
+        \l__databar_pre_init_tl
+        \keys_set:nV { datatool/bar }
+          \l__datatool_action_options_clist
+      }
+     \l__databar_init_tl
+     \tl_if_empty:NT \DTLbarvariable
+     {
+       \cs_set_eq:NN \__databar_do:n \use_none:n
+       \seq_if_empty:NTF \l__databar_variables_seq
+       {
+        \__datatool_action_error:nnn { databar }
+         {
+           \token_to_str:N \DTLbarchart \c_space_tl ~ missing ~ variable
+         }
+         {
+           You ~ need ~ to ~ either ~ use ~ `key' ~ or ~ `column' ~
+           to ~ identify ~ the ~ variable ~ column ~ or ~ set ~
+           the ~ `variable' ~ key ~ to ~ the ~ placeholder ~
+           command ~ within ~ `options'
+         }
+       }
+       {
+        \__datatool_action_error:nnn { databar }
+         {
+           missing ~ variable ~ (either ~ use ~ `key' ~ or ~ `column' ~
+           to ~ identify ~ the ~ variable ~ column ~ or ~ set ~
+           the ~ `variable' ~ key ~ to ~ the ~ placeholder ~
+           command ~ within ~ `options')
+         }
+         {
+           Remember ~ that ~ you ~ need ~ to ~ use ~ `variable' ~
+           not ~ `variables' ~ for ~ a ~ single ~ variable ~ bar ~ chart
+         }
+       }
+     }
+    \tl_if_empty:NF \l__databar_yticgap_tl
+     {
+       \fp_set:Nn \l__databar_yticgap_fp
+        { \l__databar_yticgap_tl }
+       \fp_compare:nNnT { \l__databar_yticgap_fp } < { \c_zero_fp }
+        {
+         \__datatool_action_error:nnn { databar }
+          {
+            y-tick ~ gap ~ `\tl_to_str:o { \l__databar_yticgap_tl } ' ~
+            is ~ negative
+          }
+          {
+            The ~ y ~ tick ~ gap ~ specification ~ evaluates ~ to ~
+            a ~ negative ~ number ~ ( \fp_to_decimal:N \l__databar_yticgap_fp) ~
+            so ~ the ~ yticgap ~ setting ~ will ~ be ~ ignored
+          }
+          \tl_clear:N \l__databar_yticgap_tl
+          \fp_zero:N \l__databar_yticgap_fp
+        }
+     }
+    \__databar_do:n
+     {
+       \exp_args:NV \__databar_do_chart:n
+        \l__datatool_action_assign_clist
+     }
+   }
+ \group_end:
+}
+\tl_new:N \l__databar_action_variable_tl
+\cs_new:Nn \__databar_single_update:
+{
+  \exp_args:NNV \tl_set_eq:NN
+   \l__dataplot_y_tl \DTLbarvariable
+  \__databar_update_bounds:
+}
+\cs_new:Nn \__databar_do_update:
+{
+  \__databar_single_update:
+}
+\cs_new:Nn \__databar_multi_variables_update:
+{
+  \seq_map_inline:Nn \l__databar_variables_seq
+   {
+     \tl_set_eq:NN \l__dataplot_y_tl ##1
+      \__databar_update_bounds:
+   }
+}
+\cs_new:Nn \__databar_multi_columns_update:
+{
+  \seq_map_inline:Nn \l__datatool_action_columns_seq
+   {
+     \exp_args:NNno
+       \dtl@getentryfromrow
+       \l__dataplot_y_tl
+       { ##1 }
+       \l__datatool_map_data_row_tl
+     \__databar_update_bounds:
+   }
+}
+\cs_new:Nn \__datatool_calc_bar_lengths:n
+{
+  \bool_lazy_or:nnTF
+     { \tl_if_empty_p:N \DTLbarmax }
+     { \tl_if_empty_p:N \DTLnegextent }
+   {
+     \fp_set_eq:NN \l__dataplot_max_y_fp \c_minus_inf_fp
+     \fp_zero:N \l__dataplot_min_y_fp
+     \__databar_filtered_map:nn { #1 }
+      {
+        \__databar_do_update:
+      }
+     \tl_set:NV \DTLtotalbars \l__databar_index_int
+     \tl_if_empty:NTF \DTLbarmax
+      {
+        \fp_compare:nNnTF
+           { \l__dataplot_max_y_fp } > { \c_minus_inf_fp }
+         {
+           \tl_set:Nx \DTLbarmax
+             { \fp_to_decimal:N \l__dataplot_max_y_fp }
+         }
+         {
+           \PackageError { databar }
+            {
+               Can't ~ determine ~ maximum ~ extent. ~
+               Check ~ data ~ and ~ filtering
+            }
+            {
+              Either ~ there's ~ no ~ numeric ~ data ~ provided ~ in ~
+              the ~ column ~ referenced ~ by ~ \tl_to_str:V \DTLbarvariable
+              \c_space_tl ~ or ~ all ~ rows ~ have ~ been ~ filtered
+            }
+           \tl_set:Nn \DTLbarmax { 1 }
+         }
+        \tl_if_empty:NF \l__databar_yticgap_tl
+         {
+           \fp_set_eq:NN \l__dataplot_y_fp \l__databar_yticgap_fp
+           \fp_while_do:nNnn { \l__dataplot_y_fp } < { \l__dataplot_max_y_fp }
+            {
+              \fp_add:Nn \l__dataplot_y_fp { \l__databar_yticgap_fp }
+            }
+           \tl_set:Nx \DTLbarmax { \fp_to_decimal:N \l__dataplot_y_fp }
+         }
+      }
+      {
+        \fp_set:Nn \l__dataplot_max_y_fp { \DTLbarmax }
+      }
+     \tl_if_empty:NTF \DTLnegextent
+      {
+        \fp_compare:nNnTF
+           { \l__dataplot_min_y_fp } < { \c_zero_fp }
+         {
+           \tl_set:Nx \DTLnegextent
+             { \fp_to_decimal:N \l__dataplot_min_y_fp }
+           \tl_if_empty:NF \l__databar_yticgap_tl
+            {
+              \fp_set:Nn \l__dataplot_y_fp { - \l__databar_yticgap_fp }
+              \fp_while_do:nNnn { \l__dataplot_y_fp } > { \l__dataplot_min_y_fp }
+               {
+                 \fp_sub:Nn \l__dataplot_y_fp { \l__databar_yticgap_fp }
+               }
+              \tl_set:Nx \DTLnegextent { \fp_to_decimal:N \l__dataplot_y_fp }
+            }
+         }
+         {
+           \tl_set:Nn \DTLnegextent { 0 }
+         }
+      }
+      {
+        \fp_set:Nn \l__dataplot_min_y_fp { \DTLnegextent }
+      }
+   }
+   {
+     \tl_if_empty:NF \DTLbarmax
+      {
+        \fp_set:Nn \l__dataplot_max_y_fp { \DTLbarmax }
+      }
+     \tl_if_empty:NF \DTLnegextent
+      {
+        \fp_set:Nn \l__dataplot_min_y_fp { \DTLnegextent }
+      }
+   }
+}
+\cs_new:Nn \__databar_update_bounds:
+{
+  \tl_if_empty:NF \l__dataplot_y_tl
+   {
+     \datatool_set_fp:Nn \l__dataplot_y_fp
+       { \l__dataplot_y_tl }
+     \tl_if_empty:NT \DTLbarmax
+      {
+       \fp_compare:nNnT
+         { \l__dataplot_y_fp }
+           >
+         { \l__dataplot_max_y_fp }
+        {
+         \fp_set_eq:NN
+            \l__dataplot_max_y_fp
+            \l__dataplot_y_fp
+        }
+      }
+     \tl_if_empty:NT \DTLnegextent
+      {
+       \fp_compare:nNnT
+         { \l__dataplot_y_fp }
+          <
+         { \l__dataplot_min_y_fp }
+        {
+         \fp_set_eq:NN
+            \l__dataplot_min_y_fp
+            \l__dataplot_y_fp
+        }
+      }
+   }
+}
+\cs_new:Nn \__databar_calc_scale:
+{
+  \fp_set:Nn \l__databar_extent_fp
+   { \DTLbarmax - \DTLnegextent }
+  \fp_set:Nn \l__databar_unit_fp
+   {
+     \dim_to_decimal_in_sp:n { \DTLbarchartlength }
+       / \l__databar_extent_fp
+   }
+  \dim_set:Nn \l__databar_miny_dim
+   {
+     \fp_eval:n
+      {
+        \DTLnegextent * \l__databar_unit_fp
+      }
+      sp
+   }
+  \dim_set:Nn \l__databar_maxy_dim
+   {
+     \fp_eval:n
+      {
+        \DTLbarmax * \l__databar_unit_fp
+      }
+      sp
+   }
+}
+\cs_new:Nn \__databar_construct_ytics:
+{
+  \dim_zero:N \l__dataplot_y_tic_label_width_dim
+  \ifDTLbarytics
+    \clist_if_empty:NTF \l__databar_yticpoints_clist
+     {
+       \tl_if_empty:NTF \l__databar_yticgap_tl
+        {
+          \fp_set:Nn \l__databar_min_gap_fp
+           {
+             \dim_to_decimal_in_sp:n { \DTLmintickgap }
+              / \l__databar_unit_fp
+           }
+          \__dataplot_construct_tick_list:NNNN
+           \l__dataplot_min_y_fp
+           \l__dataplot_max_y_fp
+           \l__databar_min_gap_fp
+           \l__databar_yticpoints_seq
+        }
+        {
+          \__dataplot_construct_tick_list_with_gap_excl:NNNN
+           \l__dataplot_min_y_fp
+           \l__dataplot_max_y_fp
+           \l__databar_yticpoints_seq
+           \l__databar_yticgap_fp
+        }
+     }
+     {
+       \__dataplot_to_fp_seq:NNnn
+        \l__databar_yticpoints_seq
+        \l__databar_y_tic_clist
+        \l__dataplot_min_y_fp
+        \l__dataplot_max_y_fp
+     }
+    \seq_if_empty:NT \l__databar_yticlabels_seq
+      {
+        \seq_map_inline:Nn \l__databar_yticpoints_seq
+         {
+           \tl_set:Nn \l__dataplot_y_fp { ##1 }
+           \__dataplot_get_default_tic_label:Nx
+             \l__dataplot_y_fp { \l__databar_ytic_round_tl }
+           \seq_put_right:Nx \l__databar_yticlabels_seq
+             {
+               \exp_not:V \l__dataplot_tic_label_tl
+             }
+         }
+      }
+  \fi
+}
+\cs_new:Nn \__databar_chart:n
+{
+  \begin{tikzpicture}
+  \ifDTLverticalbars
+    \pgfsetyvec
+     {
+       \pgfpoint
+        { 0pt } { \fp_to_int:N \l__databar_unit_fp ~ sp }
+     }
+    \pgfsetxvec
+     {
+       \pgfpoint { \DTLbarwidth } { 0pt }
+     }
+  \else
+    \pgfsetxvec
+     {
+       \pgfpoint
+        { \fp_to_int:N \l__databar_unit_fp ~ sp } { 0pt }
+     }
+    \pgfsetyvec
+     {
+       \pgfpoint { 0pt } { \DTLbarwidth }
+     }
+  \fi
+  \DTLbaratbegintikz
+  \fp_zero:N \l__databar_start_fp
+  \__databar_filtered_map:nn { #1 }
+   {
+     \tl_set:Nx \DTLbarindex { \int_use:N \l__databar_index_int }
+     \__databar_draw_bar:
+   }
+  \tl_clear:N \l__dataplot_content_tl
+  \__databar_draw_axes:
+  \seq_map_indexed_function:NN
+    \l__databar_yticpoints_seq
+    \__databar_draw_y_tics_fn:nn
+  \l__dataplot_content_tl
+  \tl_clear:N \l__dataplot_content_tl
+  \__databar_plot_ylabel:
+  \l__dataplot_content_tl
+  \tl_clear:N \l__dataplot_content_tl
+  \DTLbaratendtikz
+  \end{tikzpicture}
+}
+\cs_new:Nn \__databar_draw_bar:
+{
+  \__databar_draw_bar:NVxx \DTLbarvariable
+    \l__databar_index_int
+    {
+      \tl_if_empty:NF \l__databar_barlabel_tl
+       {
+         \exp_not:N \DTLdisplaylowerbarlabel
+          { \exp_not:V \l__databar_barlabel_tl }
+       }
+    }
+    {
+      \tl_if_empty:NF \l__databar_upperbarlabel_tl
+       {
+         \exp_not:N \DTLdisplayupperbarlabel
+          { \exp_not:V \l__databar_upperbarlabel_tl }
+       }
+    }
+  \fp_add:Nn \l__databar_start_fp { \c_one_fp }
+}
+\cs_new:Nn \__databar_draw_bar:Nnnn
+{
+  \tl_if_eq:NnF \l__databar_bargap_tl { 0 }
+   {
+     \int_compare:nNnT
+       { #2 } > { \c_one_int }
+      {
+        \fp_add:Nn \l__databar_start_fp
+         { \l__databar_bargap_tl }
+      }
+   }
+  \tl_set:Nx \l__databar_start_tl
+    { \fp_to_decimal:N \l__databar_start_fp }
+  \tl_clear:N \l__dataplot_content_tl
+  \tl_set_eq:NN \l__dataplot_y_tl #1
+  \tl_if_empty:NTF \l__dataplot_y_tl
+   {
+     \fp_zero:N \l__dataplot_y_fp
+     \tl_set:Nn \l__dataplot_decimal_y_tl { 0 }
+     \tl_set:Nn \DTLbarvalue
+       { \__datatool_datum:nnnn { 0 } { 0 } { } { \c_datatool_decimal_int } }
+   }
+   {
+     \datatool_set_fp:NV \l__dataplot_y_fp
+        \l__dataplot_y_tl
+     \tl_set:Nx \l__dataplot_decimal_y_tl
+       { \fp_to_tl:N \l__dataplot_y_fp }
+     \tl_set:Nx \l__datatool_result_tl
+      {
+        \fp_to_decimal:n
+         { round ( \l__dataplot_y_fp, \c@DTLbarroundvar) }
+      }
+     \datatool_pad_trailing_zeros:Nn
+      \l__datatool_result_tl \c@DTLbarroundvar
+     \exp_args:NV \DTLdecimaltolocale
+       \l__datatool_result_tl \l__datatool_tmpa_tl
+     \tl_set:Nx \DTLbarvalue
+       {
+         \exp_not:N \__datatool_datum:nnnn
+         { \exp_not:V \l__datatool_tmpa_tl }
+         { \exp_not:V \l__datatool_result_tl }
+         { }
+         { \exp_not:N \c_datatool_decimal_int }
+       }
+   }
+  \tl_set:Nx \l__databar_mid_tl
+    { \fp_eval:n { \l__databar_start_fp + 0.5 } }
+  \dim_set_eq:NN \l__databar_mid_dim \DTLbarwidth
+  \dim_set:Nn \l__databar_mid_dim
+    {
+      \l__databar_mid_tl \DTLbarwidth
+    }
+  \dim_set:Nn \l__databar_extent_dim
+    {
+      \fp_eval:n
+      {
+        \l__dataplot_y_fp * \l__databar_unit_fp
+      }
+      sp
+    }
+  \tl_set:Nx \l__databar_end_tl
+    { \fp_eval:n { \l__databar_start_fp + \c_one_fp } }
+  \ifDTLverticalbars
+   \tl_set:Nx \DTLstartpt
+     {
+       \exp_not:N \pgfpointxy
+         { \l__databar_mid_tl } { 0 }
+     }
+    \tl_set:Nx \DTLmidpt
+     {
+       \exp_not:N \pgfpointxy
+         { \l__databar_mid_tl }
+         { \fp_to_decimal:n { 0.5 \l__dataplot_y_fp } }
+     }
+    \tl_set:Nx \DTLendpt
+     {
+       \exp_not:N \pgfpointxy
+         { \l__databar_mid_tl }
+         { \l__dataplot_decimal_y_tl }
+     }
+  \else
+     \tl_set:Nx \DTLstartpt
+       {
+         \exp_not:N \pgfpointxy
+         { 0 } { \l__databar_mid_tl }
+       }
+    \tl_set:Nx \DTLmidpt
+     {
+       \exp_not:N \pgfpointxy
+         { \fp_to_decimal:n { 0.5 \l__dataplot_y_fp } }
+         { \l__databar_mid_tl }
+     }
+    \tl_set:Nx \DTLendpt
+     {
+       \exp_not:N \pgfpointxy
+         { \l__dataplot_decimal_y_tl }
+         { \l__databar_mid_tl }
+     }
+  \fi
+  \tl_put_right:Nn \l__dataplot_content_tl
+     {
+       \begin{scope}
+     }
+  \tl_put_right:Nn \l__dataplot_content_tl
+    { \DTLeveryprebarhook }
+  \fp_compare:nNnTF { \l__dataplot_y_fp } < { \c_zero_fp }
+    {
+      \tl_set:Nx \l__datatool_tmpa_tl
+       {
+         \DTLgetnegbarcolor { #2 }
+       }
+    }
+    {
+      \tl_set:Nx \l__datatool_tmpa_tl
+       {
+         \DTLgetbarcolor { #2 }
+       }
+    }
+  \tl_put_right:Nn \l__dataplot_content_tl
+   {
+     \path ~ [
+   }
+  \tl_if_empty:NF \l__datatool_tmpa_tl
+    {
+      \tl_put_right:Nx \l__dataplot_content_tl
+      {
+         fill = \l__datatool_tmpa_tl ,
+      }
+    }
+  \bool_lazy_and:nnT
+   {
+     \tl_if_empty_p:N \DTLbaroutlinecolor
+   }
+   {
+     \dim_compare_p:nNn
+       { \DTLbaroutlinewidth } > { \c_zero_dim }
+   }
+   {
+     \tl_put_right:Nx \l__dataplot_content_tl
+     {
+        draw = \DTLbaroutlinecolor ,
+        line ~ width = \exp_not:N \DTLbaroutlinewidth ,
+     }
+   }
+  \tl_put_right:Nx \l__dataplot_content_tl
+   {
+     \DTLBarStyle ]
+   }
+  \ifDTLverticalbars
+    \tl_put_right:Nx \l__dataplot_content_tl
+     {
+       ( \l__databar_start_tl , ~ 0) ~
+        -- ~
+       (
+         \l__databar_start_tl , ~
+         \l__dataplot_decimal_y_tl
+       ) ~
+        -- ~
+       (
+         \l__databar_end_tl, ~
+         \l__dataplot_decimal_y_tl
+       ) ~
+       -- ~
+       ( \l__databar_end_tl , ~ 0)
+     }
+  \else
+    \tl_put_right:Nx
+      \l__dataplot_content_tl
+      {
+        ( 0 , ~ \l__databar_start_tl ) ~
+         -- ~
+        (
+          \l__dataplot_decimal_y_tl , ~
+          \l__databar_start_tl
+        ) ~
+         -- ~
+        (
+          \l__dataplot_decimal_y_tl , ~
+          \l__databar_end_tl
+        ) ~
+        -- ~
+        ( 0 , ~ \l__databar_end_tl )
+      }
+  \fi
+  \tl_put_right:Nn \l__dataplot_content_tl
+   {
+     -- ~ cycle; ~
+     \end{scope}
+   }
+   \fp_compare:nNnTF { \l__dataplot_y_fp } < { \c_zero_fp }
+    {
+      \tl_set_eq:NN \l__databar_label_current_offset_tl
+        \l__databar_label_neg_offset_tl
+      \tl_set:Nx \l__databar_label_current_align_tl
+        { \DTLbarXneglabelalign }
+    }
+    {
+      \tl_set_eq:NN \l__databar_label_current_offset_tl
+        \l__databar_label_pos_offset_tl
+      \tl_set:Nx \l__databar_label_current_align_tl
+        { \DTLbarXlabelalign }
+    }
+    \tl_if_empty:nF { #3 }
+    {
+     \tl_put_right:Nn \l__dataplot_content_tl
+      {
+        \pgftext [ at =
+      }
+     \ifDTLverticalbars
+      \tl_put_right:Nx \l__dataplot_content_tl
+       {
+         {
+            \exp_not:N \pgfpoint
+              { \l__databar_mid_dim }
+              { \l__databar_label_current_offset_tl }
+         }
+       }
+     \else
+      \tl_put_right:Nx \l__dataplot_content_tl
+       {
+         {
+            \exp_not:N \pgfpoint
+              { \l__databar_label_current_offset_tl }
+              { \l__databar_mid_dim }
+         }
+       }
+     \fi
+     \tl_put_right:Nx \l__dataplot_content_tl
+      {
+         , \exp_not:V \l__databar_label_current_align_tl
+        ]
+      }
+     \tl_put_right:Nn \l__dataplot_content_tl
+      {
+        { #3 }
+      }
+     \bool_lazy_and:nnT
+       { \bool_if_p:N \l_databar_multi_bars_bool }
+       { ! \tl_if_empty_p:N \l__databar_barlabel_tl }
+      {
+        \tl_put_right:Nn \l__dataplot_content_tl
+         { \__databar_update_group_offset: }
+      }
+    }
+   \tl_if_empty:nF { #4 }
+    {
+     \tl_put_right:Nn \l__dataplot_content_tl
+      {
+        \pgftext [ at =
+      }
+     \ifDTLverticalbars
+       \fp_compare:nNnTF
+          { \l__dataplot_y_fp } < { \c_zero_fp }
+        {
+          \tl_put_right:Nx \l__dataplot_content_tl
+           {
+             {
+                \exp_not:N \pgfpoint
+                 { \l__databar_mid_dim }
+                 {
+                   \dim_eval:n
+                    {
+                      \l__databar_extent_dim
+                      + \l__databar_upper_label_neg_offset_tl
+                    }
+                 }
+             }
+             , ~ \DTLbarXnegupperlabelalign
+           }
+        }
+        {
+          \tl_put_right:Nx \l__dataplot_content_tl
+           {
+             {
+                \exp_not:N \pgfpoint
+                 { \l__databar_mid_dim }
+                 {
+                   \dim_eval:n
+                    {
+                      \l__databar_extent_dim
+                      + \l__databar_upper_label_pos_offset_tl
+                    }
+                 }
+             }
+             , ~ \DTLbarXupperlabelalign
+           }
+        }
+     \else
+       \fp_compare:nNnTF
+          { \l__dataplot_y_fp } < { \c_zero_fp }
+        {
+          \tl_put_right:Nx \l__dataplot_content_tl
+           {
+             {
+                \exp_not:N \pgfpoint
+                 {
+                   \dim_eval:n
+                    {
+                      \l__databar_extent_dim
+                      + \l__databar_upper_label_neg_offset_tl
+                    }
+                 }
+                 { \l__databar_mid_dim }
+             }
+             , ~ \DTLbarXnegupperlabelalign
+           }
+        }
+        {
+          \tl_put_right:Nx \l__dataplot_content_tl
+           {
+             {
+                \exp_not:N \pgfpoint
+                 {
+                   \dim_eval:n
+                    {
+                      \l__databar_extent_dim
+                      + \l__databar_upper_label_pos_offset_tl
+                    }
+                 }
+                 { \l__databar_mid_dim }
+             }
+             , ~ \DTLbarXupperlabelalign
+           }
+        }
+     \fi
+     \tl_put_right:Nn \l__dataplot_content_tl
+      {
+        ]
+        { #4 }
+      }
+    }
+  \tl_put_right:Nn \l__dataplot_content_tl
+    { \DTLeverybarhook }
+  \l__dataplot_content_tl
+  \tl_clear:N \l__dataplot_content_tl
+}
+\cs_generate_variant:Nn \__databar_draw_bar:Nnnn
+ { NVxx , NnVV }
+\cs_new:Nn \__databar_draw_axes:
+{
+  \ifDTLbarxaxis
+    \tl_put_right:Nx \l__dataplot_content_tl
+     {
+       \exp_not:N \draw [ \DTLBarXAxisStyle ] ~
+       (0,0) ~ -- ~
+     }
+    \ifDTLverticalbars
+      \tl_put_right:Nn \l__dataplot_content_tl
+       {
+         ( \DTLbarchartwidth, 0 );
+       }
+    \else
+      \tl_put_right:Nn \l__dataplot_content_tl
+       {
+         ( 0, \DTLbarchartwidth );
+       }
+    \fi
+  \fi
+  \ifDTLbaryaxis
+    \tl_put_right:Nx \l__dataplot_content_tl
+     {
+       \exp_not:N \draw [ \DTLBarYAxisStyle ] ~
+     }
+    \ifDTLverticalbars
+      \tl_put_right:Nn \l__dataplot_content_tl
+       {
+         ( 0, \DTLnegextent ) ~ -- ~ ( 0, \DTLbarmax );
+       }
+    \else
+      \tl_put_right:Nn \l__dataplot_content_tl
+       {
+         ( \DTLnegextent, 0) ~ -- ~ ( \DTLbarmax, 0 );
+       }
+    \fi
+  \fi
+}
+\cs_new:Nn \__databar_draw_y_tics_fn:nn
+{
+  \tl_set:Nn \l__dataplot_y_fp { #2 }
+  \tl_set:Nx \l__dataplot_decimal_y_tl
+    { \fp_to_decimal:N \l__dataplot_y_fp }
+  \dim_set:Nn \l__databar_extent_dim
+    {
+      \fp_eval:n
+      {
+        \l__dataplot_y_fp * \l__databar_unit_fp
+      }
+      sp
+    }
+  \ifDTLverticalbars
+   \tl_put_right:Nx \l__dataplot_content_tl
+    {
+      \exp_not:N \pgfpathmoveto
+        {
+          \exp_not:N \pgfpointxy
+            { 0 } { \l__dataplot_decimal_y_tl }
+        }
+      \exp_not:N \pgfpathlineto
+       {
+         \exp_not:N \pgfpoint
+          { \dim_to_decimal:n { - \DTLticklength } pt }
+          { \l__databar_extent_dim }
+       }
+    }
+  \else
+   \tl_put_right:Nx \l__dataplot_content_tl
+    {
+      \exp_not:N \pgfpathmoveto
+        {
+          \exp_not:N \pgfpointxy
+            { \l__dataplot_decimal_y_tl } { 0 }
+        }
+      \exp_not:N \pgfpathlineto
+       {
+         \exp_not:N \pgfpoint
+          { \l__databar_extent_dim }
+          { \dim_to_decimal:n { - \DTLticklength } pt }
+       }
+    }
+  \fi
+  \tl_put_right:Nn \l__dataplot_content_tl
+   {
+     \pgfusepath{stroke}
+   }
+  \int_compare:nNnTF
+    { #1 } > { \seq_count:N \l__databar_yticlabels_seq }
+   {
+     \__dataplot_get_default_tic_label:Nx
+      \l__dataplot_y_fp { \l__databar_ytic_round_tl }
+   }
+   {
+     \tl_set:Nx \l__dataplot_tic_label_tl
+      { \seq_item:Nn \l__databar_yticlabels_seq { #1 } }
+   }
+  \tl_put_right:Nx \l__dataplot_content_tl
+   {
+     \exp_not:N \pgftext [ \DTLbarYticklabelalign , at=
+   }
+  \ifDTLverticalbars
+    \tl_put_right:Nx \l__dataplot_content_tl
+     {
+       {
+         \exp_not:N \pgfpoint
+           { \dim_to_decimal:n { -\DTLticklabeloffset } pt }
+           { \l__databar_extent_dim }
+       }
+     }
+  \else
+    \tl_put_right:Nx \l__dataplot_content_tl
+     {
+       {
+         \exp_not:N \pgfpoint
+           { \l__databar_extent_dim }
+           { \dim_to_decimal:n { -\DTLticklabeloffset } pt }
+       }
+     }
+  \fi
+  \tl_put_right:Nx \l__dataplot_content_tl
+   {
+     ]
+     {
+       \exp_not:N \DTLbardisplayYticklabel
+         { \exp_not:V \l__dataplot_tic_label_tl }
+     }
+   }
+  \tl_if_empty:NF \l__databar_ylabel_tl
+   {
+     \tl_put_right:Nn \l__dataplot_content_tl
+      { \__databar_update_ylabel_offset: }
+   }
+  \l__dataplot_content_tl
+  \tl_clear:N \l__dataplot_content_tl
+}
+\cs_new:Nn \__databar_update_ylabel_offset:
+{
+  \ifDTLverticalbars
+   \dim_set:Nn
+    \l__dataplot_y_tic_label_width_dim
+    {
+      \dim_max:nn
+       { \l__dataplot_y_tic_label_width_dim }
+       { \dim_abs:n { \pgf@pathminx} }
+    }
+  \else
+   \dim_set:Nn
+    \l__dataplot_y_tic_label_width_dim
+    {
+      \dim_max:nn
+       { \l__dataplot_y_tic_label_width_dim }
+       { \dim_abs:n { \pgf@pathminy} }
+    }
+  \fi
+}
+\cs_new:Nn \__databar_plot_ylabel:
+{
+  \tl_if_empty:NF \l__databar_ylabel_tl
+  {
+    \dim_add:Nn \l__dataplot_y_tic_label_width_dim
+      { \l__databar_ylabel_offset_tl }
+    \tl_put_right:Nx \l__dataplot_content_tl
+     {
+       \exp_not:N \pgftext
+        [
+          at = { \l__databar_ylabel_pos_tl } ,
+          \DTLyAxisLabelStyle
+        ]
+        { \exp_not:V \l__databar_ylabel_tl }
+     }
+  }
+}
+\NewDocumentCommand \DTLmultibarchart { o m m m }
+{
+  \group_begin:
+   \bool_set_true:N \l_databar_multi_bars_bool
+   \IfValueT { #1 }
+   {
+     \cs_set:Npn \__databar_filter:T ##1
+     {
+       \ifthenelse { #1 } { ##1 } { }
+     }
+   }
+   \tl_if_blank:nF { #3 }
+    {
+      \DTLsetup { default-name = { #3 } }
+    }
+   \keys_set_groups:nnn { datatool/bar } { pre-parse } { #2 }
+   \l__databar_pre_init_tl
+   \keys_set:nn { datatool/bar } { #2 }
+   \l__databar_init_tl
+   \cs_set_eq:NN \__databar_do:n \use:n
+   \seq_if_empty:NT \l__databar_variables_seq
+   {
+     \cs_set_eq:NN \__databar_do:n \use_none:n
+     \tl_if_empty:NTF \DTLbarvariable
+     {
+       \PackageError { databar }
+       {
+         \token_to_str:N \DTLmultibarchart \c_space_tl ~ missing ~ variables
+       }
+       {
+         You ~ need ~ to ~ set ~ the ~ `variables' ~
+         key ~ to ~ the ~ list ~ of ~ placeholder ~ commands
+       }
+     }
+     {
+       \PackageError { databar }
+       {
+         \token_to_str:N \DTLmultibarchart \c_space_tl ~ missing ~
+         variables ~ (`variable' ~ setting ~ not ~ applicable ~
+         for ~ multibar ~ charts)
+       }
+       {
+         Remember ~ that ~ you ~ need ~ to ~ use ~ `variables' ~
+         not ~ `variable' ~ with ~ \token_to_str:N \DTLmultibarchart
+       }
+     }
+   }
+   \tl_if_empty:NF \l__databar_yticgap_tl
+    {
+      \fp_set:Nn \l__databar_yticgap_fp
+        { \l__databar_yticgap_tl }
+      \fp_compare:nNnT { \l__databar_yticgap_fp } < { \c_zero_fp }
+        {
+          \PackageError { databar }
+          {
+            y-tick ~ gap ~ `\tl_to_str:o { \l__databar_yticgap_tl } ' ~
+            is ~ negative
+          }
+          {
+            The ~ y ~ tick ~ gap ~ specification ~ evaluates ~ to ~
+            a ~ negative ~ number ~ ( \fp_to_decimal:N \l__databar_yticgap_fp) ~
+            so ~ the ~ yticgap ~ setting ~ will ~ be ~ ignored
+          }
+          \tl_clear:N \l__databar_yticgap_tl
+          \fp_zero:N \l__databar_yticgap_fp
+        }
+    }
+   \__databar_do:n
+   {
+     \cs_set_eq:NN
+       \__databar_do_update:
+       \__databar_multi_variables_update:
+     \cs_set_eq:NN
+       \__databar_draw_bars:
+       \__databar_variables_draw_bars:
+     \tl_set:Nx \DTLbartotalvariables
+       { \seq_count:N \l__databar_variables_seq }
+     \__databar_do_multi_chart:n { #4 }
+   }
+  \group_end:
+}
+\cs_new:cn { __datatool_action_ multibar ~ chart : }
+{
+ \group_begin:
+   \tl_if_empty:NF \l__datatool_action_name_tl
+    {
+      \tl_set_eq:NN
+        \l__datatool_default_dbname_tl
+        \l__datatool_action_name_tl
+    }
+   \bool_set_true:N \l_databar_multi_bars_bool
+   \cs_set_eq:NN \__databar_do:n \use:n
+   \__datatool_optional_columns:
+   \clist_if_empty:NTF \l__datatool_action_options_clist
+    {
+      \l__databar_pre_init_tl
+    }
+    {
+      \keys_set_groups:nnV { datatool/bar } { pre-parse }
+        \l__datatool_action_options_clist
+      \l__databar_pre_init_tl
+      \keys_set:nV { datatool/bar }
+        \l__datatool_action_options_clist
+    }
+   \l__databar_init_tl
+   \seq_if_empty:NTF \l__datatool_action_columns_seq
+    {
+      \seq_if_empty:NTF \l__databar_variables_seq
+       {
+         \__datatool_action_error:nn
+          {
+            missing ~ variables
+          }
+          {
+            You ~ need ~ to ~ either ~ set ~ the ~ `keys' ~
+            or ~ `columns' ~ action ~ settings ~ or ~ set ~
+            `variables' ~ within ~ the ~ `options' ~
+            action ~ setting ~ in ~
+            \token_to_str:N \DTLaction [...]{ \l__datatool_action_tl }
+          }
+         \cs_set_eq:NN \__databar_do:n \cs_none:n
+       }
+       {
+         \tl_set:Nx \DTLbartotalvariables
+          { \seq_count:N \l__databar_variables_seq }
+         \cs_set_eq:NN
+           \__databar_do_update:
+           \__databar_multi_variables_update:
+         \cs_set_eq:NN
+           \__databar_draw_bars:
+           \__databar_variables_draw_bars:
+       }
+    }
+    {
+      \tl_set:Nx \DTLbartotalvariables
+       { \seq_count:N \l__datatool_action_columns_seq }
+      \cs_set_eq:NN
+        \__databar_do_update:
+        \__databar_multi_columns_update:
+      \cs_set_eq:NN
+        \__databar_draw_bars:
+        \__databar_columns_draw_bars:
+    }
+   \__databar_do:n
+   {
+     \exp_args:NV
+       \__databar_do_multi_chart:n
+       \l__datatool_action_assign_clist
+   }
+ \group_end:
+}
+\cs_new:Nn \__databar_do_multi_chart:n
+{
+ \tl_clear:N \DTLtotalbars
+ \__datatool_calc_bar_lengths:n { #1 }
+ \tl_if_empty:NT \DTLtotalbars
+  {
+    \__databar_filtered_map:nn { #1 } { }
+    \tl_set:NV \DTLtotalbars \l__databar_index_int
+  }
+ \tl_set_eq:NN \DTLtotalbargroups \DTLtotalbars
+ \tl_set:Nx \DTLtotalbars
+   { \int_eval:n { \DTLtotalbargroups * \DTLbartotalvariables } }
+ \tl_set:Nx \DTLbargroupwidth
+  { \DTLbartotalvariables }
+ \tl_if_eq:NnF \l__databar_bargap_tl { 0 }
+  {
+    \tl_set:Nx \DTLbargroupwidth
+     {
+       \fp_eval:n
+        {
+          \DTLbargroupwidth
+            + \l__databar_bargap_tl
+               * ( \DTLbargroupwidth - \c_one_fp )
+        }
+     }
+   }
+ \tl_set:Nx \DTLbarchartwidth
+  {
+    \fp_eval:n
+     {
+       \DTLtotalbargroups * \DTLbargroupwidth
+       + \l__databar_groupgap_tl
+         * ( \DTLtotalbargroups - \c_one_fp )
+     }
+  }
+ \__databar_calc_scale:
+ \__databar_construct_ytics:
+ \__databar_multi_chart:n { #1 }
+}
+\cs_new:Nn \__databar_draw_bars:
+{
+  \__databar_variables_draw_bars:
+}
+\cs_new:Nn \__databar_variables_draw_bars:
+{
+  \seq_map_indexed_function:NN
+    \l__databar_variables_seq
+    \__databar_draw_bar:nn
+}
+\cs_new:Nn \__databar_columns_draw_bars:
+{
+  \seq_map_indexed_inline:Nn
+   \l__datatool_action_columns_seq
+   {
+     \exp_args:NNno
+       \dtl@getentryfromrow
+       \l__databar_action_variable_tl
+       { ##2 }
+       \l__datatool_map_data_row_tl
+      \__databar_draw_bar:nn
+       { ##1 }
+       \l__databar_action_variable_tl
+   }
+}
+\cs_new:Nn \__databar_multi_chart:n
+{
+  \begin{tikzpicture}
+  \ifDTLverticalbars
+    \pgfsetyvec
+     {
+       \pgfpoint
+        { 0pt } { \fp_to_int:N \l__databar_unit_fp ~ sp }
+     }
+    \pgfsetxvec
+     {
+       \pgfpoint { \DTLbarwidth } { 0pt }
+     }
+  \else
+    \pgfsetxvec
+     {
+       \pgfpoint
+        { \fp_to_int:N \l__databar_unit_fp ~ sp } { 0pt }
+     }
+    \pgfsetyvec
+     {
+       \pgfpoint { 0pt } { \DTLbarwidth }
+     }
+  \fi
+  \DTLbaratbegintikz
+  \fp_zero:N \l__databar_start_fp
+  \__databar_filtered_map:nn { #1 }
+   {
+     \dim_zero:N \l__databar_group_label_offset_dim
+     \__databar_draw_bars:
+     \tl_if_empty:NF \l__databar_barlabel_tl
+      {
+        \dim_add:Nn
+          \l__databar_group_label_offset_dim
+          { \DTLbarlabeloffset }
+        \tl_put_right:Nn \l__dataplot_content_tl
+          { \pgftext [ at = \pgfpoint }
+        \ifDTLverticalbars
+         \tl_put_right:Nx \l__dataplot_content_tl
+          {
+            {
+              \fp_eval:n
+               {
+                 \l__databar_start_fp
+                    - 0.5 * \DTLbargroupwidth
+               }
+              \exp_not:N \DTLbarwidth
+            }
+            {
+              - \exp_not:N \l__databar_group_label_offset_dim
+            }
+          }
+        \else
+         \tl_put_right:Nx \l__dataplot_content_tl
+          {
+            {
+              - \exp_not:N \l__databar_group_label_offset_dim
+            }
+            {
+              \fp_eval:n
+               {
+                 \l__databar_start_fp
+                    - 0.5 * \DTLbargroupwidth
+               }
+              \exp_not:N \DTLbarwidth
+            }
+          }
+        \fi
+        \tl_put_right:Nx \l__dataplot_content_tl
+          {
+            , ~ \DTLbargrouplabelalign ] ~
+             {
+               \exp_not:N \DTLdisplaybargrouplabel
+                { \exp_not:V \l__databar_barlabel_tl }
+             }
+          }
+        \l__dataplot_content_tl
+        \tl_clear:N \l__dataplot_content_tl
+      }
+      \DTLeverybargrouphook
+      \fp_add:Nn \l__databar_start_fp { \l__databar_groupgap_tl }
+   }
+  \__databar_draw_axes:
+  \seq_map_indexed_function:NN
+    \l__databar_yticpoints_seq
+    \__databar_draw_y_tics_fn:nn
+  \l__dataplot_content_tl
+  \tl_clear:N \l__dataplot_content_tl
+  \__databar_plot_ylabel:
+  \l__dataplot_content_tl
+  \tl_clear:N \l__dataplot_content_tl
+  \DTLbaratendtikz
+  \end{tikzpicture}
+}
+\cs_new:Nn \__databar_draw_bar:nn
+{
+  \tl_set:Nx \DTLbargroupindex
+    { \int_use:N \l__databar_index_int }
+  \tl_set:Nn \DTLbarindex { #1 }
+  \tl_set:Nx \l__databar_lowerbarlabel_tl
+   { \seq_item:Nn \l__databar_multibarlabels_seq { #1 } }
+  \tl_if_empty:NF \l__databar_lowerbarlabel_tl
+   {
+     \tl_set:Nx \l__databar_lowerbarlabel_tl
+      {
+        \exp_not:N \DTLdisplaylowermultibarlabel
+         { \exp_not:V \l__databar_lowerbarlabel_tl }
+      }
+   }
+  \tl_set:Nx \l__databar_upperbarlabel_tl
+   { \seq_item:Nn \l__databar_uppermultibarlabels_seq { #1 } }
+  \tl_if_empty:NF \l__databar_upperbarlabel_tl
+   {
+     \tl_set:Nx \l__databar_upperbarlabel_tl
+      {
+        \exp_not:N \DTLdisplayuppermultibarlabel
+         { \exp_not:V \l__databar_upperbarlabel_tl }
+      }
+   }
+  \__databar_draw_bar:NnVV #2 { #1 }
+    \l__databar_lowerbarlabel_tl
+    \l__databar_upperbarlabel_tl
+  \fp_add:Nn \l__databar_start_fp { \c_one_fp }
+}
+\cs_new:Nn \__databar_update_group_offset:
+{
+  \ifDTLverticalbars
+    \dim_compare:nNnT
+      { \pgf@pathminy } < { \c_zero_dim }
+     {
+       \dim_set:Nn
+         \l__databar_group_label_offset_dim
+        {
+          \dim_max:nn
+           { \l__databar_group_label_offset_dim }
+           { \dim_abs:n { \pgf@pathminy} }
+        }
+     }
+  \else
+    \dim_compare:nNnT
+      { \pgf@pathminx } < { \c_zero_dim }
+     {
+       \dim_set:Nn
+         \l__databar_group_label_offset_dim
+        {
+          \dim_max:nn
+           { \l__databar_group_label_offset_dim }
+           { \dim_abs:n { \pgf@pathminx} }
+        }
+     }
+  \fi
+}
+\ExplSyntaxOff
+\endinput
+%%
+%% End of file `databar.sty'.

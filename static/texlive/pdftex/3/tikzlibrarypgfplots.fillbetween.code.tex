@@ -1,0 +1,240 @@
+%--------------------------------------------
+%
+% Package pgfplots
+%
+% Provides a user-friendly interface to create function plots (normal
+% plots, semi-logplots and double-logplots).
+%
+% It is based on Till Tantau's PGF package.
+%
+% Copyright 2013 by Christian Feuersaenger
+%
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%
+%--------------------------------------------
+
+
+% This library adds support for high-level instructions for "fill area
+% between two arbitrary plots of functions".
+%
+% It activates the syntax
+%
+% 	\addplot fill between[of=A and B];
+%
+% where A and B are two plots named by 'name path='.
+%
+% In fact, this here is not much more than a low-level invocation of
+% \pgfpathfillbetween
+% and a couple of styles. It could become a TikZ library because it
+% actually works on any two named paths, but it has its restrictions
+% regarding the supported input paths: both need to be plots of
+% functions (non-intersecting, should have at most one function value
+% for each canvas X coord)
+
+\pgfutil@IfUndefined{pgfplotsset}{%
+	\pgferror{Please load pgfplots before pgfplots.fillbetween.}%
+	\endinput
+}{}%
+
+\usetikzlibrary{fillbetween}
+\usepgfplotslibrary{decorations.softclip}
+
+% Takes a domain #1:#2 and returns a new domain \pgfplotsretval:\pgfplotsretvalb which is larger.
+\def\pgfplots@softclip@enlarge#1#2{%
+	\begingroup
+	\pgfplotscoordmath{default}{parse}{0.1*(#2-#1)}\let\pgfplots@diff=\pgfmathresult
+	\pgfplotscoordmath{default}{if is}{\pgfplots@diff}{+}{%
+		% ok, max > min. Should always be the case.
+		\pgfplotscoordmath{default}{parse}{#1-\pgfplots@diff}\let\pgfplots@min=\pgfmathresult
+		\pgfplotscoordmath{default}{parse}{#2+\pgfplots@diff}\let\pgfplots@max=\pgfmathresult
+	}{%
+		\pgfplotscoordmath{default}{if is}{\pgfplots@diff}{0}{%
+			% ok, max == min. Very Strange.
+			\pgfplotscoordmath{default}{parse}{#1-1}\let\pgfplots@min=\pgfmathresult
+			\pgfplotscoordmath{default}{parse}{#2+1}\let\pgfplots@max=\pgfmathresult
+		}{%
+			% ok, max < min. Strange.
+			\pgfplotscoordmath{default}{parse}{#1+\pgfplots@diff}\let\pgfplots@min=\pgfmathresult
+			\pgfplotscoordmath{default}{parse}{#2-\pgfplots@diff}\let\pgfplots@max=\pgfmathresult
+		}%
+	}%
+	\global\let\pgfplots@glob@TMPa=\pgfplots@min
+	\global\let\pgfplots@glob@TMPb=\pgfplots@max
+	\endgroup
+	\let\pgfplotsretval=\pgfplots@glob@TMPa
+	\let\pgfplotsretvalb=\pgfplots@glob@TMPb
+}%
+
+\pgfkeys{
+	/pgfplots/every fill between plot/.style={/pgfplots/area legend,/tikz/fill,/pgfplots/on layer=pre main},
+	/tikz/soft clip assign/domain/.code args={#1:#2}{%
+		\pgfplotsifisvisualizationphase{%
+			\ifpgfplots@yislinear
+				\pgfplots@softclip@enlarge
+					{min(\pgfkeysvalueof{/pgfplots/ymin},\pgfplots@data@ymin)}%
+					{max(\pgfkeysvalueof{/pgfplots/ymax},\pgfplots@data@ymax)}%
+			\else
+				\pgfplots@softclip@enlarge{\pgfkeysvalueof{/pgfplots/ymin}}{\pgfkeysvalueof{/pgfplots/ymax}}%
+			\fi
+			\edef\pgfplots@loc@TMPa{%
+				(axis cs:#1,\pgfplotsretval)
+				rectangle (axis cs:#2,\pgfplotsretvalb)}%
+			\pgfkeysalso{/tikz/soft clip assign/path/.expand once=\pgfplots@loc@TMPa}%
+		}{}%
+	},%
+	/tikz/soft clip assign/y domain y/.style={/tikz/soft clip assign/domain y={#1}},
+	/tikz/soft clip assign/domain y/.code args={#1:#2}{%
+		\pgfplotsifisvisualizationphase{%
+			\ifpgfplots@yislinear
+				\pgfplots@softclip@enlarge
+					{min(\pgfkeysvalueof{/pgfplots/xmin},\pgfplots@data@xmin)}%
+					{max(\pgfkeysvalueof{/pgfplots/xmax},\pgfplots@data@xmax)}%
+			\else
+				\pgfplots@softclip@enlarge{\pgfkeysvalueof{/pgfplots/xmin}}{\pgfkeysvalueof{/pgfplots/xmax}}%
+			\fi
+			\edef\pgfplots@loc@TMPa{%
+				(axis cs:\pgfplotsretval,#1)
+				rectangle (axis cs:\pgfplotsretvalb,#2)}%
+			\pgfkeysalso{/tikz/soft clip assign/path/.expand once=\pgfplots@loc@TMPa}%
+		}{}%
+	},%
+	%
+	/pgfplots/execute at begin axis@@/.add={}{%
+		\gdef\b@pgfplotsfillbetween@list@has@set@layers{0}%
+	},
+}
+
+% The options are from
+% \addplot[#1] fill between[#2] #3;
+%
+% This method is invoked from the global \addplot dispatching.
+\def\pgfplotslibraryfillbetween@addplot#1#2#3{%
+	%
+	\pgfplots@start@plot@with@behavioroptions{/pgfplots/every fill between plot,#1}%
+	%
+	% '/tikz/fill between/on layer' is not really integrated into the option processing of pgfplots.
+	% improve it here (to some extend):
+	\pgfkeysgetvalue{/pgfplots/on layer}\pgfplots@loc@TMPa
+	\pgfkeyslet{/tikz/fill between/on layer}{\pgfplots@loc@TMPa}%
+	%
+	% FIXME:  is this here an accident!?
+	\pgfkeysvalueof{/pgfplots/execute at end survey}%
+	\pgfplots@remember@survey@option@list
+	%
+	%
+	\pgfplotslibraryfillbetweenpreparecurrentlayer
+	%
+	\pgfplots@addplot@enqueue@coords{%
+		% precmd
+	}{%
+		% empty - this here is a TikZ instruction, not a "real" \addplot command
+	}{%
+		\def\b@pgfplots@fillbetween@clip@on@layer{0}%
+		\pgfkeysgetvalue{/tikz/fill between/on layer}\pgfplots@loc@TMPa
+		\edef\pgfplots@fillbetween@layer{\pgfplots@loc@TMPa}%
+		\ifx\pgfplots@fillbetween@layer\pgfutil@empty
+		\else
+			\ifpgfplots@clip
+				\def\b@pgfplots@fillbetween@clip@on@layer{1}%
+				% This here is messy: we have to clip on the other
+				% layer. I gave up to install this clip path once
+				% per axis, that's why I do it for each individual
+				% fillbetween - let us hope this is not too
+				% inefficient.
+				%
+				% I had to give up because the result appears to
+				% require a pattern of sorts
+				% \onlayer{L}
+				% \scope
+				% \clip ... ;
+				% \endonlayer
+				% ...
+				%
+				% \onlayer{L}
+				% \endscope
+				% \endonlayer
+				%
+				% which is forbidden in TeX -- and using
+				% \pgfsys@beginscope resulted in invalid PDF.
+				%
+				\pgfplotsonlayer{\pgfplots@loc@TMPa}%
+				\scope
+				\pgfplotspathaxisoutline
+				\pgfusepath{clip}%
+			\fi
+		\fi
+		%
+		% the path instruction:
+		\tikzfillbetween[#2]{%
+			/pgfplots/.search also=/tikz,%
+			/pgfplots/.cd,%
+			/tikz/fill between/every last segment/.append style={/tikz/fill between/path after segment={#3}},%
+			#1%
+		}%
+		%
+		\if1\b@pgfplots@fillbetween@clip@on@layer
+			\endscope
+			\endpgfplotsonlayer%
+		\fi
+	}{%
+		% post command.
+	}%
+}
+
+% ONLY TO BE USED AS LATER OPTION!
+\pgfkeysdef{/pgfplots/fill between/@ensure layers}{%
+	\ifpgfplots@layered@graphics
+	\else
+		\pgfplots@log3{fill between: activating layered graphics}%
+		\pgfplotsset{set layers}%
+		\pgfplots@set@options@of@layered@graphics
+	\fi
+}%
+
+% SIDE-EFFECT: modifies \b@pgfplotsfillbetween@list@has@set@layers and
+\def\pgfplotslibraryfillbetweenpreparecurrentlayer{%
+	\pgfkeysgetvalue{/tikz/fill between/on layer}\pgfplots@loc@TMPa
+	\ifx\pgfplots@loc@TMPa\pgfutil@empty
+	\else
+		\if0\b@pgfplotsfillbetween@list@has@set@layers
+			%
+			\pgfplotssetlateoptions{fill between/@ensure layers}%
+			\gdef\b@pgfplotsfillbetween@list@has@set@layers{1}%
+		\fi
+	\fi
+}
+
+\def\pgfplots@tikzfillbetween{\pgfutil@ifnextchar[{\pgfplots@tikzfillbetween@opt}{\pgfplots@tikzfillbetween@opt[]}}
+\def\pgfplots@tikzfillbetween@opt[#1]#2{%
+	\pgfplots@addplot@enqueue@coords{%
+		% precmd
+	}{%
+		% empty - this here is a TikZ instruction, not a "real" \addplot command
+	}{%
+		% the path instruction:
+		\tikzfillbetween[#1]{#2}%
+	}{%
+		% post command.
+	}%
+}%
+
+\expandafter\def\expandafter\pgfplots@replace@path@commands\expandafter{\pgfplots@replace@path@commands
+	\let\pgfplots@orig@tikzfillbetween=\tikzfillbetween
+	\let\tikzfillbetween=\pgfplots@tikzfillbetween
+}%
+\expandafter\def\expandafter\pgfplots@restore@path@commands\expandafter{\pgfplots@restore@path@commands
+	\let\tikzfillbetween=\pgfplots@orig@tikzfillbetween
+}
+
+\endinput

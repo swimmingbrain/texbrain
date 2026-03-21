@@ -1,0 +1,44 @@
+%%
+%% This is file `listings-rexx.prf',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% lstdrvrs.dtx  (with options: `rexx-prf')
+%% 
+%% The listings package is copyright 1996--2004 Carsten Heinz, and
+%% continued maintenance on the package is copyright 2006--2007 Brooks
+%% Moses. From 2013 on the maintenance is done by Jobst Hoffmann.
+%% The drivers are copyright 1997/1998/1999/2000/2001/2002/2003/2004/2006/
+%% 2007/2013 any individual author listed in this file.
+%%
+%% This file is distributed under the terms of the LaTeX Project Public
+%% License from CTAN archives in directory  macros/latex/base/lppl.txt.
+%% Either version 1.3c or, at your option, any later version.
+%%
+%% This file is completely free and comes without any warranty.
+%%
+%% Send comments and ideas on the package, error reports and additional
+%% programming languages to Jobst Hoffmann at <j.hoffmann@fh-aachen.de>.
+%%
+\ProvidesFile{listings-rexx.prf}
+    [2025/11/14 1.11b listings language file]
+\usepackage{xcolor}                  % needed for colors like yellow!10
+\usepackage{textcomp}                % needed for upquote
+
+\lstdefinestyle{rexx-colored}{%
+  language=oorexx,                   % the language
+  backgroundcolor=\color{yellow!10},
+  basicstyle=\normalsize\ttfamily,   % size of the fonts for
+                                     % the code
+  % Color settings to match JHf's preferred style
+  keywordstyle=\color{blue},         % core keywords
+  keywordstyle={[2]\color{cyan}},    % built-ins
+  keywordstyle={[3]\color{olive}},   % special keywords
+  stringstyle=\color{teal},%
+  commentstyle=\color{orange},%
+  upquote=true,                      % requires textcomp
+}
+\endinput
+%%
+%% End of file `listings-rexx.prf'.

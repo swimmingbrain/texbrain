@@ -1,0 +1,367 @@
+%%
+%% This is file `microtype-show.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% microtype.dtx  (with options: `show')
+%% 
+%% ------------------------------------------------------------------------
+%% 
+%%                       The `microtype' package
+%%         Subliminal refinements towards typographical perfection
+%%           Copyright (c) 2004--2026 R Schlicht <w.m.l@gmx.net>
+%% 
+%% This work may be distributed and/or modified under the conditions of the
+%% LaTeX Project Public License, either version 1.3c of this license or (at
+%% your option) any later version. The latest version of this license is in:
+%% https://www.latex-project.org/lppl.txt, and version 1.3c or later is part
+%% of all distributions of LaTeX version 2005/12/01 or later.
+%% 
+%% This work has the LPPL maintenance status `maintained'.
+%% 
+%% This work consists of the files microtype.dtx, microtype-utf.dtx and
+%% microtype.ins and the derived files microtype.sty, microtype-pdftex.def,
+%% microtype-luatex.def, microtype-xetex.def, microtype.lua, letterspace.sty
+%% and microtype-show.sty.
+%% 
+%% ------------------------------------------------------------------------
+%%   This companion package offers various commands that might be helpful
+%%   when creating protrusion settings. See the documentation in microtype's
+%%   User manual, section 10, and the examples in test-microtype.tex.
+%% ------------------------------------------------------------------------ 
+%%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage
+  {microtype-show}
+  [2026/03/01 v3.2d
+  Visual debugging for the microtype package
+   (RS)]
+\RequirePackage{iftex}
+\ifetex\else
+  \PackageError{microtype-show}
+               {This package only works with e-TeX}{Use e-TeX}
+\fi
+\ifxetex
+  \PackageError{microtype-show}
+               {This package only works with pdfTeX or luaTeX}{Don't use XeTeX}
+\fi
+\PackageWarning{microtype-show}{DO NOT USE THIS PACKAGE FOR REAL DOCUMENTS\@gobble}
+\DeclareOption*{\PassOptionsToPackage{\CurrentOption}{microtype}}
+\ProcessOptions\relax
+\PassOptionsToPackage{verbose}{microtype}
+\RequirePackage{microtype,graphicx,xcolor}
+\newif\ifShowGlyphIndex
+\newif\ifShowMissingGlyphs
+\newcommand*\GlyphScaleFactor{2}
+\newcommand*\Showbaselinecolor{\color{black!40}}
+\newcommand*\Showposcolor{\color{green!50}}
+\newcommand*\Shownegcolor{\color{red!50}}
+\ifluatex
+  \def\MTS@printtext#1{{\usefont{TU}{lmr}{m}{n}#1}}
+\else
+  \def\MTS@printtext#1{{\usefont{T1}{cmr}{m}{n}#1}}
+\fi
+\def\MTS@show@index#1{\ifShowGlyphIndex{\tiny$_{#1}%
+ %  \ifluatex^{\mathrm{%
+ %    \MT@lua{tex.print(luaotfload.aux.name_of_slot(tonumber([[#1]])))}}}\fi
+  $}\fi\space}
+\def\MTS@crulefill{\leaders\hrule height \dimexpr1ex/2+.4pt depth -\dimexpr1ex/2\hfill}
+\g@addto@macro\MT@setupfont{\MTS@Prot\MTS@Char}
+\let\MTS@Prot\relax
+\let\MTS@Char\relax
+\def\MTS@setup{%
+  \fboxsep=0pt
+  \fboxrule=.1pt
+  \raggedright
+  \let\MTS@glyphlist\@gobble
+  \def\MT@feat{pr}%
+}
+\newcommand*\ShowProtrusion{%
+  \begingroup
+    \MTS@setup
+    \let\MTS@Prot\MTS@Prot@do
+    \def\MT@cat{c}%
+    \selectfont
+}
+\def\MTS@Prot@do{%
+    \MT@ltx@pickupfont
+    \let\MT@pr@split@val\MTS@pr@split@val
+    \let\MT@load@list\MTS@load@list
+    \let\MT@set@pr@prefixes@\MTS@set@pr@prefixes@
+    \MTS@show@pr
+  \endgroup
+  \aftergroup\selectfont
+}
+\newcommand*\ShowCharacterInheritance{%
+  \begingroup
+    \MTS@setup
+    \let\MTS@Char\MTS@Char@do
+    \def\MT@cat{inh}%
+    \selectfont
+}
+\def\MTS@Char@do{%
+    \MT@ltx@pickupfont
+    \let\MT@set@pr@prefixes@\MTS@set@pr@prefixes@
+    \MTS@show@inheritance
+  \endgroup
+  \aftergroup\selectfont
+}
+\newcommand*\ShowProtrusionLineGlyph[1]{%
+  {\MTS@setup
+   \MTS@showprotrusionline{`#1}}%
+}
+\newcommand*\ShowProtrusionLineIndex[1]{%
+  {\MTS@setup
+   \MTS@showprotrusionline{#1}}%
+}
+\def\MTS@showprotrusionline#1{%
+  \edef\MTS@lpcode{\number\lpcode\font#1}%
+  \edef\MTS@rpcode{\number\rpcode\font#1}%
+  \char#1%
+    lorem ipsum dolor sit amet, \MTS@crulefill\ %
+    \MTS@printtext{\ifnum\MTS@lpcode=\z@\Showbaselinecolor\fi[\MTS@lpcode]}
+    \fbox{\char#1}\MTS@show@index{\number#1}
+    \MTS@printtext{\ifnum\MTS@rpcode=\z@\Showbaselinecolor\fi[\MTS@rpcode]}
+    \MTS@crulefill\ you know the rest%
+  \char#1\par
+  \ShowDummyLine
+}
+\newcommand*\ShowDummyLine{%
+ {\fontencoding{\encodingdefault}\fontseries{\seriesdefault}\fontshape{\shapedefault}%
+  \selectfont\noindent
+  here is the beginning of a line, \dotfill and here is its end}\par
+}
+\newcommand*\ShowProtrusionAll{%
+  {\MTS@setup
+   \MTS@lede{}%
+   \MT@do@font{\iffontchar\font\@tempcnta\MTS@showprotrusionline{\@tempcnta}\fi}}%
+}
+\newcommand*\ShowProtrusionDefined{%
+  {\MTS@setup
+   \MTS@lede{defined}%
+   \let\MTS@first\@gobble
+   \let\MTS@second\@firstofone
+   \MT@do@font{%
+     \MTS@firstorsecond
+     \MTS@temp{%
+       \iffontchar\font\@tempcnta\MTS@showprotrusionline{\@tempcnta}\else
+         \MT@warning@nl{Glyph \the\@tempcnta\space is missing in font
+                        \MessageBreak\font@name}%
+       \fi}}}%
+}
+\newcommand*\ShowProtrusionMissing{%
+  {\MTS@setup
+   \MTS@lede{missing}%
+   \let\MTS@first\@firstofone
+   \let\MTS@second\@gobble
+   \MT@do@font{%
+     \MTS@firstorsecond
+     \iffontchar\font\@tempcnta\MTS@temp{\MTS@showprotrusionline{\@tempcnta}}\fi}}%
+}
+\def\MTS@lede#1{%
+  \selectfont
+  \edef\MTS@font{\expandafter\string\font@name}%
+  \MTS@printtext{All glyphs \MT@ifempty{#1}{in}{#1 in protrusion list for}
+                 font \texttt{\MTS@font}:}\par
+  \ShowDummyLine
+}
+\def\MTS@firstorsecond{%
+  \let\MTS@temp\MTS@first
+  \ifnum\lpcode\font\@tempcnta=\z@ \else
+    \let\MTS@temp\MTS@second
+  \fi
+  \ifnum\rpcode\font\@tempcnta=\z@ \else
+    \let\MTS@temp\MTS@second
+  \fi
+}
+\newdimen\MTS@charwd
+\newdimen\MTS@lp@
+\newdimen\MTS@rp@
+\def\MTS@show@char@pr#1{%
+  \xdef\MTS@glyphlist{\MTS@glyphlist,#1}%
+  \scalebox{\GlyphScaleFactor}{\strut\escapechar`\\
+    \MTS@charwd=\fontcharwd\MT@font#1\relax
+    {\Showbaselinecolor\vrule width \dimexpr\MTS@charwd+.3em\relax height 1sp depth 0pt}%
+    \hskip-\dimexpr\MTS@charwd+.15em\relax
+    {\ifdim\MTS@lp@<\z@\Shownegcolor\else\Showposcolor\fi
+     \vrule width \ifdim\MTS@lp@<\z@ -\fi\MTS@lp@ height 1em depth .2em}%
+    \hskip\dimexpr\MTS@charwd\ifdim\MTS@lp@>\z@-\MTS@lp@\fi
+                             \ifdim\MTS@rp@>\z@-\MTS@rp@\fi\relax
+    {\ifdim\MTS@rp@<\z@\Shownegcolor\else\Showposcolor\fi
+     \vrule width \ifdim\MTS@rp@<\z@ -\fi\MTS@rp@ height 1em depth .2em}%
+    \hskip-\dimexpr\MTS@charwd+\fboxrule\ifdim\MTS@rp@<\z@-\MTS@rp@\fi\relax
+    \fbox{\char#1}}\,%
+    \MTS@show@index{#1}%
+}
+\def\MTS@show@char#1{\scalebox{\GlyphScaleFactor}{%
+  \strut\fbox{\char#1}}\MTS@show@index{#1}}
+\def\MTS@show@char@x#1{\xdef\MTS@glyphlist{\MTS@glyphlist,#1}\MTS@show@char{#1}}
+\def\MTS@show@missing{%
+  \MT@ifdefined@c@T\MT@pr@inh@name{%
+    \MTS@lp@=\z@ \MTS@rp@=\z@
+    \par \MTS@printtext{Glyphs not included in configuration (with defined heirs):}%
+    \MT@do@font{%
+      \edef\MT@temp{\the\@tempcnta}%
+      \MT@ifdefined@n@T{MT@inh@\MT@pr@inh@name @\MT@temp @}{%
+        \MT@exp@one@n\MT@in@clist\MT@temp\MTS@glyphlist
+        \ifMT@inlist@\else \newline
+        \llap{\MTS@show@char@pr{\MT@temp} \MTS@printtext{=} }%
+         \MT@exp@cs\MT@map@tlist@c
+           {MT@inh@\MT@pr@inh@name @\the\@tempcnta @}%
+           \MTS@show@char@x
+        \fi
+      }%
+    }%
+  }%
+  \MTS@show@missing@
+}
+\def\MTS@show@missing@{%
+  \par \MTS@printtext{Other glyphs not in configuration:}\newline
+  \MT@do@font{%
+    \edef\MT@temp{\the\@tempcnta}%
+    \MT@exp@one@n\MT@in@clist\MT@temp\MTS@glyphlist
+    \ifMT@inlist@\else
+      \MTS@show@char\MT@temp
+    \fi
+  }%
+}
+\def\MTS@show@inheritance{%
+  \MT@get@inh@list
+  \MTS@printtext{Character inheritance for font `\texttt{\MT@@font}':}\\
+  \MT@ifdefined@c@TF\MT@listname{%
+    \MTS@printtext{First matching list is for `\texttt{\@tempa}':\\
+              \texttt{\MT@listname}:}\par\leavevmode
+    \MT@do@font{%
+      \MT@ifdefined@n@T{MT@inh@\MT@listname @\the\@tempcnta @}{%
+        \newline
+        \xdef\MTS@glyphlist{\MTS@glyphlist,\the\@tempcnta}%
+        \llap{\MTS@show@char{\the\@tempcnta}\MTS@printtext{= }}%
+        \MT@exp@cs\MT@map@tlist@c
+          {MT@inh@\MT@listname @\the\@tempcnta @}%
+          \MTS@show@char@x
+      }%
+    }%
+    \MT@ifdefined@n@T{MT@inh@\MT@listname @prefixes}{%
+      \par \MTS@printtext{(with prefixes:)}%
+      \@tempcntb=\z@
+      \let\MTS@show@char@pr\MTS@show@char@x
+      \MT@set@pr@prefixheirs}%
+    \ifShowMissingGlyphs\MTS@show@missing@\fi
+  }{%
+    \MTS@printtext{NOT DEFINED}%
+  }%
+  \par
+}
+\def\MTS@show@pr
+  {%
+  \MTS@printtext{Protrusion settings for font `\texttt{\MT@@font}':}\\
+  \MT@if@list@exists{%
+    \MTS@printtext{First matching list is for `\texttt{\@tempa}':\\\texttt{\MT@pr@c@name}}%
+    \MT@get@opt
+    \MT@reset@pr@codes
+    \MT@get@inh@list
+    \MT@set@inputenc{c}%
+    \MT@load@list\MT@pr@c@name
+    \MT@set@listname
+    \MT@let@cn\@tempc{MT@pr@c@\MT@pr@c@name}%
+    \expandafter\MT@set@codes\@tempc,\relax,%
+    \vrule width 4cm height .5pt \\
+    \MTS@printtext{End of list `\texttt{\MT@pr@c@name}'}\\[.5em]
+    \MT@ifdefined@c@T\MT@pr@inh@name{%
+      \MT@ifdefined@n@T{MT@inh@\MT@pr@inh@name @prefixes}{%
+        \par \MTS@printtext{(with prefixes:)}%
+        \@tempcntb=\z@
+    \MT@set@pr@prefixheirs
+    }}%
+    \ifShowMissingGlyphs\MTS@show@missing\fi
+  }%
+  {\MTS@printtext{NOT DEFINED}%
+  \MT@reset@pr@codes
+  }\par
+}
+\def\MTS@pr@split@val#1,#2\relax
+  {\def\@tempb{#1}%
+  \MT@ifempty\@tempb
+  {\MTS@lp@=\z@ \let\MTS@lpcode\@empty}%
+  {\MT@scale@to@em
+    \MTS@lp@=\dimexpr\@tempcntb em/1000\relax\relax
+    \edef\MTS@lpcode{[\@tempb] \the\@tempcntb/\the\MTS@lp@}%
+  }%
+  \def\@tempb{#2}%
+  \MT@ifempty\@tempb
+  {\MTS@rp@=\z@ \let\MTS@rpcode\@empty}%
+  {\MT@scale@to@em
+    \MTS@rp@=\dimexpr\@tempcntb em/1000\relax\relax
+    \edef\MTS@rpcode{[\@tempb] \the\@tempcntb/\the\MTS@rp@}%
+  }%
+  \llap{\MTS@show@char@pr\MT@char\quad}%
+  \parbox[b][][b]{3.5cm}{\MTS@printtext{%
+      \footnotesize\makebox[.4cm][l]{L:} \MT@ifempty{\MTS@lpcode}{---}{\MTS@lpcode}\\
+                   \makebox[.4cm][l]{R:} \MT@ifempty{\MTS@rpcode}{---}{\MTS@rpcode}}}%
+  \parbox[t][][t]{\dimexpr\textwidth-3.5cm}{%
+  \MT@ifdefined@c@T\MT@pr@inh@name{%
+    \MT@ifdefined@n@T{MT@inh@\MT@pr@inh@name @\MT@char @}{%
+      \MT@exp@cs\MT@map@tlist@c
+        {MT@inh@\MT@pr@inh@name @\MT@char @}%
+      \MTS@show@char@pr
+    }%
+  }%
+  }\newline
+}
+\def\MTS@set@pr@prefixes@#1#2#3#4%
+  {%
+  \MTS@lp@=\z@ \MTS@rp@=\z@
+  \ifnum#1=\@tempcntb \else
+    \par\leavevmode
+    \llap{\MTS@show@char@pr{#1} \MTS@printtext{=} }%
+  \fi
+  \@tempcnta=\z@
+  \ifnum#3>\z@
+    \@tempcnta=\numexpr
+      (\fontcharwd\MT@font#2-\fontcharwd\MT@font#1)%
+      *#3/\MT@dimen@six\relax
+  \fi
+  \MTS@lp@=\dimexpr\numexpr\lpcode\MT@font#1+\@tempcnta\relax em/1000\relax
+  \@tempcnta=\z@
+  \ifnum#4>\z@
+    \@tempcnta=\numexpr
+      (\fontcharwd\MT@font#2-\fontcharwd\MT@font#1)%
+      *#4/\MT@dimen@six\relax
+  \fi
+  \MTS@rp@=\dimexpr\numexpr\rpcode\MT@font#1+\@tempcnta\relax em/1000\relax
+  \MTS@show@char@pr{#2}%
+  \@tempcntb=#1\relax
+}
+\def\MTS@load@list#1%
+  {\edef\@tempa{#1}%
+  \MT@let@cn\@tempb{MT@\MT@feat @c@\@tempa @load}%
+  \MT@ifstreq\@tempa\@tempb{%
+    \MT@error{\@nameuse{MT@abbr@\MT@feat} list `\@tempa' cannot load itself}{}%
+  }{%
+    \ifx\@tempb\relax
+    :\par\medskip\leavevmode
+    \else
+      \MT@ifdefined@n@TF{MT@\MT@feat @c@\@tempb}{%
+        \MTS@printtext{, loading \texttt{\@tempb}}%
+        \MT@vinfo{... : First loading \@nameuse{MT@abbr@\MT@feat} list `\@tempb'}%
+        \begingroup
+          \MT@load@list\@tempb
+        \endgroup
+        \edef\MT@curr@list@name{%
+                  `\@tempb'}%
+        \MT@let@cn\@tempc{MT@\MT@feat @c@\@tempb}%
+        \expandafter\MT@set@codes\@tempc,\relax,%
+        \vrule width 4cm height .5pt \\
+        \MTS@printtext{End of list \texttt{\MT@curr@list@name}}%
+        \par\medskip\leavevmode
+      }{%
+        \MT@error{\@nameuse{MT@abbr@\MT@feat} list `\@tempb' undefined.\MessageBreak
+                    Cannot load it from list `\@tempa'}{}%
+      }%
+    \fi
+  }%
+}
+\endinput
+%%
+%% End of file `microtype-show.sty'.

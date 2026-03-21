@@ -1,0 +1,134 @@
+%%
+%% This is file `puenc-greekbasic.def',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% hyperref.dtx  (with options: `pugreek')
+%% 
+%% File: hyperref.dtx
+%% Copyright
+%% 1995-2001 Sebastian Rahtz, with portions written by David Carlisle and Heiko Oberdiek,
+%% 2001-2015 Heiko Oberdiek.
+%% 2016-2019 Oberdiek Package Support Group
+%% 2019-2021 LaTeX Project
+%%      https://github.com/latex3/hyperref/issues
+%%
+%% This file is part of the `Hyperref Bundle'.
+%% -------------------------------------------
+%%
+%% This work may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License, either version 1.3
+%% of this license or (at your option) any later version.
+%% The latest version of this license is in
+%%   http://www.latex-project.org/lppl.txt
+%% and version 1.3 or later is part of all distributions of LaTeX
+%% version 2005/12/01 or later.
+%%
+%% This work has the LPPL maintenance status `maintained'.
+%%
+%% The Current Maintainer of this work is the LaTeX Project.
+%%
+%% The list of all files belonging to the `Hyperref Bundle' is
+%% given in the file `manifest.txt'.
+%%
+\ProvidesFile{puenc-greekbasic.def}
+  [2021-02-27 v7.00k %
+  Hyperref: PDF Unicode definition (greek block) (HO)]
+\DeclareTextCommand{\textnumeralsigngreek}{PU}{\83\164}% U+0374
+\DeclareTextCommand{\textdexiakeraia}{PU}{\83\164}% U+0374
+\DeclareTextCommand{\textnumeralsignlowergreek}{PU}{\83\165}% U+0375
+\DeclareTextCommand{\textaristerikeraia}{PU}{\83\165}% U+0375
+\DeclareTextCompositeCommand{\'}{PU}{\textAlpha}{\83\206}% U+0386
+\DeclareTextCompositeCommand{\'}{PU}{\textEpsilon}{\83\210}% U+0388
+\DeclareTextCompositeCommand{\'}{PU}{\textEta}{\83\211}% U+0389
+\DeclareTextCompositeCommand{\'}{PU}{\textIota}{\83\212}% U+038A
+\DeclareTextCompositeCommand{\'}{PU}{\textOmicron}{\83\214}% U+038C
+\DeclareTextCompositeCommand{\'}{PU}{\textUpsilon}{\83\216}% U+038E
+\DeclareTextCompositeCommand{\'}{PU}{\textOmega}{\83\217}% U+038F
+\DeclareTextCompositeCommand{\'}{PU}{\textIotadieresis}{\83\220}% U+0390
+\DeclareTextCommand{\textAlpha}{PU}{\83\221}% U+0391
+\DeclareTextCommand{\textBeta}{PU}{\83\222}% U+0392
+\DeclareTextCommand{\textGamma}{PU}{\83\223}%* U+0393
+\DeclareTextCommand{\textDelta}{PU}{\83\224}%* U+0394
+\DeclareTextCommand{\textEpsilon}{PU}{\83\225}% U+0395
+\DeclareTextCommand{\textZeta}{PU}{\83\226}% U+0396
+\DeclareTextCommand{\textEta}{PU}{\83\227}% U+0397
+\DeclareTextCommand{\textTheta}{PU}{\83\230}%* U+0398
+\DeclareTextCommand{\textIota}{PU}{\83\231}% U+0399
+\DeclareTextCommand{\textKappa}{PU}{\83\232}% U+039A
+\DeclareTextCommand{\textLambda}{PU}{\83\233}%* U+039B
+\DeclareTextCommand{\textMu}{PU}{\83\234}% U+039C
+\DeclareTextCommand{\textNu}{PU}{\83\235}% U+039D
+\DeclareTextCommand{\textXi}{PU}{\83\236}%* U+039E
+\DeclareTextCommand{\textOmicron}{PU}{\83\237}% U+039F
+\DeclareTextCommand{\textPi}{PU}{\83\240}%* U+03A0
+\DeclareTextCommand{\textRho}{PU}{\83\241}% U+03A1
+\DeclareTextCommand{\textSigma}{PU}{\83\243}%* U+03A3
+\DeclareTextCommand{\textTau}{PU}{\83\244}% U+03A4
+\DeclareTextCommand{\textUpsilon}{PU}{\83\245}%* U+03A5
+\DeclareTextCommand{\textPhi}{PU}{\83\246}%* U+03A6
+\DeclareTextCommand{\textChi}{PU}{\83\247}% U+03A7
+\DeclareTextCommand{\textPsi}{PU}{\83\250}%* U+03A8
+\DeclareTextCommand{\textOmega}{PU}{\83\251}%* U+03A9
+\DeclareTextCommand{\textIotadieresis}{PU}{\83\252}% U+03AA
+\DeclareTextCompositeCommand{\"}{PU}{\textIota}{\83\252}% U+03AA
+\DeclareTextCompositeCommand{\"}{PU}{\textUpsilon}{\83\253}% U+03AB
+\DeclareTextCompositeCommand{\'}{PU}{\textalpha}{\83\254}%* U+03AC
+\DeclareTextCompositeCommand{\'}{PU}{\textepsilon}{\83\255}% U+03AD
+\DeclareTextCompositeCommand{\'}{PU}{\texteta}{\83\256}% U+03AE
+\DeclareTextCompositeCommand{\'}{PU}{\textiota}{\83\257}% U+03AF
+\DeclareTextCompositeCommand{\"}{PU}{\textupsilonacute}{\83\260}% U+03B0
+\DeclareTextCommand{\textalpha}{PU}{\83\261}%* U+03B1
+\DeclareTextCommand{\textbeta}{PU}{\83\262}%* U+03B2
+\DeclareTextCommand{\textgamma}{PU}{\83\263}%* U+03B3
+\DeclareTextCommand{\textdelta}{PU}{\83\264}%* U+03B4
+\DeclareTextCommand{\textepsilon}{PU}{\83\265}%* U+03B5
+\DeclareTextCommand{\textzeta}{PU}{\83\266}%* U+03B6
+\DeclareTextCommand{\texteta}{PU}{\83\267}%* U+03B7
+\DeclareTextCommand{\texttheta}{PU}{\83\270}%* U+03B8
+\DeclareTextCommand{\textiota}{PU}{\83\271}%* U+03B9
+\DeclareTextCommand{\textkappa}{PU}{\83\272}%* U+03BA
+\DeclareTextCommand{\textlambda}{PU}{\83\273}%* U+03BB
+\DeclareTextCommand{\textmugreek}{PU}{\83\274}%* U+03BC
+\DeclareTextCommand{\textnu}{PU}{\83\275}%* U+03BD
+\DeclareTextCommand{\textxi}{PU}{\83\276}%* U+03BE
+\DeclareTextCommand{\textomicron}{PU}{\83\277}% U+03BF
+\DeclareTextCommand{\textpi}{PU}{\83\300}%* U+03C0
+\DeclareTextCommand{\textrho}{PU}{\83\301}%* U+03C1
+\DeclareTextCommand{\textvarsigma}{PU}{\83\302}%* U+03C2
+\DeclareTextCommand{\textsigma}{PU}{\83\303}%* U+03C3
+\DeclareTextCommand{\texttau}{PU}{\83\304}%* U+03C4
+\DeclareTextCommand{\textupsilon}{PU}{\83\305}%* U+03C5
+\DeclareTextCommand{\textphi}{PU}{\83\306}%* U+03C6
+\DeclareTextCommand{\textchi}{PU}{\83\307}%* U+03C7
+\DeclareTextCommand{\textpsi}{PU}{\83\310}%* U+03C8
+\DeclareTextCommand{\textomega}{PU}{\83\311}%* U+03C9
+\DeclareTextCompositeCommand{\"}{PU}{\textiota}{\83\312}% U+03CA
+\DeclareTextCompositeCommand{\"}{PU}{\textupsilon}{\83\313}% U+03CB
+\DeclareTextCompositeCommand{\'}{PU}{\textomicron}{\83\314}% U+03CC
+\DeclareTextCommand{\textupsilonacute}{PU}{\83\315}% U+03CD
+\DeclareTextCompositeCommand{\'}{PU}{\textupsilon}{\83\315}% U+03CD
+\DeclareTextCompositeCommand{\'}{PU}{\textomega}{\83\316}% U+03CE
+\DeclareTextCommand{\textQoppa}{PU}{\83\330}% U+03D8
+\DeclareTextCommand{\textqoppa}{PU}{\83\331}% U+03D9
+\DeclareTextCommand{\textStigmagreek}{PU}{\83\332}% U+03DA
+\DeclareTextCommand{\textStigma}{PU}{\83\332}% U+03DA
+\DeclareTextCommand{\textstigmagreek}{PU}{\83\333}% U+03DB
+\DeclareTextCommand{\textstigma}{PU}{\83\333}% U+03DB
+\DeclareTextCommand{\textDigammagreek}{PU}{\83\334}% U+03DC
+\DeclareTextCommand{\textDigamma}{PU}{\83\334}% U+03DC
+\DeclareTextCommand{\textdigammagreek}{PU}{\83\335}% U+03DD
+\DeclareTextCommand{\textdigamma}{PU}{\83\335}% U+03DD
+\DeclareTextCommand{\textKoppa}{PU}{\83\336}% U+03DE
+\DeclareTextCommand{\textKoppagreek}{PU}{\83\336}% U+03DE
+\DeclareTextCommand{\textkoppa}{PU}{\83\337}% U+03DF
+\DeclareTextCommand{\textkoppagreek}{PU}{\83\337}% U+03DF
+\DeclareTextCommand{\textSampigreek}{PU}{\83\340}% U+03E0
+\DeclareTextCommand{\textSampi}{PU}{\83\340}% U+03E0
+\DeclareTextCommand{\textsampigreek}{PU}{\83\341}% U+03E1
+\DeclareTextCommand{\textsampi}{PU}{\83\341}% U+03E1
+\DeclareTextCommand{\textbackepsilon}{PU}{\83\366}% U+03F6
+\endinput
+%%
+%% End of file `puenc-greekbasic.def'.

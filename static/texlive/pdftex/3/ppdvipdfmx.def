@@ -1,0 +1,213 @@
+%%
+%% This is file `ppdvipdfmx.def',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% pdfpages.dtx  (with options: `ppdvipdfmxdef')
+%% 
+%% This file is part of the pdfpages package.
+%% 
+%% Copyright (C) 2001-2025 Andreas MATTHIAS
+%%
+%% This work may be distributed and/or modified under the conditions
+%% of the LaTeX Project Public License, either version 1.3c
+%% of this license or (at your option) any later version.
+%% The latest version of this license is in
+%%   <http://www.latex-project.org/lppl.txt>.
+%%
+%% This work has the LPPL maintenance status `maintained'.
+%%
+%% The Current Maintainer of this work is
+%%   Andreas Matthias <andreas.matthias@gmail.com>.
+%%
+%% Please send error reports and suggestions for improvements to
+%%   Andreas MATTHIAS <andreas.matthias@gmail.com>.
+%%
+\def\AM@git@tag{v0.6g}
+\def\AM@git@date{2025/07/23}
+\def\AM@git@hash{b55a30b6b0}
+\ProvidesFile{ppdvipdfmx.def}
+   [\AM@git@date\space\AM@git@tag\space
+    Pdfpages driver for dvipdfmx (AM)]
+\def\AM@tmp{dvipdfmx.def}
+\ifx\Gin@driver\AM@tmp\else
+  \PackageWarningNoLine{pdfpages}{%
+    Graphicx.sty not loaded with driver `dvipdfmx'.\MessageBreak
+    Please, specify the driver as a class option\MessageBreak
+    \@spaces \string\documentclass[dvipdfmx]{...}\MessageBreak
+    or load graphicx explicitely before pdfpages,\MessageBreak
+    e.g.:\MessageBreak
+    \@spaces \string\usepackage[dvipdfmx]{graphicx}\MessageBreak
+    \@spaces \string\usepackage[dvipdfmx]{pdfpages}\MessageBreak
+    This time I will try to load `dvipdfmx.def' which \MessageBreak
+    will overwrite `\string\Gin@driver'.\MessageBreak
+    Let's hope for the best}%
+  \input{dvipdfmx.def}%
+\fi
+{\catcode`\"=12
+ \gdef\AM@quote{"}%
+}%
+\def\AM@getpagecount{%
+  \ifAM@pagecount@updated
+  \else
+    \expandafter\expandafter\expandafter\AM@get@xbb@filename
+    \csname Gin@rule@.pdf\endcsname\AM@currentdocname
+    \immediate\openin\@inputcheck=\AM@xbb@filename
+    \AM@read@xbb\@inputcheck
+    \immediate\closein\@inputcheck
+    \ifAM@pagecount@updated
+      \PackageInfo{pdfpages}{Reading file `\AM@xbb@filename'}%
+    \fi
+    \ifAM@pagecount@updated
+    \else
+      \immediate\openin\@inputcheck=
+      \AM@quote|extractbb -O \AM@currentdocname\AM@quote
+      \AM@read@xbb\@inputcheck
+      \immediate\closein\@inputcheck
+      \PackageInfo{pdfpages}{Running extractbb on file `\AM@currentdocname'}%
+    \fi
+  \fi
+  \ifx\AM@pagecount\AM@undefined
+    \def\AM@pagecount{1}
+  \fi
+}
+\def\AM@get@xbb@filename#1#2#3{%
+  \filename@parse{#3}%
+  \edef\AM@xbb@filename{\filename@area\filename@base#2}%
+}
+\def\AM@read@xbb#1{%
+  \@tempswatrue
+  \loop
+    \ifeof#1
+      \@tempswafalse
+    \else
+      \begingroup
+        \catcode`\%=12\relax
+        \immediate\global\read#1 to \@tempa
+      \endgroup
+      \expandafter\AM@find@pages\@tempa:\relax
+    \fi
+  \if@tempswa\repeat
+}
+\long\def\AM@find@pages#1:#2\relax{%
+  \def\@tempb{#1}%
+  \edef\@tempc{\@percentchar\@percentchar Pages}%
+  \ifx\@tempb\@tempc
+    \AM@set@pagecount#2%
+    \AM@pagecount@updatedtrue
+  \fi
+}
+\def\AM@set@pagecount#1:{\def\AM@pagecount{#1}}
+\def\AM@getpagedimen{%
+  \AM@pagewidth=\paperwidth
+  \AM@pageheight=\paperheight
+}
+\def\AM@setpagedimen{%
+  \special{pdf:pagesize width \the\AM@pagewidth\space
+                        height \the\AM@pageheight\space}%
+}
+\def\AM@pagesize@boogie{%
+  \ifdim\AM@pagewidth=\z@
+    \ifdim\AM@pageheight=\z@
+      \let\AM@pagewidth\paperwidth
+      \let\AM@pageheight\paperheight
+    \fi
+  \fi
+}
+\def\AM@setRotate{\special{pdf: put @thispage <</Rotate 90>>}}%
+\def\AM@resetRotate{}
+\let\AM@fitpaper@special\relax
+\def\AM@findfile#1{%
+  \AM@findfile@i{#1}{pdf}%
+  \AM@findfile@ii{#1}%
+}
+\let\AM@IfFileExists\IfFileExists
+\def\AM@linktodoc@special@begin{%
+  \special{pdf: ann
+                width \the\wd\@tempboxa\space
+                height \the\ht\@tempboxa\space
+                depth \the\dp\@tempboxa\space
+                << /Type /Annot
+                   /Subtype /Link /Border [0 0 0]
+                   /A << /S /GoToR
+                         /F (\AM@linkfilename)
+                         /D [\AM@linktodoc@page@m@ne \AM@linktodocfit]
+                         \ifAM@newwindow/NewWindow true\fi >>
+                >>}%
+}
+\let\AM@linktodoc@special@end\relax
+\let\AM@survey@special@begin\relax
+\let\AM@survey@special@end\relax
+\def\AM@thread@special@begin{%
+  \special{pdf: thread @\AM@threadname\space
+                width \the\wd\@tempboxa\space
+                height \the\ht\@tempboxa\space
+                depth \the\dp\@tempboxa\space
+                <<\threadinfodict>>}%
+}
+\let\AM@thread@special@end\relax
+\def\AM@reset@view{%
+  \def\AM@view{/Fit}%
+  \def\AM@view@xpos{0}%
+  \def\AM@view@ypos{}}
+\def\AM@dest@special{%
+  \special{pdf: dest (\AM@linkname.\AM@page) [ @thispage \AM@view ]}}
+\def\AM@anchor@special{%
+  \special{pdf: dest (pdfpages.\the\count1) [ @thispage /Fit ]}}
+\def\AM@convert@dest#1{%
+  \expandafter\AM@convert@dest@i\ifdim\z@=0pt#1 \END\fi}
+\def\AM@convert@dest@i#1 #2\END{%
+  \begingroup
+  \def\tag{#1}%
+  \def\x{FitH}%
+  \ifx\x\tag
+    \gdef\AM@view{/FitH @ypos}%
+  \else
+    \def\x{FitBH}%
+    \ifx\x\tag
+      \gdef\AM@view{/FitBH @ypos}%
+    \else
+      \def\x{FitV}%
+      \ifx\x\tag
+        \gdef\AM@view{/FitV @xpos}%
+      \else
+        \def\x{FitBV}%
+        \ifx\x\tag
+          \gdef\AM@view{/FitBV @xpos}%
+        \else
+          \def\x{fitr}%
+          \ifx\x\tag
+            \gdef\AM@view{/XYZ @xpos @ypos null}%
+            \PackageWarningNoLine{pdfpages}{%
+              `linkfit=FitR' is not supported.}%
+          \else
+            \def\x{FitB}%
+            \ifx\x\tag
+              \gdef\AM@view{/FitB}%
+            \else
+              \def\x{XYZ}%
+              \ifx\x\tag
+                \gdef\AM@view{/XYZ @xpos @ypos null}%
+              \else
+                \def\x{Region}%
+                \ifx\x\tag
+                  \gdef\AM@view{/XYZ @xpos @ypos null}%
+                  \PackageWarningNoLine{pdfpages}{%
+                    `linkfit=Region' is not supported by dvipdfmx.}%
+                \else
+                  \gdef\AM@view{/Fit}%
+                \fi
+              \fi
+            \fi
+          \fi
+        \fi
+      \fi
+    \fi
+  \fi
+  \endgroup
+}
+\let\AM@disable@includegraphics\relax
+\endinput
+%%
+%% End of file `ppdvipdfmx.def'.

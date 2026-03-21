@@ -1,0 +1,24 @@
+\begingroup
+\catcode94=7 % circumflex
+\catcode0=11 % null byte
+\def\makeletterchar#1{%
+	\begingroup
+	\lccode0=#1% space isn't needed because \lowercase terminates
+	\lowercase{\endgroup\gdef\letterchar{^^@}}%
+}
+
+% prepare ONE-BYTE conversion [0-255] -> binary character:
+\count0=0
+\countdef\counter=0
+\loop\ifnum\counter<256
+	\makeletterchar{\counter}%
+	\expandafter\xdef\csname pgfp@bin@\the\counter\endcsname{\letterchar}
+	\advance\counter by1
+\repeat
+\ifnum\counter=256
+\else
+	\pgfplots@error{Internal logic Error: initialisation failed. I have only \the\counter\space bytes initialised.}
+\fi
+\endgroup
+
+\endinput

@@ -9,6 +9,10 @@
   No accounts. No installs. No servers. Just open a tab and write.
 </p>
 
+<p align="center">
+  <a href="https://tex.swimmingbrain.tex"><strong>Try it now &rarr; tex.swimmingbrain.tex</strong></a>
+</p>
+
 I built this because I was tired of paying for features that should be free. I wrote my thesis last year in LaTeX and spent more time fighting tooling than actually writing. Online solutions lock git sync behind a paywall. Local setups break between machines. I wanted something that just works. Open a browser, write LaTeX, get a PDF.
 
 So I built it.

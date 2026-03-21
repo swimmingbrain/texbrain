@@ -3,15 +3,16 @@ import { base } from '$app/paths';
 let engine: any = null;
 let loadPromise: Promise<void> | null = null;
 let coreLoaded = false;
+let restLoaded = false;
+let restLoadingPromise: Promise<void> | null = null;
 
 const IDB_NAME = 'texbrain-texlive';
 const IDB_STORE = 'cache';
 const IDB_VERSION = 1;
 
-// directories already created in the engine's MEMFS (persist across compiles)
 const createdDirs = new Set<string>();
 
-interface CoreBundle {
+interface CacheBundle {
   text: Record<string, string>;
   binary: Record<string, string>;
 }
@@ -27,7 +28,7 @@ function openIdb(): Promise<IDBDatabase> {
   });
 }
 
-function idbGet(db: IDBDatabase, key: string): Promise<CoreBundle | undefined> {
+function idbGet(db: IDBDatabase, key: string): Promise<CacheBundle | undefined> {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(IDB_STORE, 'readonly');
     const req = tx.objectStore(IDB_STORE).get(key);
@@ -36,7 +37,7 @@ function idbGet(db: IDBDatabase, key: string): Promise<CoreBundle | undefined> {
   });
 }
 
-function idbPut(db: IDBDatabase, key: string, value: CoreBundle): Promise<void> {
+function idbPut(db: IDBDatabase, key: string, value: CacheBundle): Promise<void> {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(IDB_STORE, 'readwrite');
     tx.objectStore(IDB_STORE).put(value, key);
@@ -52,11 +53,19 @@ function base64ToArrayBuffer(b64: string): ArrayBuffer {
   return buf.buffer;
 }
 
-async function fetchCoreBundle(): Promise<CoreBundle> {
-  // try IndexedDB first
+function writeBundleToEngine(eng: any, bundle: CacheBundle): void {
+  for (const [name, content] of Object.entries(bundle.text)) {
+    eng.writeMemFSFile(`/tex/${name}`, content);
+  }
+  for (const [name, b64] of Object.entries(bundle.binary)) {
+    eng.writeBinaryMemFSFile(`/tex/${name}`, base64ToArrayBuffer(b64));
+  }
+}
+
+async function fetchBundle(url: string, idbKey: string): Promise<CacheBundle> {
   try {
     const db = await openIdb();
-    const cached = await idbGet(db, 'core');
+    const cached = await idbGet(db, idbKey);
     if (cached) {
       db.close();
       return cached;
@@ -64,33 +73,30 @@ async function fetchCoreBundle(): Promise<CoreBundle> {
     db.close();
   } catch { /* fall through to network */ }
 
-  const resp = await fetch(`${base}/texlive/core-bundle.json`);
-  const bundle: CoreBundle = await resp.json();
+  const resp = await fetch(url);
+  const bundle: CacheBundle = await resp.json();
 
-  // persist for next visit
   try {
     const db = await openIdb();
-    await idbPut(db, 'core', bundle);
+    await idbPut(db, idbKey, bundle);
     db.close();
   } catch { /* non-critical */ }
 
   return bundle;
 }
 
-async function loadCoreBundle(eng: any): Promise<void> {
+async function loadCore(eng: any): Promise<void> {
   if (coreLoaded) return;
-
-  const bundle = await fetchCoreBundle();
-
-  for (const [name, content] of Object.entries(bundle.text)) {
-    eng.writeMemFSFile(`/tex/${name}`, content);
-  }
-
-  for (const [name, b64] of Object.entries(bundle.binary)) {
-    eng.writeBinaryMemFSFile(`/tex/${name}`, base64ToArrayBuffer(b64));
-  }
-
+  const bundle = await fetchBundle(`${base}/texlive/core-bundle.json`, 'core');
+  writeBundleToEngine(eng, bundle);
   coreLoaded = true;
+}
+
+async function loadRest(eng: any): Promise<void> {
+  if (restLoaded) return;
+  const bundle = await fetchBundle(`${base}/texlive/rest-bundle.json`, 'rest');
+  writeBundleToEngine(eng, bundle);
+  restLoaded = true;
 }
 
 function loadScript(src: string): Promise<void> {
@@ -131,7 +137,12 @@ export async function getEngine(): Promise<any> {
 
 export async function warmup(): Promise<void> {
   const eng = await getEngine();
-  await loadCoreBundle(eng);
+  await loadCore(eng);
+
+  // start loading the rest in the background
+  if (!restLoadingPromise) {
+    restLoadingPromise = loadRest(eng).catch(() => {});
+  }
 }
 
 export interface CompileResult {
@@ -146,7 +157,10 @@ export async function compileLaTeX(
   binaryFiles?: Map<string, ArrayBuffer>
 ): Promise<CompileResult> {
   const eng = await getEngine();
-  await loadCoreBundle(eng);
+  await loadCore(eng);
+
+  // wait for the rest if still loading, so all packages are available
+  if (restLoadingPromise) await restLoadingPromise;
 
   const allPaths = [...files.keys(), ...(binaryFiles?.keys() || [])];
   for (const path of allPaths) {

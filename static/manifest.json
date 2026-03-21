@@ -1,0 +1,17 @@
+{
+  "name": "TeXbrain",
+  "short_name": "TeXbrain",
+  "author": "Braian Plaku",
+  "description": "browser-based latex editor by braian plaku",
+  "start_url": "/editor",
+  "display": "standalone",
+  "background_color": "#0c0d12",
+  "theme_color": "#4a6cf7",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

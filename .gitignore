@@ -1,0 +1,8 @@
+node_modules/
+.svelte-kit/
+build/
+.env
+.env.*
+.DS_Store
+*.local
+static/texlive/cache/

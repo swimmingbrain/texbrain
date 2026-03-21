@@ -2,7 +2,7 @@ import { EditorState, type Extension } from '@codemirror/state';
 import { EditorView, lineNumbers, highlightActiveLine, highlightActiveLineGutter, drawSelection, dropCursor, rectangularSelection, crosshairCursor, keymap } from '@codemirror/view';
 import { defaultKeymap as _defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 
-// filter out Mod-/ (toggleComment) -- used globally for the snippet picker
+// filter out Mod-/ (toggleComment), reserved for the snippet picker
 const defaultKeymap = _defaultKeymap.filter(k => k.key !== 'Mod-/');
 
 import { foldGutter, foldKeymap, bracketMatching, indentOnInput } from '@codemirror/language';

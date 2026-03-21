@@ -5,17 +5,41 @@
   import { theme } from '$lib/stores/theme';
 
   const features = [
-    { tag: 'auth', title: 'No Account', desc: 'No sign-up, no login. Open and start writing.' },
-    { tag: 'env', title: 'No Install', desc: 'Runs entirely in your browser. Zero setup.' },
-    { tag: 'fs', title: 'Local Files', desc: 'Your files never leave your machine. Edit .tex directly on disk.' },
-    { tag: 'view', title: 'Live Preview', desc: 'See your LaTeX rendered in real-time as you type.' },
-    { tag: 'pwa', title: 'Works Offline', desc: 'Install as a PWA. Full functionality without internet.' },
-    { tag: 'ui', title: 'Dark & Light', desc: 'Themes designed for long writing sessions.' }
+    {
+      icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+      title: 'No account needed',
+      desc: 'No sign-up, no login, no tracking. Open the editor and start writing immediately.'
+    },
+    {
+      icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
+      title: 'Runs in your browser',
+      desc: 'Zero installation. The entire LaTeX engine runs locally via WebAssembly.'
+    },
+    {
+      icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>',
+      title: 'Your files stay local',
+      desc: 'Edit .tex files directly on your disk. Nothing ever leaves your machine.'
+    },
+    {
+      icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+      title: 'Live PDF preview',
+      desc: 'Compile to PDF and see results in real-time. Syntax highlighting included.'
+    },
+    {
+      icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="3"/><path d="M1 13c0-2.8 2.2-5 5-5s5 2.2 5 5"/><circle cx="18" cy="8" r="2.5"/><path d="M14 15c0-2.2 1.8-4 4-4s4 1.8 4 4"/></svg>',
+      title: 'Real-time collaboration',
+      desc: 'Work together with peers over WebRTC. End-to-end encrypted sessions.'
+    },
+    {
+      icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 5.5a3.5 3.5 0 01-5.55 2.83L6.83 11H5v1.5H3.5V14H1v-2.5l5.17-5.17A3.5 3.5 0 1115 5.5z"/></svg>',
+      title: 'Built-in Git',
+      desc: 'Version control your LaTeX projects without leaving the editor.'
+    }
   ];
 </script>
 
 <svelte:head>
-  <title>TeXbrain — LaTeX without the baggage</title>
+  <title>TeXbrain | LaTeX in your browser</title>
 </svelte:head>
 
 <div class="landing">
@@ -27,46 +51,52 @@
       </a>
       <div class="nav-actions">
         <ThemeToggle />
-        <a href="{base}/editor" class="nav-link">Open Editor</a>
+        <a href="{base}/editor" class="nav-cta">Open Editor</a>
       </div>
     </div>
   </nav>
 
   <section class="hero">
-    <p class="hero-tagline">LaTeX without the baggage</p>
+    <div class="hero-badge">open source latex editor</div>
     <h1 class="hero-title">
-      LaTeX in your browser.<br />
-      Files on your machine.
+      Write LaTeX<br />
+      <span class="hero-accent">without the baggage.</span>
     </h1>
     <p class="hero-desc">
-      A professional LaTeX editor that runs entirely in your browser.
-      No account, no installation, no server-side processing.
-      Open your .tex files, edit with syntax highlighting and live preview,
-      compile to PDF — all locally.
+      A professional LaTeX editor that compiles to PDF entirely in your browser.
+      No accounts, no installs, no servers. Your files never leave your machine.
     </p>
-    <div class="hero-actions">
-      <a href="{base}/editor" class="cta-primary">
-        Start Writing
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-          <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </a>
-      <a href="{base}/editor" class="cta-ghost">Open Editor</a>
-    </div>
+    <a href="{base}/editor" class="hero-cta">
+      Open Editor
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
   </section>
 
   <section class="demo-section">
     <div class="demo-window">
       <div class="demo-bar">
-        <span class="demo-label">article.tex</span>
-        <span class="demo-label dim">preview</span>
+        <div class="demo-dots">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+        <span class="demo-filename">article.tex</span>
+        <div style="flex:1"></div>
+        <span class="demo-label">preview</span>
       </div>
       <div class="demo-content">
         <div class="demo-editor">
+          <div class="line-numbers">
+            {#each Array(11) as _, i}
+              <span>{i + 1}</span>
+            {/each}
+          </div>
           <code>
             <span class="c-cmd">\documentclass</span><span class="c-brace">{'{'}article{'}'}</span>{'\n\n'}
             <span class="c-cmd">\title</span><span class="c-brace">{'{'}My First Document{'}'}</span>{'\n'}
-            <span class="c-cmd">\author</span><span class="c-brace">{'{'}Your Name{'}'}</span>{'\n'}
+            <span class="c-cmd">\author</span><span class="c-brace">{'{'}Braian Plaku{'}'}</span>{'\n'}
             <span class="c-cmd">\date</span><span class="c-brace">{'{'}</span><span class="c-cmd">\today</span><span class="c-brace">{'}'}</span>{'\n\n'}
             <span class="c-env">\begin</span><span class="c-brace">{'{'}document{'}'}</span>{'\n'}
             <span class="c-cmd">\maketitle</span>{'\n\n'}
@@ -79,9 +109,9 @@
         <div class="demo-preview">
           <div class="preview-paper">
             <h2 style="text-align:center;margin-bottom:4px;font-size:15px;font-weight:600;">My First Document</h2>
-            <p style="text-align:center;color:var(--text-secondary);font-size:11px;margin-bottom:14px;">Your Name — March 2026</p>
+            <p style="text-align:center;color:#666;font-size:10px;margin-bottom:14px;">Braian Plaku</p>
             <p style="font-weight:600;margin-bottom:5px;font-size:13px;">1 Introduction</p>
-            <p style="font-size:12px;line-height:1.6;">Hello, world! This is <em>E = mc²</em>.</p>
+            <p style="font-size:12px;line-height:1.6;">Hello, world! This is <em>E = mc&sup2;</em>.</p>
           </div>
         </div>
       </div>
@@ -89,27 +119,37 @@
   </section>
 
   <section class="features">
-    <h2 class="section-title">Everything you need, nothing you don't</h2>
     <div class="feature-grid">
       {#each features as feature}
         <div class="feature-card">
-          <div class="feature-head">
-            <span class="feature-tag">{feature.tag}</span>
-            <span class="feature-name">{feature.title}</span>
-          </div>
+          <div class="feature-icon">{@html feature.icon}</div>
+          <h3 class="feature-title">{feature.title}</h3>
           <p class="feature-desc">{feature.desc}</p>
         </div>
       {/each}
     </div>
   </section>
 
+  <section class="bottom-cta">
+    <p class="bottom-cta-text">ready to write?</p>
+    <a href="{base}/editor" class="hero-cta">
+      Open Editor
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+  </section>
+
   <footer class="footer">
     <div class="footer-inner">
       <div class="footer-brand">
-        <span class="logo-mark small"><Logo size={20} /></span>
+        <span class="logo-mark"><Logo size={18} /></span>
         <span class="footer-name">TeXbrain</span>
       </div>
-      <p class="footer-copy">Built for writers, researchers, and students. Open source coming soon.</p>
+      <p class="footer-credit">
+        made with <span class="heart">&hearts;</span> by
+        <a href="https://swimmingbrain.dev" target="_blank" rel="noopener">Braian Plaku</a>
+      </p>
     </div>
   </footer>
 </div>
@@ -121,17 +161,17 @@
     background: var(--bg-deep);
   }
 
-  /* Nav */
   .nav {
     position: sticky;
     top: 0;
     z-index: 100;
     background: var(--bg-deep);
     border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px);
   }
 
   .nav-inner {
-    max-width: 960px;
+    max-width: 1000px;
     margin: 0 auto;
     padding: 0 24px;
     height: 48px;
@@ -153,12 +193,6 @@
     color: var(--accent);
   }
 
-  .logo-mark.small {
-    display: flex;
-    align-items: center;
-    color: var(--accent);
-  }
-
   .logo-name {
     font-family: var(--font-brand);
     font-style: italic;
@@ -172,153 +206,165 @@
     gap: 10px;
   }
 
-  .nav-link {
-    padding: 5px 12px;
+  .nav-cta {
+    padding: 5px 14px;
     font-size: 12px;
     font-weight: 500;
     color: #111;
     background: var(--accent);
     border-radius: var(--radius-sm);
     text-decoration: none;
+    transition: background 0.15s;
   }
 
-  .nav-link:hover {
+  .nav-cta:hover {
     background: var(--accent-hover);
     color: #111;
   }
 
-  /* Hero */
   .hero {
-    max-width: 620px;
+    max-width: 640px;
     margin: 0 auto;
-    padding: 72px 24px 32px;
+    padding: 80px 24px 40px;
     text-align: center;
   }
 
-  .hero-tagline {
-    font-size: 12px;
-    font-weight: 500;
+  .hero-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
     font-family: var(--font-editor);
     color: var(--accent);
-    letter-spacing: 0.02em;
-    margin-bottom: 16px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border: 1px solid var(--border);
+    background: var(--bg-surface);
+    margin-bottom: 24px;
   }
 
   .hero-title {
-    font-size: 40px;
+    font-size: 48px;
     font-weight: 700;
-    line-height: 1.15;
-    letter-spacing: -0.025em;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
     color: var(--text-primary);
-    margin-bottom: 16px;
+    margin-bottom: 20px;
+  }
+
+  .hero-accent {
+    color: var(--accent);
   }
 
   .hero-desc {
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1.65;
     color: var(--text-secondary);
-    max-width: 480px;
-    margin: 0 auto 28px;
+    max-width: 460px;
+    margin: 0 auto 32px;
   }
 
-  .hero-actions {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .cta-primary {
+  .hero-cta {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 9px 20px;
-    font-size: 13px;
+    gap: 8px;
+    padding: 11px 24px;
+    font-size: 14px;
     font-weight: 600;
     color: #111;
     background: var(--accent);
     border-radius: var(--radius-sm);
     text-decoration: none;
+    transition: background 0.15s, transform 0.1s;
   }
 
-  .cta-primary:hover {
+  .hero-cta:hover {
     background: var(--accent-hover);
     color: #111;
+    transform: translateY(-1px);
   }
 
-  .cta-ghost {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 9px 20px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    text-decoration: none;
-  }
-
-  .cta-ghost:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
-  }
-
-  /* Demo */
   .demo-section {
-    max-width: 820px;
+    max-width: 860px;
     margin: 0 auto;
-    padding: 12px 24px 48px;
+    padding: 8px 24px 56px;
   }
 
   .demo-window {
     border: 1px solid var(--border);
+    border-radius: 6px;
     overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   }
 
   .demo-bar {
     display: flex;
     align-items: center;
-    gap: 0;
-    height: 30px;
+    gap: 12px;
+    height: 34px;
+    padding: 0 12px;
     background: var(--bg-surface);
     border-bottom: 1px solid var(--border);
   }
 
-  .demo-label {
-    padding: 0 14px;
-    font-size: 11px;
-    font-family: var(--font-editor);
-    color: var(--text-secondary);
-    border-right: 1px solid var(--border);
-    height: 100%;
+  .demo-dots {
     display: flex;
-    align-items: center;
+    gap: 5px;
   }
 
-  .demo-label.dim {
+  .demo-dots .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+
+  .demo-filename {
+    font-size: 11px;
+    font-family: var(--font-editor);
+    color: var(--text-primary);
+  }
+
+  .demo-label {
+    font-size: 10px;
+    font-family: var(--font-editor);
     color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
   .demo-content {
     display: flex;
-    min-height: 260px;
+    min-height: 280px;
   }
 
   .demo-editor {
     flex: 1;
-    padding: 16px;
+    padding: 16px 16px 16px 0;
     background: var(--bg-surface);
     font-family: var(--font-editor);
     font-size: 12.5px;
     line-height: 1.7;
     overflow: hidden;
+    display: flex;
+  }
+
+  .line-numbers {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    padding: 0 12px 0 16px;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.7;
+    user-select: none;
+    opacity: 0.5;
   }
 
   .demo-editor code {
     white-space: pre-wrap;
     color: var(--text-primary);
+    flex: 1;
   }
 
   .c-cmd { color: var(--syntax-command); }
@@ -333,7 +379,7 @@
 
   .demo-preview {
     flex: 1;
-    padding: 16px;
+    padding: 20px;
     background: var(--bg-elevated);
     display: flex;
     align-items: flex-start;
@@ -343,66 +389,46 @@
   .preview-paper {
     background: white;
     color: #1a1a1a;
-    padding: 20px;
+    padding: 24px;
     width: 100%;
     max-width: 280px;
     font-family: 'Georgia', serif;
     font-size: 13px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    border-radius: 2px;
   }
 
-  /* Features */
   .features {
-    max-width: 900px;
+    max-width: 960px;
     margin: 0 auto;
-    padding: 32px 24px 64px;
-  }
-
-  .section-title {
-    font-size: 22px;
-    font-weight: 600;
-    text-align: center;
-    color: var(--text-primary);
-    margin-bottom: 32px;
-    letter-spacing: -0.01em;
+    padding: 16px 24px 64px;
   }
 
   .feature-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 1px;
     background: var(--border);
     border: 1px solid var(--border);
   }
 
   .feature-card {
-    padding: 20px;
+    padding: 28px 24px;
     background: var(--bg-surface);
   }
 
-  .feature-head {
+  .feature-icon {
+    color: var(--accent);
+    margin-bottom: 12px;
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 6px;
   }
 
-  .feature-tag {
-    font-size: 9px;
-    font-weight: 600;
-    font-family: var(--font-editor);
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--accent);
-    padding: 1px 5px;
-    border: 1px solid var(--border);
-    background: var(--bg-elevated);
-  }
-
-  .feature-name {
+  .feature-title {
     font-size: 14px;
     font-weight: 600;
     color: var(--text-primary);
+    margin-bottom: 6px;
   }
 
   .feature-desc {
@@ -411,14 +437,25 @@
     color: var(--text-secondary);
   }
 
-  /* Footer */
+  .bottom-cta {
+    text-align: center;
+    padding: 0 24px 64px;
+  }
+
+  .bottom-cta-text {
+    font-size: 14px;
+    font-family: var(--font-editor);
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
   .footer {
     border-top: 1px solid var(--border);
-    padding: 24px;
+    padding: 20px 24px;
   }
 
   .footer-inner {
-    max-width: 960px;
+    max-width: 1000px;
     margin: 0 auto;
     display: flex;
     align-items: center;
@@ -440,28 +477,37 @@
     color: var(--text-primary);
   }
 
-  .footer-copy {
+  .footer-credit {
     font-size: 11px;
     color: var(--text-muted);
+    font-family: var(--font-editor);
   }
 
-  /* Responsive */
-  @media (max-width: 640px) {
-    .hero-title {
-      font-size: 28px;
-    }
+  .footer-credit a {
+    color: var(--accent);
+    text-decoration: none;
+  }
 
-    .hero-desc {
-      font-size: 14px;
-    }
+  .footer-credit a:hover {
+    color: var(--accent-hover);
+  }
 
-    .demo-content {
-      flex-direction: column;
-    }
+  .heart {
+    color: var(--error);
+    font-size: 12px;
+  }
 
-    .demo-divider {
-      width: 100%;
-      height: 1px;
-    }
+  @media (max-width: 768px) {
+    .hero-title { font-size: 34px; }
+    .hero-desc { font-size: 14px; }
+    .feature-grid { grid-template-columns: 1fr; }
+    .demo-content { flex-direction: column; }
+    .demo-divider { width: 100%; height: 1px; }
+    .line-numbers { display: none; }
+  }
+
+  @media (max-width: 480px) {
+    .hero-title { font-size: 28px; }
+    .hero { padding: 56px 20px 32px; }
   }
 </style>

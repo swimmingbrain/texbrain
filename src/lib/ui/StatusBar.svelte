@@ -55,6 +55,11 @@
       <span class="sep"></span>
       <span class="status-item">LaTeX</span>
     {/if}
+    <span class="sep"></span>
+    <span class="status-item credit">
+      made with <span class="heart">&hearts;</span> by
+      <a href="https://swimmingbrain.dev" target="_blank" rel="noopener">Braian Plaku</a>
+    </span>
   </div>
 </div>
 
@@ -102,5 +107,19 @@
 
   .pulse {
     animation: pulse 1.5s infinite;
+  }
+
+  .credit a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .credit a:hover {
+    color: var(--accent-hover);
+  }
+
+  .heart {
+    color: var(--error);
+    font-size: 11px;
   }
 </style>

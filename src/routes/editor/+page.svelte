@@ -832,7 +832,7 @@
 </script>
 
 <svelte:head>
-  <title>{$activeFile ? `${$activeFile.name}${$activeFile.dirty ? ' *' : ''} — TeXbrain` : 'TeXbrain Editor'}</title>
+  <title>{$activeFile ? `${$activeFile.name}${$activeFile.dirty ? ' *' : ''} | TeXbrain` : 'TeXbrain Editor'}</title>
 </svelte:head>
 
 <svelte:window on:keydown={handleGlobalKeydown} bind:innerWidth={windowWidth} />

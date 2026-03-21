@@ -127,7 +127,7 @@
             </div>
             <p class="security-hint">
               <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;margin-top:1px"><path d="M8 1a4 4 0 00-4 4v2H3a1 1 0 00-1 1v6a1 1 0 001 1h10a1 1 0 001-1V8a1 1 0 00-1-1h-1V5a4 4 0 00-4-4zm-2 4a2 2 0 114 0v2H6V5z" fill="currentColor"/></svg>
-              End-to-end encrypted. This code contains the encryption key — only share it with people you trust.
+              End-to-end encrypted. This code contains the encryption key, only share it with people you trust.
             </p>
           </div>
 
@@ -173,7 +173,7 @@
             </button>
             <p class="security-hint">
               <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;margin-top:1px"><path d="M8 1a4 4 0 00-4 4v2H3a1 1 0 00-1 1v6a1 1 0 001 1h10a1 1 0 001-1V8a1 1 0 00-1-1h-1V5a4 4 0 00-4-4zm-2 4a2 2 0 114 0v2H6V5z" fill="currentColor"/></svg>
-              All sessions are end-to-end encrypted. Setting a password adds a second factor — collaborators will need both the share code and the password.
+              All sessions are end-to-end encrypted. Setting a password adds a second factor. Collaborators will need both the share code and the password.
             </p>
           </div>
 

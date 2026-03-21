@@ -60,7 +60,7 @@ export const templates: Template[] = [
   {
     id: 'minimal',
     name: 'Minimal',
-    description: 'Bare minimum LaTeX document — start from scratch.',
+    description: 'Bare minimum LaTeX document. Start from scratch.',
     icon: '⚡',
     content: minimalTex
   }

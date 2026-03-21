@@ -209,7 +209,7 @@
     } catch (err: any) {
       const msg = err?.message || String(err);
       if (msg.includes('CORS') || msg.includes('Failed to fetch')) {
-        addToast('Push failed: CORS error — check your CORS proxy setting in the Remote tab', 'error');
+        addToast('Push failed: CORS error. Check your CORS proxy setting in the Remote tab', 'error');
       } else {
         addToast('Push failed: ' + msg, 'error');
       }
@@ -228,7 +228,7 @@
     } catch (err: any) {
       const msg = err?.message || String(err);
       if (msg.includes('CORS') || msg.includes('Failed to fetch')) {
-        addToast('Pull failed: CORS error — check your CORS proxy setting in the Remote tab', 'error');
+        addToast('Pull failed: CORS error. Check your CORS proxy setting in the Remote tab', 'error');
       } else {
         addToast('Pull failed: ' + msg, 'error');
       }

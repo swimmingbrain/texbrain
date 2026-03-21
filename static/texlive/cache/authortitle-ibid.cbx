@@ -1,0 +1,143 @@
+\ProvidesFile{authortitle-ibid.cbx}
+[\abx@cbxid]
+
+\ExecuteBibliographyOptions{uniquename,uniquelist,ibidtracker=constrict,
+  pagetracker,autocite=footnote}
+
+\providecommand*{\mkibid}[1]{#1}
+\renewcommand*{\iffinalcitedelim}{\iflastcitekey}
+
+\newbool{cbx:parens}
+\newbool{cbx:loccit}
+
+\DeclareBibliographyOption[boolean]{ibidpage}[true]{%
+  \ifstrequal{#1}{true}
+    {\ExecuteBibliographyOptions{loccittracker=constrict}}
+    {\ExecuteBibliographyOptions{loccittracker=false}}}
+
+\newbibmacro*{cite}{%
+  \global\boolfalse{cbx:loccit}%
+  \iffieldundef{shorthand}
+    {\ifthenelse{\ifciteibid\AND\NOT\iffirstonpage}
+       {\usebibmacro{cite:ibid}}
+       {\printnames{labelname}%
+        \setunit*{\printdelim{nametitledelim}}%
+        \usebibmacro{cite:title}}}%
+    {\usebibmacro{cite:shorthand}}}
+
+\newbibmacro*{citetitle}{%
+  \global\boolfalse{cbx:loccit}%
+  \iffieldundef{shorthand}
+    {\ifthenelse{\ifciteibid\AND\NOT\iffirstonpage}
+       {\usebibmacro{cite:ibid}}
+       {\usebibmacro{cite:title}}}%
+    {\usebibmacro{cite:shorthand}}}
+
+\newbibmacro*{textcite}{%
+  \global\boolfalse{cbx:loccit}%
+  \printnames{labelname}%
+    \setunit*{%
+      \global\booltrue{cbx:parens}%
+      \printdelim{nametitledelim}\bibopenparen}%
+  \ifnumequal{\value{citecount}}{1}
+    {\usebibmacro{prenote}}
+    {}%
+  \iffieldundef{shorthand}
+    {\ifthenelse{\ifciteibid\AND\NOT\iffirstonpage}
+       {\usebibmacro{cite:ibid}}
+       {\usebibmacro{cite:title}}}%
+    {\usebibmacro{cite:shorthand}}}
+
+\newbibmacro*{cite:title}{%
+  \printtext[bibhyperref]{%
+    \printfield[citetitle]{labeltitle}}}
+
+\newbibmacro*{cite:shorthand}{%
+  \printtext[bibhyperref]{\printfield{shorthand}}}
+
+\newbibmacro*{cite:ibid}{%
+  \printtext[bibhyperref]{\bibstring[\mkibid]{ibidem}}%
+  \ifloccit
+    {\global\booltrue{cbx:loccit}}
+    {}}
+
+\newbibmacro*{cite:postnote}{%
+  \ifbool{cbx:loccit}
+    {}
+    {\usebibmacro{postnote}}}
+
+\newbibmacro*{textcite:postnote}{%
+  \ifthenelse{\iffieldundef{postnote}\OR\boolean{cbx:loccit}}
+    {\ifbool{cbx:parens}
+       {\bibcloseparen}
+       {}}
+    {\ifbool{cbx:parens}
+       {\printdelim{postnotedelim}}
+       {\printdelim{extpostnotedelim}\bibopenparen}%
+     \printfield{postnote}\bibcloseparen}}
+
+\DeclareCiteCommand{\cite}
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{cite:postnote}}
+
+\DeclareCiteCommand*{\cite}
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{citetitle}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\parencite}[\mkbibparens]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{cite:postnote}}
+
+\DeclareCiteCommand*{\parencite}[\mkbibparens]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{citetitle}}
+  {\multicitedelim}
+  {\usebibmacro{cite:postnote}}
+
+\DeclareCiteCommand{\footcite}[\mkbibfootnote]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{cite:postnote}}
+
+\DeclareCiteCommand{\footcitetext}[\mkbibfootnotetext]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{cite:postnote}}
+
+\DeclareCiteCommand{\smartcite}[\iffootnote\mkbibparens\mkbibfootnote]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{cite:postnote}}
+
+\DeclareCiteCommand{\textcite}
+  {\boolfalse{cbx:parens}}
+  {\usebibmacro{citeindex}%
+   \iffirstcitekey
+     {\setcounter{textcitetotal}{1}}
+     {\stepcounter{textcitetotal}%
+      \textcitedelim}%
+   \usebibmacro{textcite}}
+  {\ifbool{cbx:parens}
+     {\bibcloseparen\boolfalse{cbx:parens}}
+     {}}
+  {\usebibmacro{textcite:postnote}}
+
+\DeclareMultiCiteCommand{\textcites}{\textcite}{}
+
+\endinput

@@ -1,0 +1,4284 @@
+%%
+%% This is file `dataplot.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% datatool.dtx  (with options: `dataplot.sty,package')
+%% 
+%%  datatool.dtx
+%%  Copyright 2025 Nicola Talbot
+%% 
+%%  This work may be distributed and/or modified under the
+%%  conditions of the LaTeX Project Public License, either version 1.3
+%%  of this license or (at your option) any later version.
+%%  The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%%  and version 1.3 or later is part of all distributions of LaTeX
+%%  version 2005/12/01 or later.
+%% 
+%%  This work has the LPPL maintenance status `maintained'.
+%% 
+%%  The Current Maintainer of this work is Nicola Talbot.
+%% 
+%%  This work consists of the files datatool.dtx and datatool.ins and the derived files datatool-base.sty, datatool-undetermined.ldf, datatool-latin1.ldf, datatool-utf8.ldf, datatool-l3fp.def, datatool-lua.def, datatool-fp.def, datatool-fp.sty, datatool-pgfmath.def, datatool-pgfmath.sty, datatool.sty, datagidx.sty, databib.sty, databar.sty, datapie.sty, dataplot.sty, person.sty, databib.bst, databar-2019-09-27.sty, databib-2019-09-27.sty, datagidx-2019-09-27.sty, datapie-2019-09-27.sty, dataplot-2019-09-27.sty, datatool-2019-09-27.sty, datatool-base-2019-09-27.sty, datatool-fp-2019-09-27.sty, datatool-pgfmath-2019-09-27.sty, person-2019-09-27.sty.
+%% 
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\NeedsTeXFormat{LaTeX2e}
+\DeclareRelease{v2.32}{2019-09-27}{dataplot-2019-09-27.sty}
+\DeclareCurrentRelease{v3.4.3}{2025-12-04}
+\ProvidesPackage{dataplot}[2025/12/04 v3.4.3 (NLCT)]
+\IfPackageLoadedTF{datatool}
+{
+  \DeclareOption*{\expandafter\DTLsetup\expandafter{\CurrentOption}}
+}
+{
+  \DeclareOption*{\PassOptionsToPackage{\CurrentOption}{datatool}}
+}
+\ProcessOptions
+\RequirePackage{datatool}
+\RequirePackage{tikz}
+\usetikzlibrary{plotmarks}
+\usetikzlibrary{plothandlers}
+\usetikzlibrary{calc}
+\ExplSyntaxOn
+\clist_new:N \l__dataplot_x_keys_clist
+\seq_new:N \l__dataplot_x_keys_seq
+\int_new:N \l_dataplot_x_key_int
+\seq_new:N \l__dataplot_y_keys_seq
+\int_new:N \l_dataplot_y_key_int
+\tl_new:N \l__dataplot_extra_assign_tl
+\tl_new:N \l__dataplot_x_key_tl
+\tl_new:N \l__dataplot_y_key_tl
+\tl_new:N \l__dataplot_x_tl
+\tl_new:N \l__dataplot_decimal_x_tl
+\tl_new:N \l__dataplot_y_tl
+\tl_new:N \l__dataplot_decimal_y_tl
+\fp_new:N \l__dataplot_x_fp
+\fp_new:N \l__dataplot_y_fp
+\fp_new:N \l__dataplot_min_x_fp
+\fp_new:N \l__dataplot_min_y_fp
+\fp_new:N \l__dataplot_max_x_fp
+\fp_new:N \l__dataplot_max_y_fp
+\fp_new:N \l__dataplot_extend_min_x_axis_fp
+\fp_new:N \l__dataplot_extend_max_x_axis_fp
+\fp_new:N \l__dataplot_extend_min_y_axis_fp
+\fp_new:N \l__dataplot_extend_max_y_axis_fp
+\fp_new:N \l__dataplot_extended_min_x_fp
+\fp_new:N \l__dataplot_extended_min_y_fp
+\fp_new:N \l__dataplot_extended_max_x_fp
+\fp_new:N \l__dataplot_extended_max_y_fp
+\fp_const:Nn \c_dataplot_smallest_gap_fp { 0.000001 }
+\fp_new:N \l__dataplot_neg_gap_fp
+\fp_new:N \l__dataplot_pos_gap_fp
+\fp_new:N \l__dataplot_gap_fp
+\fp_new:N \l__dataplot_min_minor_gap_fp
+\fp_new:N \l__dataplot_scale_x_fp
+\fp_set_eq:NN \l__dataplot_scale_x_fp \c_one_fp
+\fp_new:N \l__dataplot_scale_y_fp
+\fp_set_eq:NN \l__dataplot_scale_y_fp \c_one_fp
+\fp_new:N \l__dataplot_inv_scale_x_fp
+\fp_set_eq:NN \l__dataplot_inv_scale_x_fp \c_one_fp
+\fp_new:N \l__dataplot_inv_scale_y_fp
+\fp_set_eq:NN \l__dataplot_inv_scale_y_fp \c_one_fp
+\fp_new:N \l__dataplot_offset_x_fp
+\fp_new:N \l__dataplot_offset_y_fp
+\fp_new:N \l__dataplot_x_extent_fp
+\fp_new:N \l__dataplot_y_extent_fp
+\fp_new:N \l__dataplot_tick_length_fp
+\fp_new:N \l__dataplot_width_fp
+\fp_new:N \l__dataplot_height_fp
+\dim_new:N \l__dataplot_x_tic_label_height_dim
+\dim_new:N \l__dataplot_y_tic_label_width_dim
+\fp_new:N \l__dataplot_tic_label_offset_fp
+\tl_new:N \l__dataplot_tic_label_tl
+\seq_new:N \l__dataplot_dbnames_seq
+\seq_new:N \l__dataplot_mark_seq
+\tl_new:N \l__dataplot_current_mark_tl
+\bool_new:N \l__dataplot_mark_group_bool
+\bool_set_false:N \l__dataplot_mark_group_bool
+\seq_new:N \l__dataplot_mark_colors_seq
+\tl_new:N \l__dataplot_current_mark_color_tl
+\bool_new:N \l__dataplot_mark_color_group_bool
+\bool_set_false:N \l__dataplot_mark_color_group_bool
+\tl_new:N \l__dataplot_current_mark_style_tl
+\seq_new:N \l__dataplot_line_seq
+\tl_new:N \l__dataplot_current_line_tl
+\bool_new:N \l__dataplot_line_group_bool
+\bool_set_false:N \l__dataplot_line_group_bool
+\seq_new:N \l__dataplot_line_colors_seq
+\tl_new:N \l__dataplot_current_line_color_tl
+\bool_new:N \l__dataplot_line_color_group_bool
+\bool_set_false:N \l__dataplot_line_color_group_bool
+\tl_new:N \l__dataplot_current_line_style_tl
+\bool_new:N \l__dataplot_no_group_mark_reset_bool
+\bool_set_false:N \l__dataplot_no_group_mark_reset_bool
+\bool_new:N \l__dataplot_no_group_mark_color_reset_bool
+\bool_set_false:N \l__dataplot_no_group_mark_color_reset_bool
+\bool_new:N \l__dataplot_no_group_line_reset_bool
+\bool_set_false:N \l__dataplot_no_group_line_reset_bool
+\bool_new:N \l__dataplot_no_group_line_color_reset_bool
+\bool_set_false:N \l__dataplot_no_group_line_color_reset_bool
+\seq_new:N \l__dataplot_x_minor_tic_seq
+\seq_new:N \l__dataplot_y_minor_tic_seq
+\tl_new:N \l_dataplot_stream_tl
+\tl_new:N \l_dataplot_legend_tl
+\seq_new:N \l__dataplot_bounds_seq
+\tl_new:N \l__dataplot_content_tl
+\newcommand*{\DTLplotmarks}{%
+  \pgfuseplotmark{o},%
+  \pgfuseplotmark{x},%
+  \pgfuseplotmark{+},%
+  \pgfuseplotmark{square},%
+  \pgfuseplotmark{triangle},%
+  \pgfuseplotmark{diamond},%
+  \pgfuseplotmark{pentagon},%
+  \pgfuseplotmark{asterisk},%
+  \pgfuseplotmark{star}%
+}
+\newcommand*{\DTLplotmarkcolors}{%
+  red,%
+  green,%
+  blue,%
+  yellow,%
+  magenta,%
+  cyan,%
+  orange,%
+  black,%
+  gray}
+\newcommand*{\DTLplotlines}{%
+  \pgfsetdash{}{0pt},% solid line
+  \pgfsetdash{{10pt}{5pt}}{0pt},%
+  \pgfsetdash{{5pt}{5pt}}{0pt},%
+  \pgfsetdash{{1pt}{5pt}}{0pt},%
+  \pgfsetdash{{5pt}{5pt}{1pt}{5pt}}{0pt},%
+  \pgfsetdash{{1pt}{3pt}}{0pt}%
+}
+\newcommand*{\DTLplotlinecolors}{%
+  red,%
+  green,%
+  blue,%
+  yellow,%
+  magenta,%
+  cyan,%
+  orange,%
+  black,%
+  gray}
+\newlength\DTLplotwidth
+\setlength\DTLplotwidth{4in}
+\newlength\DTLplotheight
+\setlength\DTLplotheight{4in}
+\newlength\DTLticklength
+\setlength\DTLticklength{5pt}
+\newlength\DTLminorticklength
+\setlength\DTLminorticklength{2pt}
+\newlength\DTLticklabeloffset
+\setlength\DTLticklabeloffset{8pt}
+\newlength\DTLmintickgap
+\setlength\DTLmintickgap{20pt}
+\newlength\DTLminminortickgap
+\setlength\DTLminminortickgap{5pt}
+\newcounter{DTLplotroundXvar}
+\setcounter{DTLplotroundXvar}{2}
+\newcounter{DTLplotroundYvar}
+\setcounter{DTLplotroundYvar}{2}
+\newif\ifDTLxaxis
+\DTLxaxistrue
+\newcommand*{\DTLXAxisStyle}{-}
+\newif\ifDTLyaxis
+\DTLyaxistrue
+\newcommand*{\DTLYAxisStyle}{-}
+\newcommand*{\DTLmajorgridstyle}{color=gray,-}
+\newcommand*{\DTLminorgridstyle}{color=lightgray,very ~ thin}
+\newif\ifDTLxticsin
+\DTLxticsintrue
+\newif\ifDTLyticsin
+\DTLyticsintrue
+\newlength\DTLlegendxoffset
+\setlength\DTLlegendxoffset{10pt}
+\newlength\DTLlegendyoffset
+\setlength\DTLlegendyoffset{10pt}
+\newcommand*{\DTLformatlegend}[1]{%
+\setlength{\fboxrule}{1.1pt}%
+\fcolorbox{black}{white}{#1}}
+\newcommand{\DTLcustomlegend}[1]{
+  \node { \DTLformatlegend { #1 } } ;
+}
+\cs_new:Nn \dataplot_legend_add_begin:
+{
+  \tl_put_left:Nn \l_dataplot_legend_tl
+   { \begin { tabular } { c l } }
+}
+\cs_new:Nn \dataplot_legend_add_end:
+{
+  \tl_put_right:Nn \l_dataplot_legend_tl
+   { \end { tabular } }
+}
+\newif\ifDTLshowmarkers
+\DTLshowmarkerstrue
+\newif\ifDTLshowlines
+\DTLshowlinesfalse
+\newif\ifDTLbox
+\DTLboxfalse
+\newif\ifDTLxtics
+\DTLxticstrue
+\newif\ifDTLytics
+\DTLyticstrue
+\newif\ifDTLxminortics
+\DTLxminorticsfalse
+\newif\ifDTLyminortics
+\DTLyminorticsfalse
+\newif\ifDTLgrid
+\newcommand{\DTLplotdisplayticklabel}[1]{#1}
+\newcommand{\DTLplotdisplayXticklabel}[1]{\DTLplotdisplayticklabel{#1}}
+\tl_new:N \l__dataplot_x_tick_label_style_tl
+\newcommand{\DTLplotdisplayYticklabel}[1]{\DTLplotdisplayticklabel{#1}}
+\tl_new:N \l__dataplot_y_tick_label_style_tl
+\tl_set:Nn \l__dataplot_y_tick_label_style_tl { anchor=east }
+\tl_new:N \l__dataplot_min_x_tl
+\tl_new:N \l__dataplot_max_x_tl
+\tl_new:N \l__dataplot_min_y_tl
+\tl_new:N \l__dataplot_max_y_tl
+\clist_new:N \l__dataplot_x_tic_clist
+\seq_new:N \l__dataplot_x_tic_seq
+\clist_new:N \l__dataplot_y_tic_clist
+\seq_new:N \l__dataplot_y_tic_seq
+\tl_new:N \l__dataplot_xtic_gap_tl
+\tl_new:N \l__dataplot_ytic_gap_tl
+\seq_new:N \l__dataplot_xtic_labels_seq
+\seq_new:N \l__dataplot_ytic_labels_seq
+\tl_new:N \l__dataplot_xlabel_tl
+\tl_new:N \l__dataplot_ylabel_tl
+\tl_new:N \l__dataplot_x_min_label_tl
+\tl_new:N \l__dataplot_x_min_label_style_tl
+\tl_set:Nn \l__dataplot_x_min_label_style_tl { left }
+\tl_new:N \l__dataplot_x_max_label_tl
+\tl_new:N \l__dataplot_x_max_label_style_tl
+\tl_set:Nn \l__dataplot_x_max_label_style_tl { right }
+\tl_new:N \l__dataplot_y_min_label_tl
+\tl_new:N \l__dataplot_y_min_label_style_tl
+\tl_set:Nn \l__dataplot_y_min_label_style_tl { below }
+\tl_new:N \l__dataplot_y_max_label_tl
+\tl_new:N \l__dataplot_y_max_label_style_tl
+\tl_set:Nn \l__dataplot_y_max_label_style_tl { above }
+\seq_new:N \l__dataplot_legend_labels_seq
+\int_new:N \l__dataplot_legend_setting_int
+\cs_new:Nn \__dataplot_filter:T { #1 }
+\cs_new:Nn \__dataplot_to_fp_seq:NNnn
+{
+  \seq_clear:N #1
+  \clist_map_inline:Nn { #2 }
+  {
+    \datatool_set_fp:Nn \l__datatool_tmpa_fp { ##1 }
+    \fp_compare:nT
+      { #3 <= \l__datatool_tmpa_fp <= #4 }
+     {
+       \seq_put_right:NV #1 \l__datatool_tmpa_fp
+     }
+  }
+}
+\cs_new:Nn \__dataplot_filtered_map:nnn
+{
+  \int_zero:N \l_dataplot_x_key_int
+  \int_zero:N \l_dataplot_y_key_int
+  \seq_set_from_clist:NN \l__dataplot_x_keys_seq
+    \l__dataplot_x_keys_clist
+  \seq_map_inline:Nn \l__dataplot_y_keys_seq
+  {
+    \int_incr:N \l_dataplot_y_key_int
+    \tl_set:Nn \l__dataplot_y_key_tl { ##1 }
+      \seq_if_empty:NT \l__dataplot_x_keys_seq
+      {
+        \int_zero:N \l_dataplot_x_key_int
+        \seq_set_from_clist:NN \l__dataplot_x_keys_seq
+          \l__dataplot_x_keys_clist
+      }
+      \seq_pop_left:NN \l__dataplot_x_keys_seq
+        \l__dataplot_x_key_tl
+      \int_incr:N \l_dataplot_x_key_int
+    \datatool_if_has_key:nnTF
+      { \l__datatool_default_dbname_tl }
+      { \l__dataplot_y_key_tl }
+     {
+      \datatool_if_has_key:nnTF
+         { \l__datatool_default_dbname_tl }
+         { \l__dataplot_x_key_tl }
+       {
+         #1
+         \DTLmapdata
+         {
+           \tl_if_empty:NF \l__dataplot_extra_assign_tl
+           {
+             \exp_args:NV \DTLmapgetvalues
+              \l__dataplot_extra_assign_tl
+           }
+           \DTLmapget
+            {
+              return = \l__dataplot_x_tl ,
+              key = \l__dataplot_x_key_tl
+            }
+           \DTLmapget
+            {
+              return = \l__dataplot_y_tl ,
+              key = \l__dataplot_y_key_tl
+            }
+           \__dataplot_filter:T { #2 }
+         }
+         #3
+       }
+       {
+         \dataplot_skipping_key_msg:nnnn
+           { \seq_count:N \l__dataplot_dbnames_seq }
+           { x } { \l__dataplot_x_key_tl }
+           { \l__datatool_default_dbname_tl }
+       }
+    }
+    {
+      \dataplot_skipping_key_msg:nnnn
+        { \seq_count:N \l__dataplot_dbnames_seq }
+        { y } { \l__dataplot_y_key_tl }
+        { \l__datatool_default_dbname_tl }
+    }
+  }
+}
+\cs_new:Nn \__dataplot_filtered_map:n
+{
+  \__dataplot_filtered_map:nnn { } { #1 } { }
+}
+\cs_new:Nn \dataplot_skipping_key_msg:nnnn
+{
+  \int_compare:nNnTF { #1 } = { \c_one_int }
+   {
+      \PackageWarning { dataplot }
+      {
+        \token_to_str:N \DTLplot : ~ skipping ~ #2 ~ key ~
+        ` #3 ' ~ for ~ database ~ `\l__datatool_default_dbname_tl' ~
+        (column ~ not ~ defined)
+      }
+   }
+   {
+     \dtl@message
+      {
+        \token_to_str:N \DTLplot : ~ skipping ~ #2 ~ key ~
+        ` #3 ' ~ for ~ database ~ `\l__datatool_default_dbname_tl' ~
+        (column ~ not ~ defined)
+      }
+   }
+}
+\bool_new:N \l__dataplot_side_axes_bool
+\bool_set_false:N \l__dataplot_side_axes_bool
+\bool_new:N \l__dataplot_zero_x_axis_bool
+\bool_new:N \l__dataplot_zero_y_axis_bool
+\bool_new:N \l__dataplot_omit_zero_x_label_bool
+\bool_new:N \l__dataplot_omit_zero_y_label_bool
+\int_new:N \l__dataplot_omit_zero_label_action_int
+\int_new:N \l__dataplot_box_ticks_int
+\int_set_eq:NN \l__dataplot_box_ticks_int \c_one_int
+\keys_define:nn { datatool/plot }
+{
+  x .clist_set:N = \l__dataplot_x_keys_clist ,
+  y .code:n  =
+    {
+      \seq_set_from_clist:Nn \l__dataplot_y_keys_seq { #1 }
+    },
+  extra-assign .tl_set:N = \l__dataplot_extra_assign_tl ,
+  markcolors .clist_set:N = \DTLplotmarkcolors,
+  mark-colors .clist_set:N = \DTLplotmarkcolors,
+  linecolors .clist_set:N = \DTLplotlinecolors,
+  line-colors .clist_set:N = \DTLplotlinecolors,
+  colors .code:n =
+    {
+      \clist_set:Nn \DTLplotmarkcolors { #1 }
+      \clist_set:Nn \DTLplotlinecolors { #1 }
+    },
+   marks .clist_set:N = \DTLplotmarks ,
+   lines .clist_set:N = \DTLplotlines ,
+   style-resets .multichoice: ,
+   style-resets .default:n = { all },
+   style-resets / mark-style .code:n =
+    {
+      \bool_set_true:N \l__dataplot_no_group_mark_reset_bool
+    } ,
+   style-resets / mark-color .code:n =
+    {
+      \bool_set_true:N \l__dataplot_no_group_mark_color_reset_bool
+    } ,
+   style-resets / line-style .code:n =
+    {
+      \bool_set_true:N \l__dataplot_no_group_line_reset_bool
+    } ,
+   style-resets / line-color .code:n =
+    {
+      \bool_set_true:N \l__dataplot_no_group_line_color_reset_bool
+    } ,
+   style-resets / all .code:n =
+    {
+      \bool_set_true:N \l__dataplot_no_group_mark_reset_bool
+      \bool_set_true:N \l__dataplot_no_group_mark_color_reset_bool
+      \bool_set_true:N \l__dataplot_no_group_line_reset_bool
+      \bool_set_true:N \l__dataplot_no_group_line_color_reset_bool
+    } ,
+   style-resets / none .code:n =
+    {
+      \bool_set_false:N \l__dataplot_no_group_mark_reset_bool
+      \bool_set_false:N \l__dataplot_no_group_mark_color_reset_bool
+      \bool_set_false:N \l__dataplot_no_group_line_reset_bool
+      \bool_set_false:N \l__dataplot_no_group_line_color_reset_bool
+    } ,
+   group-styles .multichoice:,
+   group-styles .default:n = { all },
+   group-styles / mark-style .code:n =
+    {
+      \bool_set_true:N \l__dataplot_mark_group_bool
+    } ,
+   group-styles / mark-color .code:n =
+    {
+      \bool_set_true:N \l__dataplot_mark_color_group_bool
+    } ,
+   group-styles / line-style .code:n =
+    {
+      \bool_set_true:N \l__dataplot_line_group_bool
+    } ,
+   group-styles / line-color .code:n =
+    {
+      \bool_set_true:N \l__dataplot_line_color_group_bool
+    } ,
+   group-styles / all .code:n =
+    {
+      \bool_set_true:N \l__dataplot_mark_group_bool
+      \bool_set_true:N \l__dataplot_mark_color_group_bool
+      \bool_set_true:N \l__dataplot_line_group_bool
+      \bool_set_true:N \l__dataplot_line_color_group_bool
+    } ,
+   group-styles / none .code:n =
+    {
+      \bool_set_false:N \l__dataplot_mark_group_bool
+      \bool_set_false:N \l__dataplot_mark_color_group_bool
+      \bool_set_false:N \l__dataplot_line_group_bool
+      \bool_set_false:N \l__dataplot_line_color_group_bool
+    } ,
+   width .dim_set:N = \DTLplotwidth ,
+   height .dim_set:N =\DTLplotheight ,
+   tick-label-offset .dim_set:N = \DTLticklabeloffset ,
+   style .choice:,
+   style / both .code:n =
+    {
+      \DTLshowlinestrue
+      \DTLshowmarkerstrue
+    },
+   style / lines .code:n =
+    {
+      \DTLshowlinestrue
+      \DTLshowmarkersfalse
+    },
+   style / markers .code:n =
+    {
+      \DTLshowmarkerstrue
+      \DTLshowlinesfalse
+    },
+   axes .choice:,
+   axes / both .code:n =
+    {
+      \DTLxaxistrue
+      \DTLxticstrue
+      \DTLyaxistrue
+      \DTLyticstrue
+    },
+   axes / x .code:n =
+    {
+      \DTLxaxistrue
+      \DTLxticstrue
+      \DTLyaxisfalse
+      \DTLyticsfalse
+    },
+   axes / y .code:n =
+    {
+      \DTLxaxisfalse
+      \DTLxticsfalse
+      \DTLyaxistrue
+      \DTLyticstrue
+    },
+   axes / none .code:n =
+    {
+     \DTLxaxisfalse
+     \DTLxticsfalse
+     \DTLyaxisfalse
+     \DTLyticsfalse
+    },
+   x-axis-style .tl_set:N = \DTLXAxisStyle ,
+   y-axis-style .tl_set:N = \DTLYAxisStyle ,
+   axis-style .code:n =
+    {
+      \tl_set:Nn \DTLXAxisStyle { #1 }
+      \tl_set:Nn \DTLYAxisStyle { #1 }
+    },
+   major-grid-style .tl_set:N = \DTLmajorgridstyle ,
+   minor-grid-style .tl_set:N = \DTLminorgridstyle ,
+   box .legacy_if_set:n = DTLbox ,
+   box-ticks .choices:nn=
+     { none, match-axes, in , out }
+    {
+      \int_set:Nn \l__dataplot_box_ticks_int
+       { \l_keys_choice_int - \c_one_int }
+    } ,
+   box-ticks .default:n = { match-axes },
+   box-ticks .initial:n = { match-axes },
+   round-x .int_set:N = \c@DTLplotroundXvar ,
+   round-y .int_set:N = \c@DTLplotroundYvar ,
+   round .code:n =
+    {
+      \int_set:Nn \c@DTLplotroundXvar { #1 }
+      \int_set:Nn \c@DTLplotroundYvar { #1 }
+    },
+   xtics .legacy_if_set:n = DTLxtics ,
+   x-ticks .legacy_if_set:n = DTLxtics ,
+   ytics .legacy_if_set:n = DTLytics ,
+   y-ticks .legacy_if_set:n = DTLytics ,
+   tics .code:n =
+    {
+      \setbool{DTLxtics}{#1}
+      \setbool{DTLytics}{#1}
+    },
+   ticks .code:n =
+    {
+      \setbool{DTLxtics}{#1}
+      \setbool{DTLytics}{#1}
+    },
+   xminortics .choice: ,
+   xminortics / true .code:n =
+     {
+       \DTLxminorticstrue
+       \DTLxticstrue
+     } ,
+   xminortics / false .code:n =
+     {
+       \DTLxminorticsfalse
+     } ,
+   xminortics .default:n = true,
+   x-minor-ticks .choice: ,
+   x-minor-ticks / true .code:n =
+     {
+       \DTLxminorticstrue
+       \DTLxticstrue
+     } ,
+   x-minor-ticks / false .code:n =
+     {
+       \DTLxminorticsfalse
+     } ,
+   x-minor-ticks .default:n = true,
+   yminortics .choice:,
+   yminortics / true .code:n =
+     {
+       \DTLyminorticstrue
+       \DTLyticstrue
+     } ,
+   yminortics / false .code:n =
+     {
+       \DTLyminorticsfalse
+     } ,
+   yminortics .default:n = true,
+   y-minor-ticks .choice:,
+   y-minor-ticks / true .code:n =
+     {
+       \DTLyminorticstrue
+       \DTLyticstrue
+     } ,
+   y-minor-ticks / false .code:n =
+     {
+       \DTLyminorticsfalse
+     } ,
+   y-minor-ticks .default:n = true,
+   minor-ticks .choice: ,
+   minor-ticks / true .code:n =
+     {
+       \DTLxminorticstrue
+       \DTLxticstrue
+       \DTLyminorticstrue
+       \DTLyticstrue
+     } ,
+   minor-ticks / false .code:n =
+     {
+       \DTLxminorticsfalse
+       \DTLyminorticsfalse
+     } ,
+   minor-ticks .default:n = true,
+   minortics .choice: ,
+   minortics / true .code:n =
+     {
+       \DTLxminorticstrue
+       \DTLxticstrue
+       \DTLyminorticstrue
+       \DTLyticstrue
+     } ,
+   minortics / false .code:n =
+     {
+       \DTLxminorticsfalse
+       \DTLyminorticsfalse
+     } ,
+   minortics .default:n = true,
+   grid .legacy_if_set:n = DTLgrid ,
+   xticdir .choice: ,
+   xticdir / in .code:n =
+     {
+       \DTLxticsintrue
+     },
+   xticdir / out .code:n =
+     {
+       \DTLxticsinfalse
+     },
+   x-tick-dir .choice: ,
+   x-tick-dir / in .code:n =
+     {
+       \DTLxticsintrue
+     },
+   x-tick-dir / out .code:n =
+     {
+       \DTLxticsinfalse
+     },
+   yticdir .choice: ,
+   yticdir / in .code:n =
+     {
+       \DTLyticsintrue
+     },
+   yticdir / out .code:n =
+     {
+       \DTLyticsinfalse
+     },
+   y-tick-dir .choice: ,
+   y-tick-dir / in .code:n =
+     {
+       \DTLyticsintrue
+     },
+   y-tick-dir / out .code:n =
+     {
+       \DTLyticsinfalse
+     },
+   ticdir .choice: ,
+   ticdir / in .code:n =
+     {
+       \DTLxticsintrue
+       \DTLyticsintrue
+     },
+   ticdir / out .code:n =
+     {
+       \DTLxticsinfalse
+       \DTLyticsinfalse
+     },
+   tick-dir .choice: ,
+   tick-dir / in .code:n =
+     {
+       \DTLxticsintrue
+       \DTLyticsintrue
+     },
+   tick-dir / out .code:n =
+     {
+       \DTLxticsinfalse
+       \DTLyticsinfalse
+     },
+   bounds .code:n =
+    {
+      \seq_set_from_clist:Nn \l__dataplot_bounds_seq { #1 }
+      \seq_if_empty:NF \l__dataplot_bounds_seq
+      {
+        \int_compare:nNnTF
+          { \seq_count:N \l__dataplot_bounds_seq } = { 4 }
+        {
+          \tl_set:Nx \l__dataplot_min_x_tl
+            { \seq_item:Nn \l__dataplot_bounds_seq { 1 } }
+          \tl_set:Nx \l__dataplot_min_y_tl
+            { \seq_item:Nn \l__dataplot_bounds_seq { 2 } }
+          \tl_set:Nx \l__dataplot_max_x_tl
+            { \seq_item:Nn \l__dataplot_bounds_seq { 3 } }
+          \tl_set:Nx \l__dataplot_max_y_tl
+            { \seq_item:Nn \l__dataplot_bounds_seq { 4 } }
+        }
+        {
+           \PackageError {dataplot}
+           {
+             Invalid ~ syntax ~ in ~ bounds=#1 ~
+             (expected ~ empty ~ or ~ four ~ items, ~ found ~
+              \seq_count:N \l__dataplot_bounds_seq)
+           }
+           {
+             The ~ bounds ~ must ~ be ~ specified ~ as ~ minX,minY,maxX,maxY
+           }
+        }
+      }
+    },
+   minx .tl_set:N = \l__dataplot_min_x_tl ,
+   min-x .tl_set:N = \l__dataplot_min_x_tl ,
+   maxx .tl_set:N = \l__dataplot_max_x_tl ,
+   max-x .tl_set:N = \l__dataplot_max_x_tl ,
+   miny .tl_set:N = \l__dataplot_min_y_tl ,
+   min-y .tl_set:N = \l__dataplot_min_y_tl ,
+   maxy .tl_set:N = \l__dataplot_max_y_tl ,
+   max-y .tl_set:N = \l__dataplot_max_y_tl ,
+  xticpoints .code:n =
+    {
+      \tl_if_empty:nTF { #1 }
+       {
+         \clist_clear:N \l__dataplot_x_tic_clist
+       }
+       {
+         \clist_set:Nn \l__dataplot_x_tic_clist { #1 }
+         \DTLxticstrue
+         \DTLxaxistrue
+       }
+    },
+  x-tick-points .code:n =
+    {
+      \tl_if_empty:nTF { #1 }
+       {
+         \clist_clear:N \l__dataplot_x_tic_clist
+       }
+       {
+         \clist_set:Nn \l__dataplot_x_tic_clist { #1 }
+         \DTLxticstrue
+         \DTLxaxistrue
+       }
+    },
+  yticpoints .code:n =
+    {
+      \tl_if_empty:nTF { #1 }
+       {
+         \clist_clear:N \l__dataplot_y_tic_clist
+       }
+       {
+         \clist_set:Nn \l__dataplot_y_tic_clist { #1 }
+         \DTLyticstrue
+         \DTLyaxistrue
+       }
+    },
+  y-tick-points .code:n =
+    {
+      \tl_if_empty:nTF { #1 }
+       {
+         \clist_clear:N \l__dataplot_y_tic_clist
+       }
+       {
+         \clist_set:Nn:Nn \l__dataplot_y_tic_clist { #1 }
+         \DTLyticstrue
+         \DTLyaxistrue
+       }
+    },
+  xticgap .code:n =
+   {
+     \tl_set:Nn \l__dataplot_xtic_gap_tl { #1 }
+     \tl_if_empty:NF \l__dataplot_xtic_gap_tl
+      {
+        \DTLxticstrue
+        \DTLxaxistrue
+      }
+   },
+  x-tick-gap .code:n =
+   {
+     \tl_set:Nn \l__dataplot_xtic_gap_tl { #1 }
+     \tl_if_empty:NF \l__dataplot_xtic_gap_tl
+      {
+       \DTLxticstrue
+       \DTLxaxistrue
+      }
+   },
+  yticgap .code:n =
+   {
+     \tl_set:Nn \l__dataplot_ytic_gap_tl { #1 }
+     \tl_if_empty:NF \l__dataplot_ytic_gap_tl
+      {
+       \DTLyticstrue
+       \DTLyaxistrue
+      }
+   },
+  y-tick-gap .code:n =
+   {
+     \tl_set:Nn \l__dataplot_ytic_gap_tl { #1 }
+     \tl_if_empty:NF \l__dataplot_ytic_gap_tl
+      {
+       \DTLyticstrue
+       \DTLyaxistrue
+      }
+   },
+  ticgap .code:n =
+   {
+     \tl_set:Nn \l__dataplot_xtic_gap_tl { #1 }
+     \tl_set:Nn \l__dataplot_ytic_gap_tl { #1 }
+     \tl_if_empty:NF \l__dataplot_xtic_gap_tl
+      {
+       \DTLxticstrue
+       \DTLxaxistrue
+       \DTLyticstrue
+       \DTLyaxistrue
+      }
+   },
+  tick-gap .code:n =
+   {
+     \tl_set:Nn \l__dataplot_xtic_gap_tl { #1 }
+     \tl_set:Nn \l__dataplot_ytic_gap_tl { #1 }
+     \tl_if_empty:NF \l__dataplot_xtic_gap_tl
+      {
+       \DTLxticstrue
+       \DTLxaxistrue
+       \DTLyticstrue
+       \DTLyaxistrue
+      }
+   },
+  xticlabels .code:n =
+   {
+     \tl_if_empty:nTF { #1 }
+      {
+        \seq_clear:N \l__dataplot_xtic_labels_seq
+      }
+      {
+       \seq_set_from_clist:Nn \l__dataplot_xtic_labels_seq { #1 }
+       \DTLxticstrue
+       \DTLxaxistrue
+      }
+   },
+  x-tick-labels .code:n =
+   {
+     \tl_if_empty:nTF { #1 }
+      {
+        \seq_clear:N \l__dataplot_xtic_labels_seq
+      }
+      {
+       \seq_set_from_clist:Nn \l__dataplot_xtic_labels_seq { #1 }
+       \DTLxticstrue
+       \DTLxaxistrue
+      }
+   },
+  yticlabels .code:n =
+   {
+     \tl_if_empty:nTF { #1 }
+      {
+        \seq_clear:N \l__dataplot_ytic_labels_seq
+      }
+      {
+       \seq_set_from_clist:Nn \l__dataplot_ytic_labels_seq { #1 }
+       \DTLyticstrue
+       \DTLyaxistrue
+      }
+   },
+  y-tick-labels .code:n =
+   {
+     \tl_if_empty:nTF { #1 }
+      {
+        \seq_clear:N \l__dataplot_ytic_labels_seq
+      }
+      {
+       \seq_set_from_clist:Nn \l__dataplot_ytic_labels_seq { #1 }
+       \DTLyticstrue
+       \DTLyaxistrue
+      }
+   },
+  xlabel .tl_set:N = \l__dataplot_xlabel_tl ,
+  x-label .tl_set:N = \l__dataplot_xlabel_tl ,
+  ylabel .tl_set:N = \l__dataplot_ylabel_tl ,
+  y-label .tl_set:N = \l__dataplot_ylabel_tl ,
+  legend .choices:nn =
+   {
+      none, north, northeast, east, southeast,
+      south, southwest, west, northwest, custom
+   }
+   {
+     \int_set:Nn \l__dataplot_legend_setting_int
+       { \l_keys_choice_int - 1 }
+   },
+   legend .default:n = { northeast },
+   legendlabels .code:n =
+    {
+      \seq_set_from_clist:Nn
+         \l__dataplot_legend_labels_seq { #1 }
+    } ,
+   legend-labels .code:n =
+    {
+      \seq_set_from_clist:Nn
+         \l__dataplot_legend_labels_seq { #1 }
+    } ,
+   legend-offset .code:n =
+    {
+      \seq_set_from_clist:Nn
+        \l__datatool_tmp_seq { #1 }
+      \int_case:nnF { \seq_count:N \l__datatool_tmp_seq  }
+       {
+         { 1 }
+           {
+             \dim_set:Nn \DTLlegendxoffset
+               { \seq_item:Nn \l__datatool_tmp_seq { 1 } }
+             \dim_set_eq:Nn \DTLlegendyoffset \DTLlegendxoffset
+           }
+         { 2 }
+           {
+             \dim_set:Nn \DTLlegendxoffset
+               { \seq_item:Nn \l__datatool_tmp_seq { 1 } }
+             \dim_set:Nn \DTLlegendyoffset
+               { \seq_item:Nn \l__datatool_tmp_seq { 2 } }
+           }
+       }
+       {
+         \PackageError { dataplot }
+         {
+            Invalid ~ legend-offset ~ value ~ `#1': one ~ or ~ two ~
+            dimensions ~ required
+         }
+         {
+           The ~ legend-offset ~ value ~ must ~ be ~ either ~ a ~
+           single ~ dimension ~ or ~ two ~ comma-separated ~ dimensions
+         }
+       }
+    },
+  side-axes .bool_set:N = \l__dataplot_side_axes_bool ,
+  omit-zero-label .choices:nn =
+   { auto , both , x , y , false }
+   {
+     \int_set_eq:NN
+       \l__dataplot_omit_zero_label_action_int
+       \l_keys_choice_int
+   } ,
+  omit-zero-label .initial:n = { auto } ,
+  omit-zero-label .default:n = { both } ,
+  extend-x-axis .code:n =
+   {
+     \int_case:nnF
+        { \clist_count:n { #1 } }
+      {
+        { \c_one_int }
+          {
+            \exp_args:NNx \datatool_set_fp:Nn
+              \l__dataplot_extend_min_x_axis_fp
+              { \clist_item:nn { #1 } { 1 } }
+            \fp_set_eq:NN
+              \l__dataplot_extend_max_x_axis_fp
+              \l__dataplot_extend_min_x_axis_fp
+          }
+        { 2 }
+          {
+            \exp_args:NNx \datatool_set_fp:Nn
+              \l__dataplot_extend_min_x_axis_fp
+              { \clist_item:nn { #1 } { 1 } }
+            \exp_args:NNx \datatool_set_fp:Nn
+               \l__dataplot_extend_max_x_axis_fp
+              { \clist_item:nn { #1 } { 2 } }
+          }
+      }
+      {
+         \PackageError { dataplot }
+         {
+            Invalid ~ extend-x-axis ~ value ~ `#1': one ~ or ~ two ~
+            numbers ~ required
+         }
+         {
+           The ~ extend-x-axis ~ value ~ must ~ be ~ either ~ a ~
+           single ~ number ~ or ~ two ~ comma-separated ~ numbers
+         }
+      }
+   },
+  extend-y-axis .code:n =
+   {
+     \int_case:nnF
+        { \clist_count:n { #1 } }
+      {
+        { \c_one_int }
+          {
+            \exp_args:NNx \datatool_set_fp:Nn
+               \l__dataplot_extend_min_y_axis_fp
+              { \clist_item:nn { #1 } { 1 } }
+            \fp_set_eq:NN
+              \l__dataplot_extend_max_y_axis_fp
+              \l__dataplot_extend_min_y_axis_fp
+          }
+        { 2 }
+          {
+            \exp_args:NNx \datatool_set_fp:Nn
+               \l__dataplot_extend_min_y_axis_fp
+              { \clist_item:nn { #1 } { 1 } }
+            \exp_args:NNx \datatool_set_fp:Nn
+              \l__dataplot_extend_max_y_axis_fp
+              { \clist_item:nn { #1 } { 2 } }
+          }
+      }
+      {
+         \PackageError { dataplot }
+         {
+            Invalid ~ extend-y-axis ~ value ~ `#1': one ~ or ~ two ~
+            numbers ~ required
+         }
+         {
+           The ~ extend-y-axis ~ value ~ must ~ be ~ either ~ a ~
+           single ~ number ~ or ~ two ~ comma-separated ~ numbers
+         }
+      }
+   },
+  extend-axes .code:n =
+   {
+     \int_case:nnF
+        { \clist_count:n { #1 } }
+      {
+        { \c_one_int }
+          {
+            \exp_args:NNx \datatool_set_fp:Nn
+              \l__dataplot_extend_min_x_axis_fp
+              { \clist_item:nn { #1 } { 1 } }
+            \fp_set_eq:NN
+              \l__dataplot_extend_max_x_axis_fp
+              \l__dataplot_extend_min_x_axis_fp
+          }
+        { 2 }
+          {
+            \exp_args:NNx \datatool_set_fp:Nn
+              \l__dataplot_extend_min_x_axis_fp
+              { \clist_item:nn { #1 } { 1 } }
+            \exp_args:NNx \datatool_set_fp:Nn
+               \l__dataplot_extend_max_x_axis_fp
+              { \clist_item:nn { #1 } { 2 } }
+          }
+      }
+      {
+         \PackageError { dataplot }
+         {
+            Invalid ~ extend-x-axis ~ value ~ `#1': one ~ or ~ two ~
+            numbers ~ required
+         }
+         {
+           The ~ extend-x-axis ~ value ~ must ~ be ~ either ~ a ~
+           single ~ number ~ or ~ two ~ comma-separated ~ numbers
+         }
+      }
+     \fp_set_eq:NN
+       \l__dataplot_extend_min_y_axis_fp
+       \l__dataplot_extend_min_x_axis_fp
+     \fp_set_eq:NN
+       \l__dataplot_extend_max_y_axis_fp
+       \l__dataplot_extend_max_x_axis_fp
+   },
+  min-x-label .tl_set:N = \l__dataplot_x_min_label_tl ,
+  min-x-label-style .tl_set:N = \l__dataplot_x_min_label_style_tl ,
+  max-x-label .tl_set:N = \l__dataplot_x_max_label_tl ,
+  max-x-label-style .tl_set:N = \l__dataplot_x_max_label_style_tl ,
+  min-y-label .tl_set:N = \l__dataplot_y_min_label_tl ,
+  min-y-label-style .tl_set:N = \l__dataplot_y_min_label_style_tl ,
+  max-y-label .tl_set:N = \l__dataplot_y_max_label_tl ,
+  max-y-label-style .tl_set:N = \l__dataplot_y_max_label_style_tl ,
+  x-tick-label-style .tl_set:N = \l__dataplot_x_tick_label_style_tl ,
+  x-tic-label-style .tl_set:N = \l__dataplot_x_tick_label_style_tl ,
+  y-tick-label-style .tl_set:N = \l__dataplot_y_tick_label_style_tl ,
+  y-tic-label-style .tl_set:N = \l__dataplot_y_tick_label_style_tl ,
+  tick-label-style .code:n =
+   {
+     \tl_set:Nn \l__dataplot_x_tick_label_style_tl { #1 }
+     \tl_set:Nn \l__dataplot_y_tick_label_style_tl { anchor=east, #1 }
+   } ,
+  tic-label-style .code:n =
+   {
+     \tl_set:Nn \l__dataplot_x_tick_label_style_tl { #1 }
+     \tl_set:Nn \l__dataplot_y_tick_label_style_tl { anchor=east, #1 }
+   } ,
+  include-if .cs_set:Np = \__dataplot_filter:T #1,
+  include-if-fn .code:n =
+   {
+     \cs_set_eq:NN \__dataplot_filter:T #1
+   },
+  condition .code:n =
+   {
+     \PackageWarning{dataplot}{Deprecated ~ option ~ `condition'. ~
+      Use ~ `include-if' ~ instead}
+     \cs_set:Nn = \__dataplot_filter:T { #1 }
+   }
+}
+\keys_define:nn { datatool }
+{
+  plot .code:n = { \keys_set:nn { datatool/plot } { #1 } }
+}
+\cs_new:Nn \dataplot_calc_transform:
+{
+  \fp_set:Nn \l__dataplot_x_extent_fp
+    { \DTLmaxX - \DTLminX }
+  \fp_set:Nn \l__dataplot_scale_x_fp
+   {
+     \dim_to_decimal:n \DTLplotwidth / \l__dataplot_x_extent_fp
+   }
+  \fp_set:Nn \l__dataplot_offset_x_fp
+   {
+     - \l__dataplot_scale_x_fp * \DTLminX
+   }
+  \fp_set:Nn \l__dataplot_y_extent_fp
+   { \DTLmaxY - \DTLminY }
+  \fp_set:Nn \l__dataplot_scale_y_fp
+   {
+     \dim_to_decimal:n \DTLplotheight / \l__dataplot_y_extent_fp
+   }
+  \fp_set:Nn \l__dataplot_offset_y_fp
+   {
+     - \l__dataplot_scale_y_fp * \DTLminY
+   }
+  \fp_set:Nn \l__dataplot_inv_scale_x_fp
+     { 1 / \l__dataplot_scale_x_fp }
+  \fp_set:Nn \l__dataplot_inv_scale_y_fp
+     { 1 / \l__dataplot_scale_y_fp }
+}
+\cs_new:Nn \dataplot_transform_data_coords:NN
+{
+  \fp_set:Nn \l__dataplot_x_fp
+   {
+     \l__dataplot_scale_x_fp * #1 + \l__dataplot_offset_x_fp
+   }
+  \fp_set:Nn \l__dataplot_y_fp
+   {
+     \l__dataplot_scale_y_fp * #2 + \l__dataplot_offset_y_fp
+   }
+  \tl_set:Nx #1 { \fp_to_tl:N \l__dataplot_x_fp }
+  \tl_set:Nx #2 { \fp_to_tl:N \l__dataplot_y_fp }
+}
+\cs_new:Nn \dataplot_apply_pgftransform:
+{
+  \pgftransformcm
+    { \fp_use:N \l__dataplot_scale_x_fp } { 0 }
+    { 0 } { \fp_use:N \l__dataplot_scale_y_fp }
+    {
+      \pgfpoint
+       { \fp_to_decimal:N \l__dataplot_offset_x_fp pt }
+       { \fp_to_decimal:N \l__dataplot_offset_y_fp pt }
+    }
+}
+\cs_new:Nn \dataplot_apply_inverse_pgftransform:
+{
+  \pgftransformcm
+    { \fp_use:N \l__dataplot_inv_scale_x_fp } { 0 }
+    { 0 } { \fp_use:N \l__dataplot_inv_scale_y_fp }
+    {
+      \pgfpoint
+       {
+         \fp_to_decimal:n
+          { - \l__dataplot_offset_x_fp * \l__dataplot_inv_scale_x_fp }
+         pt
+       }
+       {
+          \fp_to_decimal:n
+           { - \l__dataplot_offset_y_fp * \l__dataplot_inv_scale_y_fp }
+          pt
+       }
+    }
+}
+\NewDocumentCommand \DTLplotstream { o m m m }
+{
+  \DTLmapdata [ name = { #2 } ]
+  {
+    \DTLmapgetvalues { \l__dataplot_x_tl = #3 , \l__dataplot_y_tl= #4 }
+    \IfValueTF { #1 }
+    {
+      \ifthenelse { #1 } { \__dataplot_stream: } { }
+    }
+    {
+      \__dataplot_stream:
+    }
+  }
+}
+\cs_new:Nn \__dataplot_stream:
+{
+  \DTLconverttodecimal
+    { \l__dataplot_x_tl } { \l__dataplot_decimal_x_tl }
+  \DTLconverttodecimal
+    { \l__dataplot_y_tl } { \l__dataplot_decimal_y_tl }
+  \dataplot_transform_data_coords:NN
+    \l__dataplot_decimal_x_tl
+    \l__dataplot_decimal_y_tl
+  \pgfplotstreampoint
+   {
+     \pgfpointxy
+      { \l__dataplot_decimal_x_tl }
+      { \l__dataplot_decimal_y_tl }
+   }
+}
+\newcommand*{\DTLplotatbegintikz}{}
+\newcommand*{\dtlplothandlermark}[1]{
+  \PackageWarning { dataplot }
+   {
+     \string \dtlplothandlermark \space ~
+     found ~ outside ~ \string \DTLplot
+   }
+  \pgfplothandlermark { #1 }
+}
+\newcommand*{\@dtlplothandlermark}[1]{
+  \pgftransformreset
+  \tl_set:Nn \__dataplot_post_at_begin_tl
+   {
+     \dataplot_apply_pgftransform:
+   }
+  \pgfplothandlermark { #1 }
+}
+\tl_new:N \__dataplot_post_at_begin_tl
+\newcommand*{\DTLplotatendtikz}{}
+\cs_new:Nn \__dataplot_update_bounds:
+{
+  \bool_lazy_all:nTF
+   {
+     { \bool_not_p:n { \tl_if_empty_p:N \l__dataplot_min_x_tl } }
+     { \bool_not_p:n { \tl_if_empty_p:N \l__dataplot_min_y_tl } }
+     { \bool_not_p:n { \tl_if_empty_p:N \l__dataplot_max_x_tl } }
+     { \bool_not_p:n { \tl_if_empty_p:N \l__dataplot_max_y_tl } }
+   }
+  {
+    \datatool_set_fp:Nn \l__dataplot_min_x_fp { \l__dataplot_min_x_tl }
+    \datatool_set_fp:Nn \l__dataplot_min_y_fp { \l__dataplot_min_y_tl }
+    \datatool_set_fp:Nn \l__dataplot_max_x_fp { \l__dataplot_max_x_tl }
+    \datatool_set_fp:Nn \l__dataplot_max_y_fp { \l__dataplot_max_y_tl }
+    \tl_set:Nx \DTLminX { \fp_to_tl:N \l__dataplot_min_x_fp }
+    \tl_set:Nx \DTLminY { \fp_to_tl:N \l__dataplot_min_y_fp }
+    \tl_set:Nx \DTLmaxX { \fp_to_tl:N \l__dataplot_max_x_fp }
+    \tl_set:Nx \DTLmaxY { \fp_to_tl:N \l__dataplot_max_y_fp }
+  }
+  {
+    \tl_set_eq:NN \l__dataplot_min_x_fp \c_novalue_tl
+    \tl_set_eq:NN \l__dataplot_min_y_fp \c_novalue_tl
+    \tl_set_eq:NN \l__dataplot_max_x_fp \c_novalue_tl
+    \tl_set_eq:NN \l__dataplot_max_y_fp \c_novalue_tl
+    \seq_map_inline:Nn \l__dataplot_dbnames_seq
+    {
+      \DTLsetup{ default-name = { ##1 } }
+      \__dataplot_filtered_map:n
+      {
+        \datatool_set_fp:Nn \l__dataplot_x_fp
+           { \l__dataplot_x_tl }
+        \datatool_set_fp:Nn \l__dataplot_y_fp
+           { \l__dataplot_y_tl }
+        \exp_args:NV \tl_if_novalue:nTF \l__dataplot_min_x_fp
+        {
+          \tl_if_empty:NT \l__dataplot_min_x_tl
+          {
+            \fp_set_eq:NN
+               \l__dataplot_min_x_fp
+               \l__dataplot_x_fp
+          }
+        }
+        {
+          \fp_set:Nn \l__dataplot_min_x_fp
+            { min ( \l__dataplot_min_x_fp , \l__dataplot_x_fp ) }
+        }
+        \exp_args:NV \tl_if_novalue:nTF \l__dataplot_min_y_fp
+        {
+          \tl_if_empty:NT \l__dataplot_min_y_tl
+          {
+            \fp_set_eq:NN
+              \l__dataplot_min_y_fp
+              \l__dataplot_y_fp
+          }
+        }
+        {
+          \fp_set:Nn \l__dataplot_min_y_fp
+            { min ( \l__dataplot_min_y_fp , \l__dataplot_y_fp ) }
+        }
+        \exp_args:NV \tl_if_novalue:nTF \l__dataplot_max_x_fp
+        {
+          \tl_if_empty:NT \l__dataplot_max_x_tl
+          {
+            \fp_set_eq:NN
+              \l__dataplot_max_x_fp
+              \l__dataplot_x_fp
+          }
+        }
+        {
+          \fp_set:Nn \l__dataplot_max_x_fp
+            { max ( \l__dataplot_max_x_fp , \l__dataplot_x_fp ) }
+        }
+        \exp_args:NV \tl_if_novalue:nTF \l__dataplot_max_y_fp
+        {
+          \tl_if_empty:NT \l__dataplot_max_y_tl
+          {
+            \fp_set_eq:NN
+              \l__dataplot_max_y_fp
+              \l__dataplot_y_fp
+          }
+        }
+        {
+          \fp_set:Nn \l__dataplot_max_y_fp
+            { max ( \l__dataplot_max_y_fp , \l__dataplot_y_fp ) }
+        }
+      }
+    }
+    \exp_args:NV \tl_if_novalue:nT \l__dataplot_min_x_fp
+     {
+       \tl_if_empty:NTF \l__dataplot_min_x_tl
+       {
+         \PackageError { dataplot }
+         { No ~ minimum ~ X ~ available! }
+         {
+           Check ~ that ~ your ~ filter ~ criteria ~
+           hasn't ~ excluded ~ all ~ data
+         }
+         \fp_zero:N \l__dataplot_min_x_fp
+         \cs_set_eq:NN \__dataplot_do_plot:n \use_none:n
+       }
+       {
+         \datatool_set_fp:Nn \l__dataplot_min_x_fp
+           { \l__dataplot_min_x_tl }
+       }
+     }
+    \tl_set:Nx \DTLminX { \fp_to_tl:N \l__dataplot_min_x_fp }
+    \exp_args:NV \tl_if_novalue:nT \l__dataplot_min_y_fp
+     {
+       \tl_if_empty:NTF \l__dataplot_min_y_tl
+       {
+         \PackageError { dataplot }
+         { No ~ minimum ~ Y ~ available! }
+         {
+           Check ~ that ~ your ~ filter ~ criteria ~
+           hasn't ~ excluded ~ all ~ data
+         }
+         \fp_zero:N \l__dataplot_min_y_fp
+         \cs_set_eq:NN \__dataplot_do_plot:n \use_none:n
+       }
+       {
+         \datatool_set_fp:Nn \l__dataplot_min_y_fp
+           { \l__dataplot_min_y_tl }
+       }
+     }
+    \tl_set:Nx \DTLminY { \fp_to_tl:N \l__dataplot_min_y_fp }
+    \exp_args:NV \tl_if_novalue:nT \l__dataplot_max_x_fp
+     {
+       \tl_if_empty:NTF \l__dataplot_max_x_tl
+       {
+         \PackageError { dataplot }
+         { No ~ maximum ~ X ~ available! }
+         {
+           Check ~ that ~ your ~ filter ~ criteria ~
+           hasn't ~ excluded ~ all ~ data
+         }
+         \fp_zero:N \l__dataplot_max_x_fp
+         \cs_set_eq:NN \__dataplot_do_plot:n \use_none:n
+       }
+       {
+         \datatool_set_fp:Nn \l__dataplot_max_x_fp
+           { \l__dataplot_max_x_tl }
+       }
+     }
+    \tl_set:Nx \DTLmaxX { \fp_use:N \l__dataplot_max_x_fp }
+    \exp_args:NV \tl_if_novalue:nT \l__dataplot_max_y_fp
+     {
+       \tl_if_empty:NTF \l__dataplot_max_y_tl
+       {
+         \PackageError { dataplot }
+         { No ~ maximum ~ Y ~ available! }
+         {
+           Check ~ that ~ your ~ filter ~ criteria ~
+           hasn't ~ excluded ~ all ~ data
+         }
+         \fp_zero:N \l__dataplot_max_y_fp
+         \cs_set_eq:NN \__dataplot_do_plot:n \use_none:n
+       }
+       {
+         \datatool_set_fp:Nn \l__dataplot_max_y_fp
+           { \l__dataplot_max_y_tl }
+       }
+    }
+    \tl_set:Nx \DTLmaxY { \fp_use:N \l__dataplot_max_y_fp }
+  }
+  \__dataplot_do_plot:n
+  {
+    \fp_compare:nNnT
+      { \l__dataplot_min_x_fp } > { \l__dataplot_max_x_fp }
+    {
+       \PackageError {dataplot}
+       {
+         Min ~ X ~ ( \fp_use:N \l__dataplot_min_x_fp ) ~
+         > ~ Max ~ X ~ ( \fp_use:N \l__dataplot_min_x_fp )
+       }
+       {
+         If ~ you ~ have used ~ the ~ `bounds' ~ setting ~, check ~
+         that ~ it ~ is ~ specified ~ as ~ minX,minY,maxX,maxY
+       }
+       \cs_set_eq:NN \__dataplot_do_plot:n \use_none:n
+    }
+    \fp_compare:nNnT
+      { \l__dataplot_min_y_fp } > { \l__dataplot_max_y_fp }
+    {
+       \PackageError {dataplot}
+       {
+         Min ~ Y ~ ( \fp_use:N \l__dataplot_min_y_fp ) ~
+         > ~ Max ~ Y ~ ( \fp_use:N \l__dataplot_min_y_fp )
+       }
+       {
+         If ~ you ~ have used ~ the ~ `bounds' ~ setting ~, check ~
+         that ~ it ~ is ~ specified ~ as ~ minX,minY,maxX,maxY
+       }
+       \cs_set_eq:NN \__dataplot_do_plot:n \use_none:n
+    }
+  }
+}
+\cs_new:Nn \__dataplot_x_y_bounded:nnnnnnTF
+{
+  \bool_lazy_any:nTF
+   {
+     { \fp_compare_p:n { #1 < #2 } }
+     { \fp_compare_p:n { #1 > #3 } }
+     { \fp_compare_p:n { #4 < #5 } }
+     { \fp_compare_p:n { #4 > #6 } }
+   }
+  { #8 } { #7 }
+}
+\cs_new:Nn \__dataplot_x_y_bounded:nnnnnnT
+{
+  \__dataplot_x_y_bounded:nnnnnnTF
+  { #1 } { #2 } { #3 } { #4 } { #5 } { #6 } { #7 } { }
+}
+\fp_new:N \l__dataplot_min_gap_fp
+\cs_new:Nn \__dataplot_calc_x_tics:
+{
+ \legacy_if:nT { DTLxtics }
+  {
+    \clist_if_empty:NTF \l__dataplot_x_tic_clist
+    {
+      \seq_clear:N \l__dataplot_x_tic_seq
+      \tl_if_empty:NTF \l__dataplot_xtic_gap_tl
+      {
+        \fp_set:Nn \l__dataplot_min_gap_fp
+        {
+          (
+            ( \DTLmintickgap - \l__dataplot_offset_x_fp )
+              / \l__dataplot_scale_x_fp
+          )
+          / 65536
+        }
+        \__dataplot_construct_tick_list:NNNN
+          \l__dataplot_min_x_fp
+          \l__dataplot_max_x_fp
+          \l__dataplot_min_gap_fp
+          \l__dataplot_x_tic_seq
+      }
+      {
+        \fp_set:Nn
+          \l__dataplot_min_gap_fp
+          { \l__dataplot_xtic_gap_tl }
+        \fp_compare:nTF
+          { \l__dataplot_min_x_fp < \c_zero_fp < \l__dataplot_max_x_fp }
+        {
+          \__dataplot_construct_tick_list_over_zero:NNNN
+            \l__dataplot_min_x_fp
+            \l__dataplot_max_x_fp
+            \l__dataplot_x_tic_seq
+            \l__dataplot_min_gap_fp
+        }
+        {
+          \__dataplot_construct_tick_list_with_gap:NNNN
+            \l__dataplot_min_x_fp
+            \l__dataplot_max_x_fp
+            \l__dataplot_x_tic_seq
+            \l__dataplot_min_gap_fp
+        }
+      }
+    }
+    {
+      \__dataplot_to_fp_seq:NNnn
+        \l__dataplot_x_tic_seq
+        \l__dataplot_x_tic_clist
+        \l__dataplot_min_x_fp
+        \l__dataplot_max_x_fp
+    }
+    \__dataplot_calc_minor_x_tics:
+    \__dataplot_calc_x_label_dim:
+  }
+}
+\cs_new:Nn \__dataplot_calc_minor_x_tics:
+{
+  \dim_zero:N \l__dataplot_x_tic_label_height_dim
+  \seq_clear:N \l__dataplot_x_minor_tic_seq
+  \legacy_if:nT { DTLxminortics }
+   {
+    \__dataplot_construct_minor_ticks:NNNNN
+      \l__dataplot_x_tic_seq
+      \l__dataplot_min_x_fp
+      \l__dataplot_max_x_fp
+      \l__dataplot_scale_x_fp
+      \l__dataplot_x_minor_tic_seq
+  }
+}
+\cs_new:Nn \__dataplot_get_default_tic_label:Nn
+{
+  \fp_set:Nn \l__datatool_tmpa_fp
+    {
+      round ( #1 , #2 )
+    }
+  \tl_set:Nx \l__dataplot_tic_label_tl
+   { \fp_to_decimal:N \l__datatool_tmpa_fp }
+  \datatool_pad_trailing_zeros:Nn
+    \l__dataplot_tic_label_tl { #2 }
+  \exp_args:NV \DTLdecimaltolocale \l__dataplot_tic_label_tl
+   \l__dataplot_tmpa_tl
+  \tl_set:Nx \l__dataplot_tic_label_tl
+   {
+     \exp_not:N \__datatool_datum:nnnn
+      { \exp_not:V \l__dataplot_tic_label_tl }
+      { \exp_not:V \l__dataplot_tmpa_tl }
+      { }
+      { \c_datatool_decimal_int }
+   }
+}
+\cs_generate_variant:Nn \__dataplot_get_default_tic_label:Nn
+ { NV , Nx }
+\cs_new:Nn \__dataplot_calc_x_label_dim:
+{
+  \seq_if_empty:NTF \l__dataplot_xtic_labels_seq
+  {
+    \seq_map_inline:Nn \l__dataplot_x_tic_seq
+     {
+       \tl_set:Nn \l__datatool_tmpa_fp { ##1 }
+       \__dataplot_get_default_tic_label:NV
+         \l__datatool_tmpa_fp \c@DTLplotroundXvar
+       \seq_put_right:NV \l__dataplot_xtic_labels_seq
+         \l__dataplot_tic_label_tl
+       \settoheight \dtl@tmplength
+         { \l__dataplot_tic_label_tl }
+       \dim_compare:nNnT
+         { \dtl@tmplength }
+          >
+         { \l__dataplot_x_tic_label_height_dim }
+        {
+          \dim_set_eq:NN
+            \l__dataplot_x_tic_label_height_dim \dtl@tmplength
+        }
+     }
+  }
+  {
+    \seq_map_inline:Nn  \l__dataplot_xtic_labels_seq
+     {
+       \datatool_measure_height:Nn \dtl@tmplength
+         { \DTLplotdisplayXticklabel { ##1 } }
+       \dim_compare:nNnT
+         { \dtl@tmplength } > { \l__dataplot_x_tic_label_height_dim }
+        {
+          \dim_set_eq:NN \l__dataplot_x_tic_label_height_dim \dtl@tmplength
+        }
+     }
+  }
+}
+\cs_new:Nn \__dataplot_calc_y_tics:
+{
+ \dim_zero:N \l__dataplot_y_tic_label_width_dim
+ \legacy_if:nT { DTLytics }
+  {
+    \clist_if_empty:NTF \l__dataplot_y_tic_clist
+    {
+      \seq_clear:N \l__dataplot_y_tic_seq
+      \tl_if_empty:NTF \l__dataplot_ytic_gap_tl
+      {
+        \fp_set:Nn \l__dataplot_min_gap_fp
+        {
+          (
+            ( \DTLmintickgap - \l__dataplot_offset_y_fp )
+              / \l__dataplot_scale_y_fp
+          )
+          / 65536
+        }
+        \__dataplot_construct_tick_list:NNNN
+          \l__dataplot_min_y_fp
+          \l__dataplot_max_y_fp
+          \l__dataplot_min_gap_fp
+          \l__dataplot_y_tic_seq
+      }
+      {
+        \fp_set:Nn
+         \l__dataplot_min_gap_fp
+         { \l__dataplot_ytic_gap_tl }
+        \fp_compare:nTF
+          { \l__dataplot_min_y_fp < \c_zero_fp < \l__dataplot_max_y_fp }
+        {
+          \__dataplot_construct_tick_list_over_zero:NNNN
+            \l__dataplot_min_y_fp
+            \l__dataplot_max_y_fp
+            \l__dataplot_y_tic_seq
+            \l__dataplot_min_gap_fp
+        }
+        {
+          \__dataplot_construct_tick_list_with_gap:NNNN
+            \l__dataplot_min_y_fp
+            \l__dataplot_max_y_fp
+            \l__dataplot_y_tic_seq
+            \l__dataplot_min_gap_fp
+        }
+      }
+    }
+    {
+      \__dataplot_to_fp_seq:NNnn
+        \l__dataplot_y_tic_seq
+        \l__dataplot_y_tic_clist
+        \l__dataplot_min_y_fp
+        \l__dataplot_max_y_fp
+    }
+    \__dataplot_calc_minor_y_tics:
+    \__dataplot_calc_y_label_dim:
+  }
+}
+\cs_new:Nn \__dataplot_calc_minor_y_tics:
+{
+ \seq_clear:N \l__dataplot_y_minor_tic_seq
+ \legacy_if:nT { DTLyminortics }
+  {
+    \__dataplot_construct_minor_ticks:NNNNN
+      \l__dataplot_y_tic_seq
+      \l__dataplot_min_y_fp
+      \l__dataplot_max_y_fp
+      \l__dataplot_scale_y_fp
+      \l__dataplot_y_minor_tic_seq
+  }
+}
+\cs_new:Nn \__dataplot_calc_y_label_dim:
+{
+  \seq_if_empty:NTF\l__dataplot_ytic_labels_seq
+  {
+    \seq_map_inline:Nn \l__dataplot_y_tic_seq
+     {
+       \tl_set:Nn \l__datatool_tmpa_fp { ##1 }
+       \__dataplot_get_default_tic_label:NV
+         \l__datatool_tmpa_fp \c@DTLplotroundYvar
+       \seq_put_right:NV \l__dataplot_ytic_labels_seq
+         \l__dataplot_tic_label_tl
+       \settowidth \dtl@tmplength
+         { \l__dataplot_tic_label_tl }
+       \dim_compare:nNnT
+          { \dtl@tmplength }
+           >
+          { \l__dataplot_y_tic_label_width_dim }
+        {
+          \dim_set_eq:NN \l__dataplot_y_tic_label_width_dim \dtl@tmplength
+        }
+     }
+  }
+  {
+    \seq_map_inline:Nn  \l__dataplot_ytic_labels_seq
+     {
+       \datatool_measure_width:Nn \dtl@tmplength
+         { \DTLplotdisplayYticklabel { ##1 } }
+       \dim_compare:nNnT
+           { \dtl@tmplength }
+            >
+           { \l__dataplot_y_tic_label_width_dim }
+        {
+          \dim_set_eq:NN \l__dataplot_y_tic_label_width_dim \dtl@tmplength
+        }
+     }
+  }
+}
+\cs_new:Nn \__dataplot_do_plot:
+{
+  \tl_clear:N \l__dataplot_content_tl
+  \tl_clear:N \l_dataplot_legend_tl
+  \tl_clear:N \__dataplot_post_at_begin_tl
+  \tl_set_eq:NN \dtlplothandlermark \@dtlplothandlermark
+  \begin{tikzpicture}
+    \pgfsetxvec{\pgfpoint{1pt}{0pt}}%
+    \pgfsetyvec{\pgfpoint{0pt}{1pt}}%
+    \dataplot_apply_pgftransform:
+    \DTLplotatbegintikz
+    \__dataplot_post_at_begin_tl
+    \__dataplot_add_grid:
+    \__dataplot_add_axes:
+    \__dataplot_add_x_tics:
+    \__dataplot_add_x_label:
+    \__dataplot_add_minor_x:
+    \__dataplot_add_y_tics:
+    \__dataplot_add_y_label:
+    \__dataplot_add_minor_y:
+    \l__dataplot_content_tl
+    \tl_clear:N \l__dataplot_content_tl
+   \begin{scope}
+    \pgftransformreset
+    \__dataplot_plot_data:
+    \tl_put_right:Nx \l__dataplot_content_tl
+     {
+       \exp_not:N \end{scope}
+       \exp_not:N \tl_set:Nn \exp_not:N \DTLminX { \DTLminX }
+       \exp_not:N \tl_set:Nn \exp_not:N \DTLminY { \DTLminY }
+       \exp_not:N \tl_set:Nn \exp_not:N \DTLmaxX { \DTLmaxX }
+       \exp_not:N \tl_set:Nn \exp_not:N \DTLmaxY { \DTLmaxY }
+       \exp_not:N \int_set:Nn
+        \exp_not:N \l_dataplot_stream_index_int
+           { \int_use:N \l_dataplot_stream_index_int }
+     }
+    \l__dataplot_content_tl
+    \tl_clear:N \l__dataplot_content_tl
+    \DTLplotatendtikz
+    \tl_put_right:Nx \l__dataplot_content_tl
+     {
+       \exp_not:N \end{tikzpicture}
+       \exp_not:N \tl_set:Nn \exp_not:N \DTLminX { \DTLminX }
+       \exp_not:N \tl_set:Nn \exp_not:N \DTLminY { \DTLminY }
+       \exp_not:N \tl_set:Nn \exp_not:N \DTLmaxX { \DTLmaxX }
+       \exp_not:N \tl_set:Nn \exp_not:N \DTLmaxY { \DTLmaxY }
+       \exp_not:N \int_set:Nn
+        \exp_not:N \l_dataplot_stream_index_int
+           { \int_use:N \l_dataplot_stream_index_int }
+     }
+    \l__dataplot_content_tl
+    \tl_clear:N \l__dataplot_content_tl
+}
+\cs_new:Nn \__dataplot_add_axes:
+{
+ \legacy_if:nT { DTLbox }
+  {
+    \tl_put_right:Nx \l__dataplot_content_tl
+     {
+       \exp_not:N \draw
+        (
+          \fp_to_decimal:N \l__dataplot_extended_min_x_fp ,
+          \fp_to_decimal:N \l__dataplot_extended_min_y_fp
+        ) ~
+         -- ~
+        (
+          \fp_to_decimal:N \l__dataplot_extended_max_x_fp ,
+          \fp_to_decimal:N \l__dataplot_extended_min_y_fp
+        ) ~
+          -- ~
+        (
+          \fp_to_decimal:N \l__dataplot_extended_max_x_fp ,
+          \fp_to_decimal:N \l__dataplot_extended_max_y_fp
+        ) ~
+          -- ~
+        (
+          \fp_to_decimal:N \l__dataplot_extended_min_x_fp ,
+          \fp_to_decimal:N \l__dataplot_extended_max_y_fp
+        ) ~
+         -- ~ cycle ; ~
+     }
+  }
+ \legacy_if:nT { DTLxaxis }
+  {
+    \tl_put_right:Nx \l__dataplot_content_tl
+     {
+       \exp_not:N \draw [ \exp_not:V \DTLXAxisStyle ]
+     }
+    \bool_if:NTF \l__dataplot_zero_y_axis_bool
+     {
+      \tl_put_right:Nx \l__dataplot_content_tl
+       {
+         (
+           \fp_to_decimal:N \l__dataplot_extended_min_x_fp ,
+          0 )
+       }
+      \tl_if_empty:NF \l__dataplot_x_min_label_tl
+       {
+         \tl_put_right:Nx \l__dataplot_content_tl
+          {
+            ~ node [ \exp_not:V \l__dataplot_x_min_label_style_tl ]
+            { \exp_not:V \l__dataplot_x_min_label_tl }
+          }
+       }
+      \tl_put_right:Nx \l__dataplot_content_tl
+       {
+          --
+          (
+           \fp_to_decimal:N \l__dataplot_extended_max_x_fp ,
+          0 )
+       }
+     }
+     {
+      \tl_put_right:Nx \l__dataplot_content_tl
+       {
+         (
+           \fp_to_decimal:N \l__dataplot_extended_min_x_fp ,
+           \DTLminY
+         )
+       }
+      \tl_if_empty:NF \l__dataplot_x_min_label_tl
+       {
+         \tl_put_right:Nx \l__dataplot_content_tl
+          {
+            ~ node [ \exp_not:V \l__dataplot_x_min_label_style_tl ]
+            { \exp_not:V \l__dataplot_x_min_label_tl }
+          }
+       }
+      \tl_put_right:Nx \l__dataplot_content_tl
+       {
+         --
+         (
+          \fp_to_decimal:N \l__dataplot_extended_max_x_fp ,
+          \DTLminY
+         )
+       }
+     }
+    \tl_if_empty:NF \l__dataplot_x_max_label_tl
+     {
+       \tl_put_right:Nx \l__dataplot_content_tl
+        {
+          ~ node [ \exp_not:V \l__dataplot_x_max_label_style_tl ]
+          { \exp_not:V \l__dataplot_x_max_label_tl }
+        }
+     }
+    \tl_put_right:Nn \l__dataplot_content_tl
+     { ; ~ }
+  }
+ \legacy_if:nT { DTLyaxis }
+  {
+    \tl_put_right:Nx \l__dataplot_content_tl
+     {
+       \exp_not:N \draw [ \exp_not:V \DTLYAxisStyle ]
+     }
+    \bool_if:NTF \l__dataplot_zero_x_axis_bool
+     {
+      \tl_put_right:Nx \l__dataplot_content_tl
+       {
+         (0,
+           \fp_to_decimal:N \l__dataplot_extended_min_y_fp
+         )
+       }
+      \tl_if_empty:NF \l__dataplot_y_min_label_tl
+       {
+         \tl_put_right:Nx \l__dataplot_content_tl
+          {
+            ~ node [ \exp_not:V \l__dataplot_y_min_label_style_tl ]
+            { \exp_not:V \l__dataplot_y_min_label_tl }
+          }
+       }
+      \tl_put_right:Nx \l__dataplot_content_tl
+       {
+          --
+         (0,
+          \fp_to_decimal:N \l__dataplot_extended_max_y_fp
+         )
+       }
+     }
+     {
+      \tl_put_right:Nx \l__dataplot_content_tl
+       {
+         (\DTLminX,
+           \fp_to_decimal:N \l__dataplot_extended_min_y_fp
+         )
+       }
+      \tl_if_empty:NF \l__dataplot_y_min_label_tl
+       {
+         \tl_put_right:Nx \l__dataplot_content_tl
+          {
+            ~ node [ \exp_not:V \l__dataplot_y_min_label_style_tl ]
+            { \exp_not:V \l__dataplot_y_min_label_tl }
+          }
+       }
+      \tl_put_right:Nx \l__dataplot_content_tl
+       {
+          --
+         (\DTLminX,
+           \fp_to_decimal:N \l__dataplot_extended_max_y_fp
+         )
+       }
+     }
+    \tl_if_empty:NF \l__dataplot_y_max_label_tl
+     {
+       \tl_put_right:Nx \l__dataplot_content_tl
+        {
+          ~ node [ \exp_not:V \l__dataplot_y_max_label_style_tl ]
+          { \exp_not:V \l__dataplot_y_max_label_tl }
+        }
+     }
+    \tl_put_right:Nn \l__dataplot_content_tl
+     { ; ~ }
+  }
+ \l__dataplot_content_tl
+ \tl_clear:N \l__dataplot_content_tl
+}
+\cs_new:Nn \__dataplot_add_grid:
+{
+  \legacy_if:nT { DTLgrid }
+   {
+   \tl_if_empty:NF \DTLminorgridstyle
+    {
+      \legacy_if:nT { DTLxminortics }
+       {
+         \seq_map_inline:Nn \l__dataplot_x_minor_tic_seq
+          {
+           \tl_set:Nn \l__dataplot_x_fp { ##1 }
+           \tl_set:Nx \l__dataplot_x_tl
+             { \fp_to_decimal:N \l__dataplot_x_fp }
+           \tl_put_right:Nx \l__dataplot_content_tl
+            {
+              \exp_not:N \draw [ \exp_not:V \DTLminorgridstyle ]
+              ( \l__dataplot_x_tl ,
+                \fp_to_decimal:N \l__dataplot_extended_min_y_fp
+              )
+              --
+              ( \l__dataplot_x_tl,
+                \fp_to_decimal:N \l__dataplot_extended_max_y_fp
+              ); ~
+            }
+          }
+       }
+      \legacy_if:nT { DTLyminortics }
+       {
+         \seq_map_inline:Nn \l__dataplot_y_minor_tic_seq
+          {
+           \tl_set:Nn \l__dataplot_y_fp { ##1 }
+           \tl_set:Nx \l__dataplot_y_tl
+             { \fp_to_decimal:N \l__dataplot_y_fp }
+           \tl_put_right:Nx \l__dataplot_content_tl
+            {
+              \exp_not:N \draw [ \exp_not:V \DTLminorgridstyle ]
+              (
+                \fp_to_decimal:N \l__dataplot_extended_min_x_fp ,
+                \l__dataplot_y_tl
+              )
+              --
+              (
+                \fp_to_decimal:N \l__dataplot_extended_max_x_fp ,
+                \l__dataplot_y_tl
+              ); ~
+            }
+          }
+       }
+    }
+    \seq_map_inline:Nn \l__dataplot_x_tic_seq
+     {
+       \tl_set:Nn \l__dataplot_x_fp { ##1 }
+       \tl_set:Nx \l__dataplot_x_tl
+         { \fp_to_decimal:N \l__dataplot_x_fp }
+       \tl_put_right:Nx \l__dataplot_content_tl
+       {
+         \exp_not:N \draw [ \exp_not:V \DTLmajorgridstyle ]
+         ( \l__dataplot_x_tl ,
+           \fp_to_decimal:N \l__dataplot_extended_min_y_fp
+         )
+         --
+         ( \l__dataplot_x_tl ,
+           \fp_to_decimal:N \l__dataplot_extended_max_y_fp
+         ); ~
+       }
+     }
+    \seq_map_inline:Nn \l__dataplot_y_tic_seq
+    {
+      \tl_set:Nn \l__dataplot_y_fp { ##1 }
+      \tl_set:Nx \l__dataplot_y_tl
+       { \fp_to_decimal:N \l__dataplot_y_fp }
+      \tl_put_right:Nx \l__dataplot_content_tl
+       {
+         \exp_not:N \draw [ \exp_not:V \DTLmajorgridstyle ]
+         (
+           \fp_to_decimal:N  \l__dataplot_extended_min_x_fp ,
+           \l__dataplot_y_tl
+         )
+          --
+         (
+           \fp_to_decimal:N \l__dataplot_extended_max_x_fp ,
+           \l__dataplot_y_tl
+         ); ~
+       }
+    }
+   \l__dataplot_content_tl
+   \tl_clear:N \l__dataplot_content_tl
+  }
+}
+\cs_new:Nn \__dataplot_add_x_tics:
+{
+ \legacy_if:nT { DTLxtics }
+  {
+    \fp_set:Nn \l__dataplot_tick_length_fp
+     {
+       (
+         (
+           \dim_to_decimal_in_sp:n { \DTLticklength }
+            - \l__dataplot_offset_y_fp
+         )   / \l__dataplot_scale_y_fp
+       )
+       / 65536
+     }
+     \dim_add:Nn \l__dataplot_x_tic_label_height_dim
+       { \DTLticklabeloffset }
+     \fp_set:Nn \l__dataplot_tic_label_offset_fp
+       {
+         (
+           (
+             \dim_to_decimal_in_sp:n
+                { \l__dataplot_x_tic_label_height_dim }
+             + \l__dataplot_offset_y_fp
+           ) / \l__dataplot_scale_y_fp
+         ) / 65536
+       }
+     \seq_map_indexed_inline:Nn \l__dataplot_x_tic_seq
+       {
+         \tl_set:Nn \l__dataplot_x_fp { ##2 }
+         \tl_set:Nn \l__dataplot_x_tl
+           { \fp_use:N \l__dataplot_x_fp }
+         \tl_set:Nx \l__dataplot_tic_label_tl
+         {
+           \seq_item:Nn \l__dataplot_xtic_labels_seq { ##1 }
+         }
+      \legacy_if:nTF { DTLxticsin }
+       {
+         \bool_if:NTF \l__dataplot_zero_y_axis_bool
+          {
+            \fp_set_eq:NN \l__dataplot_y_fp
+              \l__dataplot_tick_length_fp
+            \tl_put_right:Nx \l__dataplot_content_tl
+              {
+                \exp_not:N \draw
+                 ( \l__dataplot_x_tl , 0 )
+                  --
+                 ( \l__dataplot_x_tl ,
+                     \fp_to_decimal:N  \l__dataplot_y_fp ) ; ~
+              }
+            \fp_set:Nn \l__dataplot_y_fp
+              { - \l__dataplot_tic_label_offset_fp }
+          }
+          {
+            \fp_set:Nn \l__dataplot_y_fp
+              {
+                \l__dataplot_min_y_fp
+                 + \l__dataplot_tick_length_fp
+              }
+            \tl_put_right:Nx \l__dataplot_content_tl
+              {
+                \exp_not:N \draw
+                 ( \l__dataplot_x_tl , \DTLminY )
+                  --
+                 ( \l__dataplot_x_tl ,
+                   \fp_to_decimal:N \l__dataplot_y_fp ) ; ~
+              }
+            \fp_set:Nn \l__dataplot_y_fp
+              {
+                \l__dataplot_min_y_fp
+                - \l__dataplot_tic_label_offset_fp
+              }
+          }
+         \bool_lazy_and:nnF
+           { \l__dataplot_omit_zero_x_label_bool }
+           {
+             \fp_compare_p:nNn
+               { \l__dataplot_x_fp } = { \c_zero_fp }
+           }
+         {
+           \tl_put_right:Nx \l__dataplot_content_tl
+            {
+              \exp_not:N \draw
+               ( \l__dataplot_x_tl ,
+                 \fp_to_decimal:N \l__dataplot_y_fp ) ~
+               node [ \exp_not:V \l__dataplot_x_tick_label_style_tl ]
+                {
+                  \exp_not:N \DTLplotdisplayXticklabel
+                   { \exp_not:V \l__dataplot_tic_label_tl }
+                } ; ~
+            }
+         }
+       }
+       {
+         \bool_if:NTF \l__dataplot_zero_y_axis_bool
+          {
+           \fp_set:Nn \l__dataplot_y_fp
+             { - \l__dataplot_tick_length_fp }
+           \tl_put_right:Nx \l__dataplot_content_tl
+             {
+               \exp_not:N \draw
+                ( \l__dataplot_x_tl , 0 )
+                 --
+                ( \l__dataplot_x_tl ,
+                    \fp_to_decimal:N \l__dataplot_y_fp ) ; ~
+             }
+           \fp_sub:Nn \l__dataplot_y_fp
+             { \l__dataplot_tic_label_offset_fp }
+          }
+          {
+           \fp_set:Nn \l__dataplot_y_fp
+            {
+              \l__dataplot_min_y_fp
+               - \l__dataplot_tick_length_fp
+            }
+           \tl_put_right:Nx \l__dataplot_content_tl
+             {
+               \exp_not:N \draw
+                ( \l__dataplot_x_tl , \DTLminY )
+                 --
+                ( \l__dataplot_x_tl ,
+                    \fp_to_decimal:N \l__dataplot_y_fp ) ;
+             }
+           \fp_sub:Nn \l__dataplot_y_fp
+             { \l__dataplot_tic_label_offset_fp }
+          }
+         \bool_lazy_and:nnF
+          { \l__dataplot_omit_zero_x_label_bool }
+          { \fp_compare_p:nNn { \l__dataplot_x_fp } = { \c_zero_fp } }
+         {
+           \tl_put_right:Nx \l__dataplot_content_tl
+             {
+                \exp_not:N \draw
+                ( \l__dataplot_x_tl ,
+                     \fp_to_decimal:N \l__dataplot_y_fp ) ~
+                node [ \exp_not:V \l__dataplot_x_tick_label_style_tl ]
+                 {
+                   \exp_not:N \DTLplotdisplayXticklabel
+                    { \exp_not:V \l__dataplot_tic_label_tl }
+                 } ; ~
+             }
+           }
+       }
+      \legacy_if:nT { DTLbox }
+       {
+          \__dataplot_draw_box_ticks_lower_x:n
+           {
+             \int_case:nnT { \l__dataplot_box_ticks_int }
+              {
+                { \c_one_int } % match
+                 {
+                   \legacy_if:nTF { DTLxticsin }
+                   {
+                     \fp_set:Nn \l__dataplot_y_fp
+                      {
+                        \l__dataplot_extended_min_y_fp
+                         + \l__dataplot_tick_length_fp
+                      }
+                   }
+                   {
+                     \fp_set:Nn \l__dataplot_y_fp
+                      {
+                        \l__dataplot_extended_min_y_fp
+                        - \l__dataplot_tick_length_fp
+                      }
+                   }
+                 }
+                { 2 } % in
+                 {
+                   \fp_set:Nn \l__dataplot_y_fp
+                    {
+                      \l__dataplot_extended_min_y_fp
+                      + \l__dataplot_tick_length_fp
+                    }
+                 }
+                { 3 } % out
+                 {
+                   \fp_set:Nn \l__dataplot_y_fp
+                    {
+                      \l__dataplot_extended_min_y_fp
+                       - \l__dataplot_tick_length_fp
+                    }
+                 }
+              }
+              {
+                \tl_put_right:Nx \l__dataplot_content_tl
+                 {
+                   \exp_not:N \draw
+                   ( \l__dataplot_x_tl ,
+                     \fp_to_decimal:N \l__dataplot_extended_min_y_fp )
+                    --
+                   ( \l__dataplot_x_tl ,
+                      \fp_to_decimal:N \l__dataplot_y_fp ) ; ~
+                 }
+              }
+           }
+         \int_case:nnT { \l__dataplot_box_ticks_int }
+          {
+            { \c_one_int } % match
+             {
+               \legacy_if:nTF  { DTLxticsin }
+                {
+                  \fp_set:Nn \l__dataplot_y_fp
+                   {
+                     \l__dataplot_extended_max_y_fp
+                     - \l__dataplot_tick_length_fp
+                   }
+                }
+                {
+                  \fp_set:Nn \l__dataplot_y_fp
+                   {
+                     \l__dataplot_extended_max_y_fp
+                     + \l__dataplot_tick_length_fp
+                   }
+                }
+             }
+            { 2 } % in
+             {
+               \fp_set:Nn \l__dataplot_y_fp
+                {
+                  \l__dataplot_extended_max_y_fp
+                  - \l__dataplot_tick_length_fp
+                }
+             }
+            { 3 } % out
+             {
+               \fp_set:Nn \l__dataplot_y_fp
+                {
+                  \l__dataplot_extended_max_y_fp
+                   + \l__dataplot_tick_length_fp
+                }
+             }
+          }
+          {
+            \tl_put_right:Nx \l__dataplot_content_tl
+             {
+               \exp_not:N \draw
+               ( \l__dataplot_x_tl ,
+                 \fp_to_decimal:N \l__dataplot_extended_max_y_fp )
+                --
+               ( \l__dataplot_x_tl ,
+                 \fp_to_decimal:N \l__dataplot_y_fp ) ; ~
+             }
+          }
+       }
+     }
+   \l__dataplot_content_tl
+   \tl_clear:N \l__dataplot_content_tl
+  }
+}
+\cs_new:Nn \__dataplot_add_x_label:
+{
+  \tl_if_empty:NF \l__dataplot_xlabel_tl
+  {
+    \fp_add:Nn \l__dataplot_tic_label_offset_fp
+      {
+        (
+          (
+            \dim_to_decimal_in_sp:n { \baselineskip }
+             + \l__dataplot_offset_y_fp
+          ) / \l__dataplot_scale_y_fp
+        ) / 65536
+      }
+    \fp_set:Nn \l__dataplot_x_fp
+      { \l__dataplot_min_x_fp + 0.5 * \l__dataplot_x_extent_fp  }
+    \bool_if:NTF \l__dataplot_zero_y_axis_bool
+     {
+      \fp_set:Nn \l__dataplot_y_fp
+        { - \l__dataplot_tic_label_offset_fp }
+     }
+     {
+      \fp_set:Nn \l__dataplot_y_fp
+        { \l__dataplot_min_y_fp - \l__dataplot_tic_label_offset_fp }
+     }
+    \tl_put_right:Nx \l__dataplot_content_tl
+      {
+        \exp_not:N \draw
+        ( \fp_to_decimal:N \l__dataplot_x_fp ,
+          \fp_to_decimal:N \l__dataplot_y_fp ) ~
+        node[anchor=north] { \exp_not:V \l__dataplot_xlabel_tl }; ~
+      }
+    \l__dataplot_content_tl
+    \tl_clear:N \l__dataplot_content_tl
+  }
+}
+\cs_new:Nn \__dataplot_add_minor_x:
+{
+ \legacy_if:nT { DTLxminortics }
+  {
+   \fp_set:Nn \l__dataplot_tick_length_fp
+    {
+      (
+        (
+          \dim_to_decimal_in_sp:n { \DTLminorticklength }
+           + \l__dataplot_offset_y_fp
+        ) / \l__dataplot_scale_y_fp
+      ) / 65536
+    }
+   \seq_map_inline:Nn \l__dataplot_x_minor_tic_seq
+    {
+      \tl_set:Nn \l__dataplot_x_fp { ##1 }
+      \tl_set:Nx \l__dataplot_x_tl
+        { \fp_to_decimal:N \l__dataplot_x_fp }
+      \legacy_if:nTF { DTLxticsin }
+       {
+         \bool_if:NTF \l__dataplot_zero_y_axis_bool
+          {
+           \fp_set_eq:NN \l__dataplot_y_fp
+              \l__dataplot_tick_length_fp
+           \tl_put_right:Nx \l__dataplot_content_tl
+            {
+              \exp_not:N \draw
+              ( \l__dataplot_x_tl , 0 )
+               --
+              ( \l__dataplot_x_tl ,
+                 \fp_to_decimal:N \l__dataplot_y_fp ); ~
+            }
+          }
+          {
+           \fp_set:Nn \l__dataplot_y_fp
+            {
+              \l__dataplot_min_y_fp
+               + \l__dataplot_tick_length_fp
+            }
+           \tl_put_right:Nx \l__dataplot_content_tl
+            {
+              \exp_not:N \draw
+              ( \l__dataplot_x_tl , \DTLminY )
+               --
+              ( \l__dataplot_x_tl ,
+                 \fp_to_decimal:N \l__dataplot_y_fp ); ~
+            }
+         }
+       }
+       {
+         \bool_if:NTF \l__dataplot_zero_y_axis_bool
+          {
+           \fp_set:Nn \l__dataplot_y_fp
+             { - \l__dataplot_tick_length_fp }
+           \tl_put_right:Nx \l__dataplot_content_tl
+            {
+              \exp_not:N \draw
+              ( \l__dataplot_x_tl , 0 )
+               --
+              ( \l__dataplot_x_tl ,
+                 \fp_to_decimal:N \l__dataplot_y_fp ); ~
+            }
+          }
+          {
+           \fp_set:Nn \l__dataplot_y_fp
+             {
+               \l__dataplot_min_y_fp
+                - \l__dataplot_tick_length_fp
+             }
+           \tl_put_right:Nx \l__dataplot_content_tl
+            {
+              \exp_not:N \draw
+              ( \l__dataplot_x_tl , \DTLminY )
+               --
+              ( \l__dataplot_x_tl ,
+                 \fp_to_decimal:N \l__dataplot_y_fp ); ~
+            }
+          }
+       }
+      \legacy_if:nT { DTLbox }
+       {
+          \__dataplot_draw_box_ticks_lower_x:n
+           {
+             \int_case:nnT { \l__dataplot_box_ticks_int }
+              {
+                { \c_one_int } % match
+                 {
+                   \legacy_if:nTF { DTLxticsin }
+                   {
+                     \fp_set:Nn \l__dataplot_y_fp
+                      {
+                        \l__dataplot_extended_min_y_fp
+                         + \l__dataplot_tick_length_fp
+                      }
+                   }
+                   {
+                     \fp_set:Nn \l__dataplot_y_fp
+                      {
+                        \l__dataplot_extended_min_y_fp
+                        - \l__dataplot_tick_length_fp
+                      }
+                   }
+                 }
+                { 2 } % in
+                 {
+                   \fp_set:Nn \l__dataplot_y_fp
+                    {
+                      \l__dataplot_extended_min_y_fp
+                      + \l__dataplot_tick_length_fp
+                    }
+                 }
+                { 3 } % out
+                 {
+                   \fp_set:Nn \l__dataplot_y_fp
+                    {
+                      \l__dataplot_extended_min_y_fp
+                       - \l__dataplot_tick_length_fp
+                    }
+                 }
+              }
+              {
+                \tl_put_right:Nx \l__dataplot_content_tl
+                 {
+                   \exp_not:N \draw
+                   ( \l__dataplot_x_tl ,
+                     \fp_to_decimal:N \l__dataplot_extended_min_y_fp )
+                    --
+                   ( \l__dataplot_x_tl ,
+                      \fp_to_decimal:N \l__dataplot_y_fp ); ~
+                 }
+              }
+           }
+         \int_case:nnT { \l__dataplot_box_ticks_int }
+          {
+            { \c_one_int } % match
+             {
+               \legacy_if:nTF  { DTLxticsin }
+                {
+                  \fp_set:Nn \l__dataplot_y_fp
+                   {
+                     \l__dataplot_extended_max_y_fp
+                     - \l__dataplot_tick_length_fp
+                   }
+                }
+                {
+                  \fp_set:Nn \l__dataplot_y_fp
+                   {
+                     \l__dataplot_extended_max_y_fp
+                     + \l__dataplot_tick_length_fp
+                   }
+                }
+             }
+            { 2 } % in
+             {
+               \fp_set:Nn \l__dataplot_y_fp
+                {
+                  \l__dataplot_extended_max_y_fp
+                  - \l__dataplot_tick_length_fp
+                }
+             }
+            { 3 } % out
+             {
+               \fp_set:Nn \l__dataplot_y_fp
+                {
+                  \l__dataplot_extended_max_y_fp
+                   + \l__dataplot_tick_length_fp
+                }
+             }
+          }
+          {
+            \tl_put_right:Nx \l__dataplot_content_tl
+             {
+               \exp_not:N \draw
+               ( \l__dataplot_x_tl ,
+                 \fp_to_decimal:N \l__dataplot_extended_max_y_fp )
+                --
+               ( \l__dataplot_x_tl ,
+                 \fp_to_decimal:N \l__dataplot_y_fp ); ~
+             }
+          }
+       }
+    }
+   \l__dataplot_content_tl
+   \tl_clear:N \l__dataplot_content_tl
+  }
+}
+\cs_new:Nn \__dataplot_add_y_tics:
+{
+ \legacy_if:nT { DTLytics }
+  {
+    \fp_set:Nn \l__dataplot_tick_length_fp
+     {
+       (
+         (
+           \dim_to_decimal_in_sp:n { \DTLticklength }
+            + \l__dataplot_offset_x_fp
+         )   / \l__dataplot_scale_x_fp
+       )
+       / 65536
+     }
+     \fp_set:Nn \l__dataplot_tic_label_offset_fp
+       {
+         (
+           (
+             \dim_to_decimal_in_sp:n { \DTLticklabeloffset }
+             + \l__dataplot_offset_x_fp
+           ) / \l__dataplot_scale_x_fp
+         ) / 65536
+       }
+     \seq_map_indexed_inline:Nn  \l__dataplot_y_tic_seq
+       {
+         \tl_set:Nn \l__dataplot_y_fp { ##2 }
+         \tl_set:Nn \l__dataplot_y_tl
+           { \fp_use:N \l__dataplot_y_fp }
+         \tl_set:Nx \l__dataplot_tic_label_tl
+         {
+           \seq_item:Nn \l__dataplot_ytic_labels_seq { ##1 }
+         }
+       \legacy_if:nTF { DTLyticsin }
+        {
+         \bool_if:NTF \l__dataplot_zero_x_axis_bool
+          {
+            \fp_set_eq:NN \l__dataplot_x_fp
+                \l__dataplot_tick_length_fp
+            \tl_put_right:Nx \l__dataplot_content_tl
+              {
+                \exp_not:N \draw
+                 ( 0,  \l__dataplot_y_tl )
+                  --
+                 ( \fp_to_decimal:N  \l__dataplot_x_fp,
+                     \l__dataplot_y_tl ); ~
+              }
+            \fp_set:Nn \l__dataplot_x_fp
+              { - \l__dataplot_tic_label_offset_fp }
+          }
+          {
+            \fp_set:Nn \l__dataplot_x_fp
+              {
+                \l__dataplot_min_x_fp
+                + \l__dataplot_tick_length_fp
+              }
+            \tl_put_right:Nx \l__dataplot_content_tl
+              {
+                \exp_not:N \draw
+                 (
+                   \DTLminX , \l__dataplot_y_tl
+                 )
+                  --
+                 ( \fp_to_decimal:N  \l__dataplot_x_fp,
+                     \l__dataplot_y_tl ); ~
+              }
+            \fp_set:Nn \l__dataplot_x_fp
+              {
+                \l__dataplot_min_x_fp
+                 - \l__dataplot_tic_label_offset_fp
+              }
+           }
+         \bool_lazy_and:nnF
+           { \l__dataplot_omit_zero_y_label_bool }
+           {
+             \fp_compare_p:nNn
+               { \l__dataplot_y_fp } = { \c_zero_fp }
+           }
+         {
+           \tl_put_right:Nx \l__dataplot_content_tl
+             {
+               \exp_not:N \draw
+                ( \fp_to_decimal:N \l__dataplot_x_fp,
+                     \l__dataplot_y_tl ) ~
+                node [ \exp_not:V \l__dataplot_y_tick_label_style_tl ]
+                 {
+                   \exp_not:N \DTLplotdisplayYticklabel
+                    { \exp_not:V \l__dataplot_tic_label_tl }
+                 }; ~
+             }
+           }
+        }
+        {
+         \bool_if:NTF \l__dataplot_zero_x_axis_bool
+          {
+            \fp_set:Nn \l__dataplot_x_fp
+              { - \l__dataplot_tick_length_fp }
+            \tl_put_right:Nx \l__dataplot_content_tl
+              {
+                \exp_not:N \draw
+                 ( 0 ,  \l__dataplot_y_tl )
+                  --
+                 ( \fp_to_decimal:N \l__dataplot_x_fp,
+                     \l__dataplot_y_tl  ) ; ~
+              }
+          }
+          {
+            \fp_set:Nn \l__dataplot_x_fp
+              {
+                \l__dataplot_min_x_fp
+                 - \l__dataplot_tick_length_fp
+              }
+            \tl_put_right:Nx \l__dataplot_content_tl
+              {
+                \exp_not:N \draw
+                 (
+                   \DTLminX , \l__dataplot_y_tl
+                 )
+                  --
+                 ( \fp_to_decimal:N \l__dataplot_x_fp,
+                     \l__dataplot_y_tl  ) ; ~
+              }
+          }
+         \bool_lazy_and:nnF
+           { \l__dataplot_omit_zero_y_label_bool }
+           {
+             \fp_compare_p:nNn
+               { \l__dataplot_y_fp } = { \c_zero_fp }
+           }
+         {
+           \fp_sub:Nn \l__dataplot_x_fp
+             { \l__dataplot_tic_label_offset_fp }
+           \tl_put_right:Nx \l__dataplot_content_tl
+             {
+               \exp_not:N \draw
+                ( \fp_to_decimal:N \l__dataplot_x_fp,
+                     \l__dataplot_y_tl ) ~
+                node [ \exp_not:V \l__dataplot_y_tick_label_style_tl ]
+                 {
+                   \exp_not:N \DTLplotdisplayYticklabel
+                    { \exp_not:V \l__dataplot_tic_label_tl }
+                 } ; ~
+             }
+           }
+        }
+       \legacy_if:nT { DTLbox }
+        {
+          \__dataplot_draw_box_ticks_lower_y:n
+           {
+             \int_case:nnT { \l__dataplot_box_ticks_int }
+              {
+                { \c_one_int } % match
+                 {
+                   \legacy_if:nTF { DTLyticsin }
+                   {
+                     \fp_set:Nn \l__dataplot_x_fp
+                      {
+                        \l__dataplot_extended_min_x_fp
+                        + \l__dataplot_tick_length_fp
+                      }
+                   }
+                   {
+                     \fp_set:Nn \l__dataplot_x_fp
+                      {
+                        \l__dataplot_extended_min_x_fp
+                        - \l__dataplot_tick_length_fp
+                      }
+                   }
+                 }
+                { 2 } % in
+                 {
+                   \fp_set:Nn \l__dataplot_x_fp
+                    {
+                      \l__dataplot_extended_min_x_fp
+                       + \l__dataplot_tick_length_fp
+                    }
+                 }
+                { 3 } % out
+                 {
+                   \fp_set:Nn \l__dataplot_x_fp
+                    {
+                      \l__dataplot_extended_min_x_fp
+                       - \l__dataplot_tick_length_fp
+                    }
+                 }
+              }
+              {
+                \tl_put_right:Nx \l__dataplot_content_tl
+                 {
+                   \exp_not:N \draw
+                   (
+                     \fp_to_decimal:N \l__dataplot_extended_min_x_fp ,
+                     \l__dataplot_y_tl
+                    )
+                    --
+                   ( \fp_to_decimal:N \l__dataplot_x_fp,
+                       \l__dataplot_y_tl ); ~
+                 }
+              }
+           }
+         \int_case:nnT { \l__dataplot_box_ticks_int }
+          {
+            { \c_one_int } % match
+             {
+               \legacy_if:nTF { DTLyticsin }
+                {
+                 \fp_set:Nn \l__dataplot_x_fp
+                  {
+                    \l__dataplot_extended_max_x_fp
+                     - \l__dataplot_tick_length_fp
+                  }
+                }
+                {
+                 \fp_set:Nn \l__dataplot_x_fp
+                  {
+                    \l__dataplot_extended_max_x_fp
+                    + \l__dataplot_tick_length_fp
+                  }
+                }
+              }
+            { 2 } % in
+             {
+               \fp_set:Nn \l__dataplot_x_fp
+                {
+                  \l__dataplot_extended_max_x_fp
+                    - \l__dataplot_tick_length_fp
+                }
+             }
+            { 3 } % out
+             {
+               \fp_set:Nn \l__dataplot_x_fp
+                {
+                  \l__dataplot_extended_max_x_fp
+                  + \l__dataplot_tick_length_fp
+                }
+             }
+          }
+          {
+            \tl_put_right:Nx \l__dataplot_content_tl
+              {
+                \exp_not:N \draw
+                (
+                  \fp_to_decimal:N \l__dataplot_extended_max_x_fp ,
+                  \l__dataplot_y_tl
+                )
+                 --
+                ( \fp_to_decimal:N \l__dataplot_x_fp,
+                    \l__dataplot_y_tl); ~
+              }
+          }
+        }
+     }
+   \l__dataplot_content_tl
+   \tl_clear:N \l__dataplot_content_tl
+  }
+}
+\cs_new:Nn \__dataplot_add_y_label:
+{
+  \tl_if_empty:NF \l__dataplot_ylabel_tl
+  {
+    \fp_set:Nn \l__dataplot_tic_label_offset_fp
+    {
+      (
+       (
+        \dim_to_decimal_in_sp:n
+         {
+           \baselineskip
+           + \l__dataplot_y_tic_label_width_dim
+           + \DTLticklabeloffset
+         }
+         + \l__dataplot_offset_x_fp
+       )
+        / \l__dataplot_scale_x_fp
+      ) / 65536
+    }
+    \bool_if:NTF \l__dataplot_zero_x_axis_bool
+     {
+       \fp_set:Nn \l__dataplot_x_fp
+        { - \l__dataplot_tic_label_offset_fp }
+     }
+     {
+       \fp_set:Nn \l__dataplot_x_fp
+        { \l__dataplot_min_x_fp - \l__dataplot_tic_label_offset_fp }
+     }
+    \fp_set:Nn \l__dataplot_y_fp
+     { \l__dataplot_min_y_fp + 0.5 * \l__dataplot_y_extent_fp }
+    \tl_put_right:Nx \l__dataplot_content_tl
+     {
+       \exp_not:N \draw
+        ( \fp_use:N \l__dataplot_x_fp,
+            \fp_use:N \l__dataplot_y_fp ) ~
+        node[rotate=90,anchor=south]
+          { \exp_not:V \l__dataplot_ylabel_tl }; ~
+     }
+    \l__dataplot_content_tl
+    \tl_clear:N \l__dataplot_content_tl
+  }
+}
+\cs_new:Nn \__dataplot_add_minor_y:
+{
+ \legacy_if:nT { DTLyminortics }
+  {
+   \fp_set:Nn \l__dataplot_tick_length_fp
+    {
+      (
+        (
+          \dim_to_decimal_in_sp:n { \DTLminorticklength }
+           + \l__dataplot_offset_x_fp
+        ) / \l__dataplot_scale_x_fp
+      ) / 65536
+    }
+   \seq_map_inline:Nn \l__dataplot_y_minor_tic_seq
+    {
+      \tl_set:Nn \l__dataplot_y_fp { ##1 }
+      \tl_set:Nx \l__dataplot_y_tl
+        { \fp_to_decimal:N \l__dataplot_y_fp }
+     \legacy_if:nTF { DTLyticsin }
+      {
+         \bool_if:NTF \l__dataplot_zero_x_axis_bool
+          {
+           \fp_set_eq:NN \l__dataplot_x_fp
+              \l__dataplot_tick_length_fp
+           \tl_put_right:Nx \l__dataplot_content_tl
+            {
+              \exp_not:N \draw
+              ( 0 , \l__dataplot_y_tl )
+               --
+              ( \fp_to_decimal:N \l__dataplot_x_fp,
+                 \l__dataplot_y_tl ); ~
+            }
+          }
+          {
+           \fp_set:Nn \l__dataplot_x_fp
+             { \l__dataplot_min_x_fp + \l__dataplot_tick_length_fp }
+           \tl_put_right:Nx \l__dataplot_content_tl
+            {
+              \exp_not:N \draw
+              ( \DTLminX, \l__dataplot_y_tl )
+               --
+              ( \fp_to_decimal:N \l__dataplot_x_fp,
+                 \l__dataplot_y_tl ); ~
+            }
+          }
+      }
+      {
+         \bool_if:NTF \l__dataplot_zero_x_axis_bool
+          {
+            \fp_set:Nn \l__dataplot_x_fp
+              { - \l__dataplot_tick_length_fp }
+            \tl_put_right:Nx \l__dataplot_content_tl
+             {
+               \exp_not:N \draw
+               ( 0 , \l__dataplot_y_tl )
+                --
+               ( \fp_to_decimal:N \l__dataplot_x_fp ,
+                   \l__dataplot_y_tl ); ~
+             }
+          }
+          {
+            \fp_set:Nn \l__dataplot_x_fp
+              { \l__dataplot_min_x_fp - \l__dataplot_tick_length_fp }
+            \tl_put_right:Nx \l__dataplot_content_tl
+             {
+               \exp_not:N \draw
+               ( \DTLminX, \l__dataplot_y_tl )
+                --
+               ( \fp_to_decimal:N \l__dataplot_x_fp ,
+                   \l__dataplot_y_tl ); ~
+             }
+          }
+      }
+       \legacy_if:nT { DTLbox }
+        {
+          \__dataplot_draw_box_ticks_lower_y:n
+           {
+             \int_case:nnT { \l__dataplot_box_ticks_int }
+              {
+                { \c_one_int } % match
+                 {
+                   \legacy_if:nTF { DTLyticsin }
+                   {
+                     \fp_set:Nn \l__dataplot_x_fp
+                      {
+                        \l__dataplot_extended_min_x_fp
+                        + \l__dataplot_tick_length_fp
+                      }
+                   }
+                   {
+                     \fp_set:Nn \l__dataplot_x_fp
+                      {
+                        \l__dataplot_extended_min_x_fp
+                        - \l__dataplot_tick_length_fp
+                      }
+                   }
+                 }
+                { 2 } % in
+                 {
+                   \fp_set:Nn \l__dataplot_x_fp
+                    {
+                      \l__dataplot_extended_min_x_fp
+                       + \l__dataplot_tick_length_fp
+                    }
+                 }
+                { 3 } % out
+                 {
+                   \fp_set:Nn \l__dataplot_x_fp
+                    {
+                      \l__dataplot_extended_min_x_fp
+                       - \l__dataplot_tick_length_fp
+                    }
+                 }
+              }
+              {
+                \tl_put_right:Nx \l__dataplot_content_tl
+                 {
+                   \exp_not:N \draw
+                   (
+                     \fp_to_decimal:N \l__dataplot_extended_min_x_fp ,
+                     \l__dataplot_y_tl
+                    )
+                    --
+                   ( \fp_to_decimal:N \l__dataplot_x_fp,
+                       \l__dataplot_y_tl ); ~
+                 }
+              }
+           }
+         \int_case:nnT { \l__dataplot_box_ticks_int }
+          {
+            { \c_one_int } % match
+             {
+               \legacy_if:nTF { DTLyticsin }
+                {
+                 \fp_set:Nn \l__dataplot_x_fp
+                  {
+                    \l__dataplot_extended_max_x_fp
+                     - \l__dataplot_tick_length_fp
+                  }
+                }
+                {
+                 \fp_set:Nn \l__dataplot_x_fp
+                  {
+                    \l__dataplot_extended_max_x_fp
+                    + \l__dataplot_tick_length_fp
+                  }
+                }
+              }
+            { 2 } % in
+             {
+               \fp_set:Nn \l__dataplot_x_fp
+                {
+                  \l__dataplot_extended_max_x_fp
+                    - \l__dataplot_tick_length_fp
+                }
+             }
+            { 3 } % out
+             {
+               \fp_set:Nn \l__dataplot_x_fp
+                {
+                  \l__dataplot_extended_max_x_fp
+                  + \l__dataplot_tick_length_fp
+                }
+             }
+          }
+          {
+            \tl_put_right:Nx \l__dataplot_content_tl
+              {
+                \exp_not:N \draw
+                (
+                  \fp_to_decimal:N \l__dataplot_extended_max_x_fp ,
+                  \l__dataplot_y_tl
+                )
+                 --
+                ( \fp_to_decimal:N \l__dataplot_x_fp,
+                    \l__dataplot_y_tl); ~
+              }
+          }
+        }
+    }
+   \l__dataplot_content_tl
+   \tl_clear:N \l__dataplot_content_tl
+  }
+}
+\int_new:N \l_dataplot_stream_index_int
+\cs_new:Nn \__dataplot_plot_data:
+{
+  \tl_clear:N \l__dataplot_current_mark_tl
+  \tl_clear:N \l__dataplot_current_mark_color_tl
+  \tl_clear:N \l__dataplot_current_line_tl
+  \tl_clear:N \l__dataplot_current_line_color_tl
+  \int_zero:N \l_dataplot_stream_index_int
+  \seq_map_indexed_inline:Nn \l__dataplot_dbnames_seq
+  {
+    \bool_if:NTF \l__dataplot_mark_group_bool
+     {
+        \__dataplot_get_style:NNN
+          \l__dataplot_mark_seq \DTLplotmarks
+          \l__dataplot_current_mark_tl
+     }
+     {
+       \bool_if:NT \l__dataplot_no_group_mark_reset_bool
+        {
+          \__dataplot_set_style_from_clist:NN
+            \l__dataplot_mark_seq \DTLplotmarks
+        }
+       \tl_clear:N \l__dataplot_current_mark_tl
+     }
+    \bool_if:NTF \l__dataplot_mark_color_group_bool
+     {
+       \__dataplot_get_style:NNN
+         \l__dataplot_mark_colors_seq \DTLplotmarkcolors
+         \l__dataplot_current_mark_color_tl
+     }
+     {
+       \bool_if:NT \l__dataplot_no_group_mark_color_reset_bool
+        {
+          \__dataplot_set_style_from_clist:NN
+            \l__dataplot_mark_colors_seq \DTLplotmarkcolors
+        }
+       \tl_clear:N \l__dataplot_current_mark_color_tl
+     }
+    \bool_if:NTF \l__dataplot_line_group_bool
+     {
+       \__dataplot_get_style:NNN
+         \l__dataplot_line_seq \DTLplotlines
+         \l__dataplot_current_line_tl
+     }
+     {
+       \bool_if:NT \l__dataplot_no_group_line_reset_bool
+        {
+          \__dataplot_set_style_from_clist:NN
+            \l__dataplot_line_seq \DTLplotlines
+        }
+       \tl_clear:N \l__dataplot_current_line_tl
+     }
+    \bool_if:NTF \l__dataplot_line_color_group_bool
+     {
+       \__dataplot_get_style:NNN
+         \l__dataplot_line_colors_seq \DTLplotlinecolors
+         \l__dataplot_current_line_color_tl
+     }
+     {
+       \bool_if:NT \l__dataplot_no_group_line_color_reset_bool
+        {
+          \__dataplot_set_style_from_clist:NN
+            \l__dataplot_line_colors_seq \DTLplotlinecolors
+        }
+       \tl_clear:N \l__dataplot_current_line_color_tl
+     }
+    \DTLsetup{ default-name = { ##2 } }
+    \__dataplot_filtered_map:nnn
+    {
+      \int_incr:N \l_dataplot_stream_index_int
+      \legacy_if:nT { DTLshowmarkers }
+      {
+        \bool_if:NF \l__dataplot_mark_group_bool
+         {
+           \__dataplot_get_style:NNN
+             \l__dataplot_mark_seq \DTLplotmarks
+             \l__dataplot_current_mark_tl
+         }
+        \bool_if:NF \l__dataplot_mark_color_group_bool
+         {
+           \__dataplot_get_style:NNN
+             \l__dataplot_mark_colors_seq \DTLplotmarkcolors
+             \l__dataplot_current_mark_color_tl
+         }
+         \tl_if_empty:NTF \l__dataplot_current_mark_tl
+          {
+            \tl_clear:N \l__dataplot_current_mark_style_tl
+          }
+          {
+           \tl_set_eq:NN
+             \l__dataplot_current_mark_style_tl
+             \l__dataplot_current_mark_tl
+           \tl_if_empty:NF \l__dataplot_current_mark_color_tl
+            {
+              \tl_put_left:Nx \l__dataplot_current_mark_style_tl
+               {
+                  \exp_not:N \pgfsetstrokecolor
+                    { \l__dataplot_current_mark_color_tl }
+               }
+            }
+          }
+      }
+      \legacy_if:nT { DTLshowlines }
+      {
+        \bool_if:NF \l__dataplot_line_group_bool
+         {
+           \__dataplot_get_style:NNN
+             \l__dataplot_line_seq \DTLplotlines
+             \l__dataplot_current_line_tl
+         }
+         \bool_if:NF \l__dataplot_line_color_group_bool
+         {
+           \__dataplot_get_style:NNN
+             \l__dataplot_line_colors_seq \DTLplotlinecolors
+             \l__dataplot_current_line_color_tl
+         }
+         \tl_if_empty:NTF \l__dataplot_current_line_tl
+          {
+            \tl_clear:N \l__dataplot_current_line_style_tl
+          }
+          {
+           \tl_set_eq:NN
+             \l__dataplot_current_line_style_tl
+             \l__dataplot_current_line_tl
+           \tl_if_empty:NF \l__dataplot_current_line_color_tl
+            {
+              \tl_put_left:Nx \l__dataplot_current_line_style_tl
+               {
+                  \exp_not:N \pgfsetstrokecolor
+                    { \l__dataplot_current_line_color_tl }
+               }
+            }
+          }
+      }
+      \int_if_zero:nF \l__dataplot_legend_setting_int
+      {
+         \seq_pop_left:NNF
+            \l__dataplot_legend_labels_seq
+            \l__datatool_tmpa_tl
+          {
+            \tl_clear:N \l__datatool_tmpa_tl
+            \exp_args:NNx
+             \dataplot_get_default_legend:Nnnnn
+               \l__datatool_tmpa_tl
+              { ##1 } { ##2 }
+              { \l__dataplot_x_key_tl }
+              { \l__dataplot_y_key_tl }
+          }
+         \tl_if_empty:NF \l__datatool_tmpa_tl
+          {
+           \exp_args:Noox
+            \DTLaddtoplotlegend
+            { \l__dataplot_current_mark_style_tl }
+            { \l__dataplot_current_line_style_tl }
+            { \l__datatool_tmpa_tl }
+          }
+      }
+      \tl_set:Nn \l__dataplot_stream_tl
+        { \pgfplotstreamstart }
+    }
+    {
+      \datatool_set_fp:Nn \l__dataplot_x_fp
+       {
+         \l__dataplot_x_tl
+       }
+      \datatool_set_fp:Nn \l__dataplot_y_fp
+       {
+         \l__dataplot_y_tl
+       }
+      \tl_set:Nx \l__dataplot_decimal_x_tl
+        { \fp_to_tl:N \l__dataplot_x_fp }
+      \tl_set:Nx \l__dataplot_decimal_y_tl
+        { \fp_to_tl:N \l__dataplot_y_fp }
+      \__dataplot_x_y_bounded:nnnnnnT
+        { \l__dataplot_x_fp }
+          { \l__dataplot_min_x_fp } { \l__dataplot_max_x_fp }
+        { \l__dataplot_y_fp }
+          { \l__dataplot_min_y_fp } { \l__dataplot_max_y_fp }
+      {
+        \fp_set:Nn \l__dataplot_x_fp
+         {
+           \l__dataplot_x_fp * \l__dataplot_scale_x_fp
+           + \l__dataplot_offset_x_fp
+         }
+        \tl_set:Nx \l__dataplot_x_tl
+          { \fp_to_tl:N \l__dataplot_x_fp }
+        \fp_set:Nn \l__dataplot_y_fp
+         {
+           \l__dataplot_y_fp * \l__dataplot_scale_y_fp
+           + \l__dataplot_offset_y_fp
+         }
+        \tl_set:Nx \l__dataplot_y_tl
+          { \fp_to_tl:N \l__dataplot_y_fp }
+        \tl_put_right:Nx \l__dataplot_stream_tl
+         {
+           \exp_not:N \pgfplotstreampoint
+            {
+              \exp_not:N \pgfpointxy
+               { \l__dataplot_x_tl }
+               { \l__dataplot_y_tl }
+            }
+         }
+      }
+   }
+   {
+      \tl_put_right:Nn \l__dataplot_stream_tl
+        { \pgfplotstreamend }
+      \tl_if_empty:NF \l__dataplot_current_line_style_tl
+       {
+         \begin{scope}
+           \l__dataplot_current_line_style_tl
+           \pgfplothandlerlineto
+           \l__dataplot_stream_tl
+           \pgfusepath{stroke}
+         \end{scope}
+       }
+      \tl_if_empty:NF \l__dataplot_current_mark_style_tl
+       {
+         \begin{scope}
+           \exp_args:NV \pgfplothandlermark
+             \l__dataplot_current_mark_style_tl
+           \l__dataplot_stream_tl
+           \pgfusepath{stroke}
+         \end{scope}
+       }
+    }
+  }
+  \int_if_zero:nF \l__dataplot_legend_setting_int
+  {
+    \bool_lazy_and:nnT
+     { \tl_if_empty_p:N \l_dataplot_legend_tl }
+     { \tl_if_exist_p:N \dtl@legend }
+    {
+      \tl_set_eq:NN \l_dataplot_legend_tl \dtl@legend
+    }
+  }
+  \tl_if_empty:NF \l_dataplot_legend_tl
+  {
+    \__dataplot_do_legend:
+  }
+}
+\cs_new:Nn \__dataplot_do_legend:
+{
+  \tl_clear:N \l__dataplot_content_tl
+  \dataplot_legend_add_begin:
+  \dataplot_legend_add_end:
+  \int_case:nnTF { \l__dataplot_legend_setting_int }
+   {
+     { 1 } % north
+       {
+         \fp_set:Nn \l__dataplot_x_fp
+          {
+            \l__dataplot_scale_x_fp *
+              ( \l__dataplot_min_x_fp + 0.5 * \l__dataplot_x_extent_fp )
+            + \l__dataplot_offset_x_fp
+          }
+         \fp_set:Nn \l__dataplot_y_fp
+          {
+            \l__dataplot_max_y_fp * \l__dataplot_scale_y_fp
+            + \l__dataplot_offset_y_fp
+            - \DTLlegendyoffset
+          }
+         \fp_compare:nNnTF
+           { \DTLlegendyoffset } < { \c_zero_fp }
+          {
+            \tl_put_right:Nn \l__dataplot_content_tl
+             {
+               node [ anchor = south ]
+             }
+          }
+          {
+           \tl_put_right:Nn \l__dataplot_content_tl
+            {
+              node [ anchor = north ]
+            }
+          }
+       }
+     { 2 } % northeast
+       {
+         \fp_set:Nn \l__dataplot_x_fp
+          {
+            \l__dataplot_max_x_fp * \l__dataplot_scale_x_fp
+              + \l__dataplot_offset_x_fp
+              - \DTLlegendxoffset
+          }
+         \fp_set:Nn \l__dataplot_y_fp
+          {
+            \l__dataplot_max_y_fp * \l__dataplot_scale_y_fp
+              + \l__dataplot_offset_y_fp
+              - \DTLlegendyoffset
+          }
+         \tl_put_right:Nn \l__dataplot_content_tl
+          {
+            node [ anchor =
+          }
+         \fp_compare:nNnTF
+           { \DTLlegendyoffset } < { \c_zero_fp }
+          {
+            \tl_put_right:Nn \l__dataplot_content_tl { south ~ }
+          }
+          {
+            \tl_put_right:Nn \l__dataplot_content_tl { north ~ }
+          }
+         \fp_compare:nNnTF
+           { \DTLlegendxoffset } < { \c_zero_fp }
+          {
+            \tl_put_right:Nn \l__dataplot_content_tl { west }
+          }
+          {
+            \tl_put_right:Nn \l__dataplot_content_tl { east }
+          }
+         \tl_put_right:Nn \l__dataplot_content_tl
+          {
+             ]
+          }
+       }
+     { 3 } % east
+       {
+         \fp_set:Nn \l__dataplot_x_fp
+          {
+            \l__dataplot_max_x_fp * \l__dataplot_scale_x_fp
+             + \l__dataplot_offset_x_fp
+             - \DTLlegendxoffset
+          }
+         \fp_set:Nn \l__dataplot_y_fp
+          {
+            \l__dataplot_offset_y_fp
+            + \l__dataplot_scale_y_fp
+              * ( \l__dataplot_min_y_fp + 0.5 * \l__dataplot_y_extent_fp )
+          }
+         \fp_compare:nNnTF
+           { \DTLlegendxoffset } < { \c_zero_fp }
+          {
+           \tl_put_right:Nn \l__dataplot_content_tl
+            {
+              node [ anchor = west ]
+            }
+          }
+          {
+           \tl_put_right:Nn \l__dataplot_content_tl
+            {
+              node [ anchor = east ]
+            }
+          }
+       }
+     { 4 } % southeast
+       {
+         \fp_set:Nn \l__dataplot_x_fp
+          {
+            \l__dataplot_max_x_fp * \l__dataplot_scale_x_fp
+            + \l__dataplot_offset_x_fp
+            - \DTLlegendxoffset
+          }
+         \fp_set:Nn \l__dataplot_y_fp
+          {
+            \l__dataplot_min_y_fp * \l__dataplot_scale_y_fp
+            + \l__dataplot_offset_y_fp
+            + \DTLlegendyoffset
+          }
+         \tl_put_right:Nn \l__dataplot_content_tl
+          {
+            node [ anchor =
+          }
+         \fp_compare:nNnTF
+           { \DTLlegendyoffset } < { \c_zero_fp }
+          {
+            \tl_put_right:Nn \l__dataplot_content_tl { north ~ }
+          }
+          {
+            \tl_put_right:Nn \l__dataplot_content_tl { south ~ }
+          }
+         \fp_compare:nNnTF
+           { \DTLlegendxoffset } < { \c_zero_fp }
+          {
+            \tl_put_right:Nn \l__dataplot_content_tl { west }
+          }
+          {
+            \tl_put_right:Nn \l__dataplot_content_tl { east }
+          }
+         \tl_put_right:Nn \l__dataplot_content_tl
+          {
+            ]
+          }
+       }
+     { 5 } % south
+       {
+         \fp_set:Nn \l__dataplot_x_fp
+          {
+            \l__dataplot_scale_x_fp
+            * ( \l__dataplot_min_x_fp + 0.5 * \l__dataplot_x_extent_fp )
+            + \l__dataplot_offset_x_fp
+          }
+         \fp_set:Nn \l__dataplot_y_fp
+          {
+            \l__dataplot_min_y_fp * \l__dataplot_scale_y_fp
+             + \l__dataplot_offset_y_fp
+             + \DTLlegendyoffset
+          }
+         \fp_compare:nNnTF
+           { \DTLlegendyoffset } < { \c_zero_fp }
+          {
+           \tl_put_right:Nn \l__dataplot_content_tl
+            {
+              node [ anchor = north ]
+            }
+          }
+          {
+           \tl_put_right:Nn \l__dataplot_content_tl
+            {
+              node [ anchor = south ]
+            }
+          }
+       }
+     { 6 } % southwest
+       {
+         \fp_set:Nn \l__dataplot_x_fp
+          {
+            \l__dataplot_min_x_fp * \l__dataplot_scale_x_fp
+            + \l__dataplot_offset_x_fp
+            + \DTLlegendxoffset
+          }
+         \fp_set:Nn \l__dataplot_y_fp
+          {
+            \l__dataplot_min_y_fp * \l__dataplot_scale_y_fp
+            + \l__dataplot_offset_y_fp
+            + \DTLlegendyoffset
+          }
+         \tl_put_right:Nn \l__dataplot_content_tl
+          {
+            node [ anchor =
+          }
+         \fp_compare:nNnTF
+           { \DTLlegendyoffset } < { \c_zero_fp }
+          {
+            \tl_put_right:Nn \l__dataplot_content_tl { north ~ }
+          }
+          {
+            \tl_put_right:Nn \l__dataplot_content_tl { south ~ }
+          }
+         \fp_compare:nNnTF
+           { \DTLlegendxoffset } < { \c_zero_fp }
+          {
+            \tl_put_right:Nn \l__dataplot_content_tl { east }
+          }
+          {
+            \tl_put_right:Nn \l__dataplot_content_tl { west }
+          }
+         \tl_put_right:Nn \l__dataplot_content_tl
+          {
+             ]
+          }
+       }
+     { 7 } % west
+       {
+         \fp_set:Nn \l__dataplot_x_fp
+          {
+            \l__dataplot_offset_x_fp
+             + \l__dataplot_min_x_fp * \l__dataplot_scale_x_fp
+             + \DTLlegendxoffset
+          }
+         \fp_set:Nn \l__dataplot_y_fp
+          {
+            \l__dataplot_scale_y_fp
+             * ( \l__dataplot_min_y_fp + 0.5 * \l__dataplot_y_extent_fp )
+            + \l__dataplot_offset_y_fp
+          }
+         \fp_compare:nNnTF
+           { \DTLlegendxoffset } < { \c_zero_fp }
+          {
+           \tl_put_right:Nn \l__dataplot_content_tl
+            {
+              node [ anchor = east ]
+            }
+          }
+          {
+           \tl_put_right:Nn \l__dataplot_content_tl
+            {
+              node [ anchor = west ]
+            }
+          }
+       }
+     { 8 } % northwest
+       {
+         \fp_set:Nn \l__dataplot_x_fp
+          {
+            \l__dataplot_offset_x_fp
+             + \l__dataplot_min_x_fp * \l__dataplot_scale_x_fp
+             + \DTLlegendxoffset
+          }
+         \fp_set:Nn \l__dataplot_y_fp
+          {
+            \l__dataplot_offset_y_fp
+             + \l__dataplot_max_y_fp * \l__dataplot_scale_y_fp
+             - \DTLlegendyoffset
+          }
+         \tl_put_right:Nn \l__dataplot_content_tl
+          {
+            node [ anchor =
+          }
+         \fp_compare:nNnTF
+           { \DTLlegendyoffset } < { \c_zero_fp }
+          {
+            \tl_put_right:Nn \l__dataplot_content_tl { south ~ }
+          }
+          {
+            \tl_put_right:Nn \l__dataplot_content_tl { north ~ }
+          }
+         \fp_compare:nNnTF
+           { \DTLlegendxoffset } < { \c_zero_fp }
+          {
+            \tl_put_right:Nn \l__dataplot_content_tl { east }
+          }
+          {
+            \tl_put_right:Nn \l__dataplot_content_tl { west }
+          }
+         \tl_put_right:Nn \l__dataplot_content_tl
+          {
+             ]
+          }
+       }
+   }
+   {
+     \tl_put_left:Nx \l__dataplot_content_tl
+       {
+         \exp_not:N \draw
+          ( \fp_to_decimal:N \l__dataplot_x_fp,
+           \fp_to_decimal:N \l__dataplot_y_fp ) ~
+       }
+     \tl_put_right:Nx \l__dataplot_content_tl
+       {
+         ~ {
+           \exp_not:N \DTLformatlegend
+            {
+              \exp_not:V \l_dataplot_legend_tl
+            }
+         }; ~
+       }
+   }
+   {
+     \tl_put_right:Nx \l__dataplot_content_tl
+       {
+         \exp_not:N \DTLcustomlegend
+         {
+           \exp_not:V \l_dataplot_legend_tl
+         }
+       }
+   }
+  \l__dataplot_content_tl
+  \tl_clear:N \l__dataplot_content_tl
+}
+\cs_new:Nn \__dataplot_get_style:NNN
+{
+  \seq_if_empty:NT #1
+  {
+    \__dataplot_set_style_from_clist:NN #1 #2
+  }
+  \seq_pop_left:NN #1 #3
+  \tl_if_eq:NnT #3 { \relax }
+  {
+    \tl_clear:N #3
+  }
+}
+\NewDocumentCommand \DTLplot { o m m }
+{
+ \group_begin:
+  \cs_set_eq:NN \__dataplot_do_plot:n \use:n
+  \keys_set:nn { datatool / plot } { #3 }
+  \IfValueT { #1 }
+   {
+     \cs_set:Nn \__dataplot_filter:T
+     {
+       \ifthenelse { #1 } { ##1 } { }
+     }
+   }
+  \exp_args:NNx \seq_set_from_clist:Nn
+     \l__dataplot_dbnames_seq { #2 }
+  \seq_map_inline:Nn \l__dataplot_dbnames_seq
+   {
+     \DTLifdbexists { ##1 } { }
+      {
+       \PackageError { dataplot }
+        {
+          Database ~ `##1' ~ doesn't ~ exist
+        }
+        {
+          Check ~ you ~ have ~ spelt ~ the ~ database ~ name ~
+          correctly ~ in ~ the ~ argument ~ of ~
+          \token_to_str:N \DTLplot { \exp_not:n { #2 } } { ... }
+        }
+       \cs_set_eq:NN \__dataplot_do_plot:n \use_none:n
+      }
+   }
+  \__dataplot_do_plot:n
+   {
+     \fp_set:Nn \l__dataplot_min_minor_gap_fp
+       { \DTLminminortickgap / 65536 }
+     \__dataplot_set_style_from_clist:NN
+       \l__dataplot_mark_seq \DTLplotmarks
+     \__dataplot_set_style_from_clist:NN
+       \l__dataplot_line_seq \DTLplotlines
+     \__dataplot_set_style_from_clist:NN
+       \l__dataplot_mark_colors_seq \DTLplotmarkcolors
+     \__dataplot_set_style_from_clist:NN
+       \l__dataplot_line_colors_seq \DTLplotlinecolors
+     \tl_clear:N \l_dataplot_legend_tl
+     \clist_if_empty:NT \l__dataplot_x_keys_clist
+     {
+       \PackageError { dataplot }
+       {Missing ~ x ~ setting ~ for ~ \token_to_str:N \DTLplot}
+       {}
+       \cs_set_eq:NN \__dataplot_do_plot:n \use_none:n
+     }
+     \seq_if_empty:NTF \l__dataplot_y_keys_seq
+     {
+       \PackageError { dataplot }
+       {Missing ~ y ~ setting ~ for ~ \token_to_str:N \DTLplot}
+       {}
+       \cs_set_eq:NN \__dataplot_do_plot:n \use_none:n
+     }
+     {
+       \int_compare:nNnT
+         { \clist_count:N \l__dataplot_x_keys_clist }
+          >
+         { \seq_count:N \l__dataplot_y_keys_seq }
+       {
+         \PackageError { dataplot }
+         { Too ~ many ~ x ~ keys ~ listed ~ in ~ \token_to_str:N \DTLplot }
+         {
+            The ~ number ~ of ~ x ~ keys ~ must ~ be ~ less ~ than ~
+            or ~ equal ~ to ~ the ~ number ~ of ~ y ~ keys
+         }
+         \cs_set_eq:NN \__dataplot_do_plot:n \use_none:n
+       }
+     }
+    \__dataplot_init_and_do_plot:
+  }
+ \group_end:
+}
+\cs_new:Nn \__dataplot_init_and_do_plot:
+{
+ \__dataplot_do_plot:n
+  {
+    \__dataplot_update_bounds:
+  }
+ \__dataplot_do_plot:n
+  {
+    \fp_set:Nn \l__dataplot_extended_min_x_fp
+     {
+       \l__dataplot_min_x_fp
+       - \l__dataplot_extend_min_x_axis_fp
+     }
+    \fp_set:Nn \l__dataplot_extended_min_y_fp
+     {
+       \l__dataplot_min_y_fp
+       - \l__dataplot_extend_min_y_axis_fp
+     }
+    \fp_set:Nn \l__dataplot_extended_max_x_fp
+     {
+       \l__dataplot_max_x_fp
+       + \l__dataplot_extend_max_x_axis_fp
+     }
+    \fp_set:Nn \l__dataplot_extended_max_y_fp
+     {
+       \l__dataplot_max_y_fp
+       + \l__dataplot_extend_max_y_axis_fp
+     }
+    \bool_set_false:N \l__dataplot_zero_x_axis_bool
+    \bool_set_false:N \l__dataplot_zero_y_axis_bool
+    \bool_if:NF \l__dataplot_side_axes_bool
+    {
+      \fp_compare:nT
+        {
+          \l__dataplot_extended_min_x_fp
+          < \c_zero_fp
+          < \l__dataplot_extended_max_x_fp
+         }
+       {
+         \bool_set_true:N \l__dataplot_zero_x_axis_bool
+       }
+      \fp_compare:nT
+        {
+          \l__dataplot_extended_min_y_fp
+          < \c_zero_fp
+          < \l__dataplot_extended_max_y_fp
+        }
+       {
+         \bool_set_true:N \l__dataplot_zero_y_axis_bool
+       }
+    }
+   \int_case:nnF { \l__dataplot_omit_zero_label_action_int }
+    {
+      { 2 } % omit both
+       {
+         \bool_set_true:N \l__dataplot_omit_zero_x_label_bool
+         \bool_set_true:N \l__dataplot_omit_zero_y_label_bool
+       }
+      { 3 } % omit x
+       {
+         \bool_set_true:N \l__dataplot_omit_zero_x_label_bool
+         \bool_set_false:N \l__dataplot_omit_zero_y_label_bool
+       }
+      { 4 } % omit y
+       {
+         \bool_set_false:N \l__dataplot_omit_zero_x_label_bool
+         \bool_set_true:N \l__dataplot_omit_zero_y_label_bool
+       }
+      { 5 } % don't omit
+       {
+         \bool_set_false:N \l__dataplot_omit_zero_x_label_bool
+         \bool_set_false:N \l__dataplot_omit_zero_y_label_bool
+       }
+    }
+    {% auto
+      \bool_set_eq:NN
+        \l__dataplot_omit_zero_x_label_bool
+        \l__dataplot_zero_x_axis_bool
+      \bool_set_eq:NN
+        \l__dataplot_omit_zero_y_label_bool
+        \l__dataplot_zero_y_axis_bool
+    }
+   \bool_lazy_all:nTF
+    {
+     { \legacy_if_p:n { DTLbox } }
+     { \bool_not_p:n { \l__dataplot_side_axes_bool } }
+     { ! \fp_compare_p:nNn { \l__dataplot_extended_min_y_fp } = { \c_zero_fp } }
+    }
+    {
+      \cs_set_eq:NN \__dataplot_draw_box_ticks_lower_x:n \use:n
+    }
+    {
+      \cs_set_eq:NN \__dataplot_draw_box_ticks_lower_x:n \use_none:n
+    }
+   \bool_lazy_all:nTF
+    {
+     { \legacy_if_p:n { DTLbox } }
+     { \bool_not_p:n { \l__dataplot_side_axes_bool } }
+     { ! \fp_compare_p:nNn { \l__dataplot_extended_min_x_fp } = { \c_zero_fp } }
+    }
+    {
+      \cs_set_eq:NN \__dataplot_draw_box_ticks_lower_y:n \use:n
+    }
+    {
+      \cs_set_eq:NN \__dataplot_draw_box_ticks_lower_y:n \use_none:n
+    }
+    \dataplot_calc_transform:
+    \__dataplot_calc_x_tics:
+    \__dataplot_calc_y_tics:
+    \__dataplot_do_plot:
+  }
+}
+\cs_new:cn { __datatool_action_ plot : }
+{
+ \group_begin:
+  \int_zero:N \l_dataplot_stream_index_int
+  \tl_clear:N \l__dataplot_content_tl
+  \cs_set_eq:NN \__dataplot_do_plot:n \use:n
+  \clist_if_empty:NF \l__datatool_action_options_clist
+   {
+     \keys_set:nV { datatool / plot }
+       \l__datatool_action_options_clist
+   }
+  \seq_set_eq:NN
+     \l__dataplot_dbnames_seq \l__datatool_action_names_seq
+  \seq_map_inline:Nn \l__dataplot_dbnames_seq
+   {
+     \DTLifdbexists { ##1 } { }
+      {
+       \__datatool_action_error:nn
+        {
+          Database ~ `##1' ~ doesn't ~ exist
+        }
+        {
+          Check ~ you ~ have ~ spelt ~ the ~ database ~ name ~
+          correctly ~ in ~
+          \token_to_str:N \DTLaction [name=
+          { \seq_use::N \l__datatool_action_names_seq { , } } ]
+          { \l__datatool_action_tl } ~ or ~ check ~ the ~ default-name ~
+          option ~ in ~ \token_to_str:N \DTLsetup
+        }
+       \cs_set_eq:NN \__dataplot_do_plot:n \use_none:n
+      }
+   }
+  \__dataplot_do_plot:n
+   {
+     \fp_set:Nn \l__dataplot_min_minor_gap_fp
+       { \DTLminminortickgap / 65536 }
+     \__dataplot_set_style_from_clist:NN
+       \l__dataplot_mark_seq \DTLplotmarks
+     \__dataplot_set_style_from_clist:NN
+       \l__dataplot_line_seq \DTLplotlines
+     \__dataplot_set_style_from_clist:NN
+       \l__dataplot_mark_colors_seq \DTLplotmarkcolors
+     \__dataplot_set_style_from_clist:NN
+       \l__dataplot_line_colors_seq \DTLplotlinecolors
+     \tl_clear:N \l_dataplot_legend_tl
+     \clist_if_empty:NT \l__dataplot_x_keys_clist
+     {
+       \__datatool_action_error:nn
+       {
+         Missing ~ x ~ setting
+       }
+       {
+         The ~ `x' ~ setting ~ needs ~ to ~ be ~ set ~ to ~
+         the ~ column ~ key ~ to ~ be ~ used ~ for ~
+         the ~ plot ~ x ~ values, ~ either ~ in ~
+         \token_to_str:N
+         \DTLaction [ options={x={...}}, ~ ... ]
+           { \l__datatool_action_tl } ~ or ~ in ~
+         \token_to_str:N \DTLsetup { plot = { x= { ... } } }
+       }
+       \cs_set_eq:NN \__dataplot_do_plot:n \use_none:n
+     }
+     \seq_if_empty:NTF \l__dataplot_y_keys_seq
+     {
+       \__datatool_action_error:nn
+       {
+         Missing ~ y ~ setting
+       }
+       {
+         The ~ `y' ~ setting ~ needs ~ to ~ be ~ set ~ to ~
+         the ~ column ~ key ~ to ~ be ~ used ~ for ~
+         the ~ plot ~ y ~ values, ~ either ~ in ~
+         \token_to_str:N
+         \DTLaction [ options={y={...}}, ~ ... ]
+           { \l__datatool_action_tl } ~ or ~ in ~
+         \token_to_str:N \DTLsetup { plot = { y= { ... } } }
+       }
+       \cs_set_eq:NN \__dataplot_do_plot:n \use_none:n
+     }
+     {
+       \int_compare:nNnT
+         { \clist_count:N \l__dataplot_x_keys_clist }
+          >
+         { \seq_count:N \l__dataplot_y_keys_seq }
+       {
+         \__datatool_action_error:nn
+         {
+            Too ~ many ~ x ~ keys ~ listed ~ in ~
+            x = { \l__dataplot_x_keys_clist }
+         }
+         {
+            The ~ number ~ of ~ x ~ keys ~ must ~ be ~ less ~ than ~
+            or ~ equal ~ to ~ the ~ number ~ of ~ y ~ keys
+         }
+         \cs_set_eq:NN \__dataplot_do_plot:n \use_none:n
+       }
+     }
+    \__dataplot_do_plot:n
+     {
+       \__dataplot_init_and_do_plot:
+       \__dataplot_do_plot:n
+        {
+         \tl_set:Nx \l__dataplot_content_tl
+          {
+            \exp_not:N \__datatool_put_return_action_decimal:nn
+             { min-x } { \DTLminX }
+            \exp_not:N \__datatool_put_return_action_decimal:nn
+             { min-y } { \DTLminY }
+            \exp_not:N \__datatool_put_return_action_decimal:nn
+             { max-x } { \DTLmaxX }
+            \exp_not:N \__datatool_put_return_action_decimal:nn
+             { max-y } { \DTLmaxY }
+            \exp_not:N \__datatool_put_return_action_int:nn
+             { stream-count }
+             { \int_use:N \l_dataplot_stream_index_int }
+            \exp_not:N \__datatool_put_return_action_int:nn
+             { x-count } { \dataplot_x_key_count: }
+            \exp_not:N \__datatool_put_return_action_int:nn
+             { y-count } { \dataplot_y_key_count: }
+            \exp_not:N \__datatool_put_return_action_int:nn
+             { name-count } { \dataplot_db_count: }
+          }
+        }
+     }
+  }
+ \tl_put_left:Nx \l__dataplot_content_tl
+   {
+     \exp_not:N \group_end:
+     \exp_not:N \tl_set:Nn
+       \exp_not:N \l__datatool_action_return_tl
+        { \int_use:N \l_dataplot_stream_index_int }
+   }
+ \l__dataplot_content_tl
+}
+\cs_new:Nn \__dataplot_set_style_from_clist:NN
+{
+  \seq_set_from_clist:NN #1 #2
+  \seq_if_empty:NT #1
+   {
+     \seq_put_right:Nn #1 { }
+   }
+}
+\cs_new:Nn \__dataplot_construct_tick_list:NNNN
+{
+  \fp_compare:nTF { #1 < \c_zero_fp < #2 }
+  {
+    \fp_set:Nn \l__dataplot_width_fp { - ( #1 ) }
+    \__dataplot_default_gap:NNN
+      \l__dataplot_neg_gap_fp \l__dataplot_width_fp  #3
+    \__dataplot_default_gap:NNN
+      \l__dataplot_pos_gap_fp #2 #3
+    \fp_set:Nn \l__dataplot_gap_fp
+       { max ( \l__dataplot_neg_gap_fp, \l__dataplot_pos_gap_fp ) }
+    \fp_compare:nF { \l__dataplot_gap_fp > \l__dataplot_width_fp }
+    {
+      \__dataplot_construct_tick_list_over_zero:NNNN
+       #1 #2 #4 \l__dataplot_gap_fp
+    }
+  }
+  {
+    \fp_set:Nn \l__dataplot_width_fp { #2 - #1 }
+    \__dataplot_default_gap:NNN
+      \l__dataplot_gap_fp \l__dataplot_width_fp #3
+    \fp_compare:nTF { \l__dataplot_gap_fp < #3 }
+    {
+      \fp_compare:nTF { #3 > \l__dataplot_width_fp }
+      {
+         \seq_put_right:NV #4 #1
+         \seq_put_right:NV #4 #2
+      }
+      {
+        \__dataplot_construct_tick_list_with_gap:NNNN
+         #1 #2 #4 #3
+      }
+    }
+    {
+      \__dataplot_construct_tick_list_with_gap:NNNN
+       #1 #2 #4 \l__dataplot_gap_fp
+    }
+  }
+}
+\cs_new:Nn \__dataplot_default_gap:NNN
+{
+  \fp_set:Nn #1 { #2 / 10 }
+  \fp_compare:nNnT { #1 } < { #3 }
+   {
+     \fp_set:Nn #1 { #2 / 5 }
+     \fp_compare:nNnT { #1 } < { #3 }
+     {
+       \fp_set_eq:NN #1 #3
+     }
+   }
+  \fp_compare:nTF { #1 <= 0.1 }
+   {
+     \fp_set:Nn #1 { 0.1 }
+   }
+   {
+     \fp_compare:nTF { #1 <= 0.5 }
+      {
+        \fp_set:Nn #1 { 0.5 }
+      }
+      {
+        \fp_compare:nTF { #1 <= 0.5 }
+         {
+           \fp_set:Nn #1 { 0.5 }
+         }
+         {
+           \fp_compare:nTF { #1 <= \c_one_fp }
+            {
+              \fp_set:NN #1 \c_one_fp
+            }
+            {
+              \fp_compare:nTF { #1 <= 5 }
+               {
+                 \fp_set:Nn #1 { 5 }
+               }
+               {
+                 \fp_compare:nTF { #1 <= 100 }
+                  {
+                    \fp_set:Nn #1 { 10 }
+                  }
+                  {
+                    \fp_compare:nTF { #1 <= 1000 }
+                     {
+                       \fp_set:Nn #1 { 100 }
+                     }
+                     {
+                       \fp_set:Nn #1 { 1000 * floor ( #1 / 1000 ) }
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }
+}
+\cs_new:Nn \dataplot_add_end_tick:NNNN
+{
+  \fp_compare:nNnT
+     { #1 - #2 } < { 0.1 * #3 }
+   {
+     \seq_put_right:NV #4 #2
+   }
+}
+\cs_new:Nn \__dataplot_construct_tick_list_with_gap:NNNN
+{
+  \fp_set:Nn \l__datatool_tmpa_fp
+     { #4 * ( floor ( #1 / #4 ) + 1 ) }
+  \fp_compare:nNnT
+     { #1 - \l__datatool_tmpa_fp } < { 0.5 * #4 }
+   {
+     \seq_put_right:NV #3 #1
+   }
+  \fp_while_do:nn { #1 < \l__datatool_tmpa_fp < #2 }
+   {
+     \seq_put_right:NV #3 \l__datatool_tmpa_fp
+     \fp_add:Nn \l__datatool_tmpa_fp { #4 }
+   }
+  \fp_compare:nNnT
+     { \l__datatool_tmpa_fp - #2 } < { 0.5 * #4 }
+   {
+     \seq_put_right:NV #3 #2
+   }
+}
+\cs_new:Nn \__dataplot_construct_tick_list_over_zero:NNNN
+{
+  \fp_compare:nNnF { #4 } < { \c_dataplot_smallest_gap_fp }
+   {
+     \seq_put_right:NV #3 \c_zero_fp
+     \fp_set_eq:NN \l__datatool_tmpa_fp #4
+     \fp_while_do:nn { \c_zero_fp < \l__datatool_tmpa_fp < #2 }
+     {
+       \seq_put_right:NV #3 \l__datatool_tmpa_fp
+       \fp_add:Nn \l__datatool_tmpa_fp { #4 }
+     }
+     \dataplot_add_end_tick:NNNN
+       \l__datatool_tmpa_fp #2 #4 #3
+     \fp_compare:nF { #1 = \c_zero_fp }
+     {
+       \fp_set:Nn \l__datatool_tmpa_fp { - ( #4 ) }
+       \fp_while_do:nn { #1 < \l__datatool_tmpa_fp < \c_zero_fp }
+        {
+          \seq_put_left:NV #3 \l__datatool_tmpa_fp
+          \fp_sub:Nn \l__datatool_tmpa_fp { #4 }
+        }
+       \fp_compare:nNnT
+          { #1 - \l__datatool_tmpa_fp } < { 0.5 * #4 }
+        {
+          \seq_put_left:NV #3 #1
+        }
+     }
+   }
+}
+\cs_new:Nn \__dataplot_construct_minor_ticks:NNNNN
+{
+  \int_compare:nNnTF
+    { \seq_count:N #1 } > { 3 }
+   {
+     \tl_set:Nx \l__dataplot_x_fp
+       { \seq_item:Nn #1 { 2 } }
+     \tl_set:Nx \l__dataplot_y_fp
+       { \seq_item:Nn #1 { 3 } }
+     \__dataplot_calc_minor_gap:NNN
+       \l__dataplot_x_fp \l__dataplot_y_fp
+       #4
+   }
+   {
+     \int_compare:nNnTF
+       { \seq_count:N #1 } > { \c_one_int }
+      {
+        \tl_set:Nx \l__dataplot_x_fp
+         { \seq_item:Nn #1 { 1 } }
+        \tl_set:Nx \l__dataplot_y_fp
+         { \seq_item:Nn #1 { 2 } }
+        \__dataplot_calc_minor_gap:NNN
+         \l__dataplot_x_fp \l__dataplot_y_fp
+         #4
+      }
+      {
+        \__dataplot_calc_minor_gap:NNN
+         #2 #3 #4
+      }
+   }
+   \fp_set_eq:NN \l__dataplot_x_fp #2
+   \seq_map_indexed_inline:Nn #1
+    {
+       \tl_set:Nn \l__dataplot_y_fp { ##2 }
+       \int_compare:nNnT { ##1 } > { \c_one_int }
+        {
+          \int_compare:nNnTF { ##1 } = { 2 }
+           {
+             \__dataplot_construct_reverse_tick_list:NNNN
+              \l__dataplot_x_fp
+              \l__dataplot_y_fp
+              #5
+              \l__dataplot_gap_fp
+           }
+           {
+             \__dataplot_construct_tick_list_with_gap_excl:NNNN
+              \l__dataplot_x_fp
+              \l__dataplot_y_fp
+              #5
+              \l__dataplot_gap_fp
+           }
+       }
+       \fp_set_eq:NN \l__dataplot_x_fp \l__dataplot_y_fp
+    }
+   \fp_set_eq:NN \l__dataplot_y_fp #3
+   \fp_compare:nNnT
+    { \l__dataplot_min_minor_gap_fp }
+    <
+    { \l__dataplot_y_fp - \l__dataplot_x_fp }
+   {
+     \__dataplot_construct_tick_list_with_gap_excl:NNNN
+       \l__dataplot_x_fp
+       \l__dataplot_y_fp
+       #5
+       \l__dataplot_gap_fp
+   }
+}
+\cs_new:Nn \__dataplot_calc_minor_gap:NNN
+{
+  \fp_set:Nn \l__dataplot_width_fp
+   {
+     ( #2 - #1 ) * #3
+   }
+  \fp_set:Nn \l__dataplot_gap_fp
+   { \l__dataplot_width_fp / 10 }
+  \fp_compare:nT
+   { \l__dataplot_gap_fp < \l__dataplot_min_minor_gap_fp }
+  {
+    \fp_set:Nn \l__dataplot_gap_fp
+     { \l__dataplot_width_fp / 4}
+    \fp_compare:nT
+     { \l__dataplot_gap_fp < \l__dataplot_min_minor_gap_fp }
+    {
+      \fp_set:Nn \l__dataplot_gap_fp
+       { \l__dataplot_width_fp / 2}
+      \fp_compare:nT
+       { \l__dataplot_gap_fp < \l__dataplot_min_minor_gap_fp }
+      {
+        \fp_set_eq:NN \l__dataplot_gap_fp \l__dataplot_width_fp
+      }
+    }
+  }
+  \fp_set:Nn \l__dataplot_gap_fp
+   { \l__dataplot_gap_fp  / #3 }
+}
+\cs_new:Nn \__dataplot_construct_tick_list_with_gap_excl:NNNN
+{
+  \fp_compare:nTF
+    { #1 < \c_zero_fp < #2 }
+   {
+     \__dataplot_construct_tick_list_over_zero:NNNN
+      #1 #2 #3 #4
+   }
+   {
+    \fp_compare:nNnF { #4 } < { \c_dataplot_smallest_gap_fp }
+     {
+       \fp_set:Nn \l__datatool_tmpa_fp { #1 + #4 }
+       \fp_while_do:nn { #1 < \l__datatool_tmpa_fp < #2 }
+       {
+         \seq_put_right:NV #3 \l__datatool_tmpa_fp
+         \fp_add:Nn \l__datatool_tmpa_fp { #4 }
+       }
+     }
+  }
+}
+\cs_new:Nn \__dataplot_construct_reverse_tick_list:NNNN
+{
+  \fp_compare:nNnF { #4 } < { \c_dataplot_smallest_gap_fp }
+   {
+     \fp_set:Nn \l__datatool_tmpa_fp { #2 - #4 }
+     \fp_while_do:nn { #1 < \l__datatool_tmpa_fp < #2 }
+     {
+       \seq_put_left:NV #3 \l__datatool_tmpa_fp
+       \fp_sub:Nn \l__datatool_tmpa_fp { #4 }
+     }
+   }
+}
+\cs_new:Nn \__dataplot_construct_tick_list_with_gap_incl:NNNN
+{
+  \fp_compare:nTF
+    { #1 < \c_zero_fp < #2 }
+   {
+     \__dataplot_construct_tick_list_over_zero:NNNN
+      #1 #2 #3 #4
+   }
+   {
+    \fp_compare:nNnF { #4 } < { \c_dataplot_smallest_gap_fp }
+     {
+       \fp_set:Nn \l__datatool_tmpa_fp { #1 + #4 }
+       \seq_put_right:NV #3 #1
+       \fp_while_do:nn { #1 < \l__datatool_tmpa_fp < #2 }
+       {
+         \seq_put_right:NV #3 \l__datatool_tmpa_fp
+         \fp_add:Nn \l__datatool_tmpa_fp { #4 }
+       }
+       \fp_compare:nNnT
+         { \l__datatool_tmpa_fp - #2 } < { 0.1 * #4 }
+        {
+          \seq_put_right:NV #3 #2
+        }
+     }
+  }
+}
+\newcommand*{\DTLaddtoplotlegend}[3]{%
+ \tl_if_empty:NF \l_dataplot_legend_tl
+ {
+   \tl_put_right:Nn \l_dataplot_legend_tl { \\ }
+ }
+ \tl_clear:N \l__datatool_tmpc_tl
+ \tl_if_empty:nF { #2 }
+ {
+   \tl_if_eq:nnF { #2 } { \relax }
+   {
+     \tl_put_right:Nn \l__datatool_tmpc_tl
+      {
+        \begin{pgfscope}
+          #2
+          \pgfpathmoveto{\pgfpoint{-10pt}{0pt}}
+          \pgfpathlineto{\pgfpoint{10pt}{0pt}}
+          \pgfusepath{stroke}
+        \end{pgfscope}
+      }
+    }
+ }
+ \tl_if_empty:nF { #1 }
+ {
+   \tl_if_eq:nnF { #1 } { \relax }
+   {
+     \tl_put_right:Nn \l__datatool_tmpc_tl { #1 }
+   }
+ }
+ \tl_if_empty:NF \l__datatool_tmpc_tl
+ {
+   \tl_put_right:Nn \l_dataplot_legend_tl
+     { \begin { pgfpicture } }
+   \tl_put_right:NV \l_dataplot_legend_tl \l__datatool_tmpc_tl
+   \tl_put_right:Nn \l_dataplot_legend_tl
+     { \end { pgfpicture } }
+   \tl_put_right:Nn \l_dataplot_legend_tl { & #3 }
+ }
+}
+\cs_new:Nn \dataplot_get_default_legend:Nnnnn
+{
+  \int_compare:nNnTF
+   { \dataplot_x_key_count: } > { \c_one_int }
+  {
+    \tl_put_right:Nx #1
+     {
+       \exp_not:N \DTLplotlegendxy
+        [ #2 ] { #3 }
+        [ \int_use:N \l_dataplot_x_key_int ] { #4 }
+        [ \int_use:N \l_dataplot_y_key_int ] { #5 }
+     }
+  }
+  {
+    \int_compare:nNnT
+     { \dataplot_y_key_count: } > { \c_one_int }
+    {
+      \tl_put_right:Nx #1
+       {
+         \exp_not:N \DTLplotlegendy
+          [ #2 ] { #3 }
+          [ \int_use:N \l_dataplot_y_key_int ] { #5 }
+       }
+    }
+  }
+ \tl_if_empty:NTF #1
+  {
+    \tl_set:Nx #1
+     {
+       \exp_not:N \DTLplotlegendname [ #2 ] { #3 }
+     }
+  }
+  {
+    \int_compare:nNnT
+       { \dataplot_db_count: } > { \c_one_int }
+     {
+       \tl_put_left:Nx #1
+        {
+          \exp_not:N \DTLplotlegendname [ #2 ] { #3 }
+          \exp_not:N \DTLplotlegendnamesep
+        }
+     }
+  }
+}
+\NewDocumentCommand \DTLplotlegendxy { O{0} m O{0} m O{0} m }
+ {
+   \DTLplotlegendx [ #1 ] { #2 } [ #3 ] { #4 }
+   \DTLplotlegendxysep
+   \DTLplotlegendy [ #1 ] { #2 } [ #5 ] { #6 }
+ }
+\newcommand \DTLplotlegendxysep
+ {
+  \c_space_tl / \c_space_tl
+ }
+\newcommand \DTLplotlegendnamesep { ~ }
+\NewDocumentCommand \DTLplotlegendname { O{0} m }
+ {
+   \prop_get:NnNTF \l_dataplot_legend_names_prop
+      { #2 } \l_dataplot_legend_name_tl
+    { \l_dataplot_legend_name_tl }
+    { #2 }
+ }
+\prop_new:N \l_dataplot_legend_names_prop
+\tl_new:N \l_dataplot_legend_name_tl
+\NewDocumentCommand \DTLplotlegendsetname { m m }
+{
+  \prop_put:Nnn \l_dataplot_legend_names_prop { #1 } { #2 }
+}
+\NewDocumentCommand \DTLplotlegendx { O{0} m O{0} m }
+ {
+   \prop_get:NnNTF \l_dataplot_legend_xlabels_prop
+      { #4 } \l_dataplot_legend_xlabel_tl
+    { \l_dataplot_legend_xlabel_tl }
+    {
+      \DTLaction
+        [ name = { #2 }, key = { #4 } ]
+        { column ~ data }
+      \DTLuse { header }
+    }
+ }
+\prop_new:N \l_dataplot_legend_xlabels_prop
+\tl_new:N \l_dataplot_legend_xlabel_tl
+\NewDocumentCommand \DTLplotlegendsetxlabel { m m }
+{
+  \prop_put:Nnn \l_dataplot_legend_xlabels_prop { #1 } { #2 }
+}
+\NewDocumentCommand \DTLplotlegendy { O{0} m O{0} m }
+ {
+   \prop_get:NnNTF
+      \l_dataplot_legend_ylabels_prop
+        { #4 }
+      \l_dataplot_legend_ylabel_tl
+    {
+      \l_dataplot_legend_ylabel_tl
+    }
+    {
+      \DTLaction
+        [ name = { #2 }, key = { #4 } ]
+        { column ~ data }
+      \DTLuse { header }
+    }
+ }
+\prop_new:N \l_dataplot_legend_ylabels_prop
+\tl_new:N \l_dataplot_legend_ylabel_tl
+\NewDocumentCommand \DTLplotlegendsetylabel { m m }
+{
+  \prop_put:Nnn \l_dataplot_legend_ylabels_prop { #1 } { #2 }
+}
+\cs_new:Nn \dataplot_db_count:
+{
+  \seq_count:N \l__dataplot_dbnames_seq
+}
+\cs_new:Nn \dataplot_x_key_count:
+{
+  \clist_count:N \l__dataplot_x_keys_clist
+}
+\cs_new:Nn \dataplot_y_key_count:
+{
+  \seq_count:N \l__dataplot_y_keys_seq
+}
+\ExplSyntaxOff
+\endinput
+%%
+%% End of file `dataplot.sty'.

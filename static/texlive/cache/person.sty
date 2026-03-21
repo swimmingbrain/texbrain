@@ -1,0 +1,1740 @@
+%%
+%% This is file `person.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% datatool.dtx  (with options: `person.sty,package')
+%% 
+%%  datatool.dtx
+%%  Copyright 2025 Nicola Talbot
+%% 
+%%  This work may be distributed and/or modified under the
+%%  conditions of the LaTeX Project Public License, either version 1.3
+%%  of this license or (at your option) any later version.
+%%  The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%%  and version 1.3 or later is part of all distributions of LaTeX
+%%  version 2005/12/01 or later.
+%% 
+%%  This work has the LPPL maintenance status `maintained'.
+%% 
+%%  The Current Maintainer of this work is Nicola Talbot.
+%% 
+%%  This work consists of the files datatool.dtx and datatool.ins and the derived files datatool-base.sty, datatool-undetermined.ldf, datatool-latin1.ldf, datatool-utf8.ldf, datatool-l3fp.def, datatool-lua.def, datatool-fp.def, datatool-fp.sty, datatool-pgfmath.def, datatool-pgfmath.sty, datatool.sty, datagidx.sty, databib.sty, databar.sty, datapie.sty, dataplot.sty, person.sty, databib.bst, databar-2019-09-27.sty, databib-2019-09-27.sty, datagidx-2019-09-27.sty, datapie-2019-09-27.sty, dataplot-2019-09-27.sty, datatool-2019-09-27.sty, datatool-base-2019-09-27.sty, datatool-fp-2019-09-27.sty, datatool-pgfmath-2019-09-27.sty, person-2019-09-27.sty.
+%% 
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\NeedsTeXFormat{LaTeX2e}
+\DeclareRelease{v2.32}{2019-09-27}{person-2019-09-27.sty}
+\DeclareCurrentRelease{v3.4.3}{2025-12-04}
+\ProvidesPackage{person}[2025/12/04 v3.4.3 (NLCT)]
+\newcommand\@person@datatoolsty{datatool}
+\ExplSyntaxOn
+\cs_new:Nn \__person_define_shortcuts:
+{
+  \newcommand \they { \peoplepronoun }
+  \newcommand \They { \Peoplepronoun }
+  \newcommand \them { \peopleobjpronoun }
+  \newcommand \Them { \Peopleobjpronoun }
+  \newcommand \their { \peoplepossadj }
+  \newcommand \Their { \Peoplepossadj }
+  \newcommand \theirs { \peopleposspronoun }
+  \newcommand \Theirs { \Peopleposspronoun }
+  \newcommand \you { \peoplepronounii }
+  \newcommand \You { \Peoplepronounii }
+  \newcommand \thee { \peopleobjpronounii }
+  \newcommand \Thee { \Peopleobjpronounii }
+  \newcommand \your { \peoplepossadjii }
+  \newcommand \Your { \Peoplepossadjii }
+  \newcommand \yours { \peopleposspronounii }
+  \newcommand \Yours { \Peopleposspronounii }
+  \newcommand \siblings { \peoplesibling }
+  \newcommand \Siblings { \Peoplesibling }
+  \newcommand \children { \peoplechild }
+  \newcommand \Children { \Peoplechild }
+  \newcommand \parents { \peopleparent }
+  \newcommand \Parents { \Peopleparent }
+  \cs_set:Nn \__person_define_shortcuts: { }
+}
+\keys_define:nn { datatool }
+{
+  base-only .code:n =
+   {
+     \tl_set:Nn \@person@datatoolsty {datatool-base}
+   } ,
+  base-only .value_forbidden:n = true ,
+  datatool .code:n =
+   {
+     \tl_set:Nn \@person@datatoolsty {datatool}
+   } ,
+  datatool .value_forbidden:n = true ,
+  shortcuts .code:n = { \__person_define_shortcuts: } ,
+  shortcuts .value_forbidden:n = true
+}
+\ExplSyntaxOff
+\IfPackageLoadedTF{\@person@datatoolsty}
+{
+  \ProcessKeyOptions[datatool]
+}
+{
+  \DeclareOption*{\PassOptionsToPackage{\CurrentOption}{\@person@datatoolsty}}
+  \ProcessOptions
+}
+\RequirePackage{\@person@datatoolsty}
+\ExplSyntaxOn
+\keys_define:nn { datatool }
+{
+  base-only .undefine: ,
+  datatool .undefine: ,
+  shortcuts .undefine: ,
+}
+\bool_new:N \l__person_local_bool
+\bool_set_true:N \l__person_local_bool
+\keys_define:nn { datatool/person }
+{
+  local .bool_set:N = \l__person_local_bool ,
+  global .bool_set_inverse:N = \l__person_local_bool ,
+  shortcuts .code:n = { \__person_define_shortcuts: } ,
+  shortcuts .value_forbidden:n = true
+}
+\keys_define:nn { datatool }
+{
+  person .code:n = { \keys_set:nn { datatool/person } { #1 } }
+}
+
+\newcounter{people}
+\newcommand* \PersonTotalCount
+  { \int_use:c { c@people } }
+\int_new:N \l__person_male_int
+\newcommand* \PersonMaleCount
+  { \int_use:N \l__person_male_int }
+\int_new:N \l__person_female_int
+\newcommand* \PersonFemaleCount
+  { \int_use:N \l__person_female_int }
+\int_new:N \l__person_nonbinary_int
+\newcommand* \PersonNonBinaryCount
+  { \int_use:N \l__person_nonbinary_int }
+\int_new:N \l__person_unknown_int
+\newcommand* \PersonUnknownGenderCount
+  { \int_use:N \l__person_unknown_int }
+\tl_new:N \l_person_label_tl
+\tl_new:N \l__person_full_name_tl
+\tl_new:N \l__person_forenames_tl
+\tl_new:N \l__person_name_tl
+\tl_new:N \l__person_gender_tl
+\tl_new:N \l__person_title_tl
+\tl_new:N \l__person_surname_tl
+\cs_new:Nn \__person_define_deprecated_cmd:NN
+{
+ \providecommand #1
+  {
+  \PackageWarning { person }
+   {
+     \token_to_str:N #1 \c_space_tl ~ deprecated ~
+     and ~ may ~ be ~ removed ~ in ~ future. ~ Use ~
+     \token_to_str:N #2 \c_space_tl ~
+     instead
+   }
+   #2
+  }
+}
+\seq_new:N \l__person_people_seq
+\tl_const:Nn \c_person_male_label_tl { male }
+\tl_const:Nn \c_person_female_label_tl { female }
+\tl_const:Nn \c_person_nonbinary_label_tl { nonbinary }
+\tl_const:Nn \c_person_unknown_label_tl { unknown }
+\cs_new:Nn \__person_case:nnn
+{
+  \int_case:nnF { \seq_count:N \l__person_people_seq }
+   {
+     { \c_zero_int } { #1 }
+     { \c_one_int } { #2 }
+   }
+   { #3 }
+}
+\cs_new:Nn \person_set_label:n
+{
+  \__person_set_label:Nn \l_person_label_tl { #1 }
+}
+\cs_new:Nn \__person_set_label:Nn
+{
+  \tl_set:Nx #1
+   { \text_purify:n { \tl_trim_spaces:n { #2 } } }
+}
+\clist_new:N \g_person_male_label_clist
+\NewDocumentCommand \PersonSetMaleLabels { m }
+{
+  \clist_gset:Ne \g_person_male_label_clist { #1 }
+}
+\PersonSetMaleLabels {Male,MALE,M,m}
+\NewDocumentCommand \PersonAddMaleLabel { m }
+{
+  \clist_gput_right:Ne \g_person_male_label_clist { #1 }
+}
+\__person_define_deprecated_cmd:NN
+  \addmalelabel \PersonAddMaleLabel
+\clist_new:N \g_person_female_label_clist
+\NewDocumentCommand \PersonSetFemaleLabels { m }
+{
+  \clist_gset:Ne \g_person_female_label_clist { #1 }
+}
+\PersonSetFemaleLabels {Female,FEMALE,F,f}
+\__person_define_deprecated_cmd:NN
+ \addfemalelabel \PersonAddFemaleLabel
+\NewDocumentCommand \PersonAddFemaleLabel { m }
+{
+  \clist_gput_right:Ne \g_person_female_label_clist { #1 }
+}
+\clist_new:N \g_person_nonbinary_label_clist
+\NewDocumentCommand \PersonSetNonBinaryLabels { m }
+{
+  \clist_gset:Ne \g_person_nonbinary_label_clist { #1 }
+}
+\PersonSetNonBinaryLabels
+{
+ non-binary, Nonbinary, Non-Binary, NONBINARY,
+ NON-BINARY, N, n
+}
+\NewDocumentCommand \PersonAddNonBinaryLabel { m }
+{
+  \clist_gput_right:Ne \g_person_nonbinary_label_clist { #1 }
+}
+\NewDocumentCommand \PersonIfMaleLabel { m m m }
+{
+ \exp_args:NNo \tl_if_eq:NnTF \c_person_male_label_tl { #1 }
+  { #2 }
+  {
+    \clist_if_in:NoTF \g_person_male_label_clist { #1 } { #2 } { #3 }
+  }
+}
+\__person_define_deprecated_cmd:NN
+ \ifmalelabel \PersonIfMaleLabel
+\NewDocumentCommand \PersonIfFemaleLabel { m m m }
+{
+ \exp_args:NNo \tl_if_eq:NnTF \c_person_female_label_tl { #1 }
+  { #2 }
+  {
+    \clist_if_in:NoTF \g_person_female_label_clist { #1 } { #2 } { #3 }
+  }
+}
+\__person_define_deprecated_cmd:NN
+ \iffemalelabel \PersonIfFemaleLabel
+\NewDocumentCommand \PersonIfNonBinaryLabel { m m m }
+{
+ \exp_args:NNo \tl_if_eq:NnTF
+    \c_person_nonbinary_label_tl { #1 }
+  { #2 }
+  {
+    \clist_if_in:NoTF \g_person_nonbinary_label_clist
+      { #1 } { #2 } { #3 }
+  }
+}
+\tl_new:N \g__person_new_init_tl
+\cs_new:Nn \person_new_appto_start:n
+{
+ \tl_gput_right:N \g__person_new_init_tl { #1 }
+}
+\tl_new:N \g__person_new_finish_tl
+\cs_new:Nn \person_new_appto_end:n
+{
+ \tl_gput_right:N \g__person_new_finish_tl { #1 }
+}
+\NewDocumentCommand{\newperson}{ s O{anon} }
+{
+  \person_set_label:n { #2 }
+  \tl_clear:N \l__person_full_name_tl
+  \tl_clear:N \l__person_forenames_tl
+  \tl_clear:N \l__person_name_tl
+  \tl_clear:N \l__person_gender_tl
+  \tl_clear:N \l__person_title_tl
+  \tl_clear:N \l__person_surname_tl
+  \g__person_new_init_tl
+  \IfBooleanTF { #1 }
+  { \__person_new:n }
+  { \__person_new:nnn }
+}
+\cs_new:Nn \__person_new:nnn
+{
+  \person_if_exist:nTF { \l_person_label_tl }
+  {
+    \PackageError { person }
+     {
+        Person ~ ` \l_person_label_tl ' ~ has ~ already ~ been ~ defined
+     }
+     {
+       Each ~ defined ~ person ~ must ~ have ~ a ~ unique ~ label
+     }
+  }
+  {
+    \tl_if_empty:NTF \l_person_label_tl
+    {
+      \PackageError { person }
+       { Empty ~ person ~ label ~ not ~ permitted}
+       {
+         You ~ need ~ to ~ supply ~ a ~ non-empty ~
+         label ~ to ~ identify ~ the ~ person
+       }
+    }
+    {
+      \tl_set:Ne \l__person_full_name_tl { \tl_trim_spaces:n { #1 } }
+      \tl_set:Ne \l__person_name_tl { \tl_trim_spaces:n { #2 } }
+      \datatool_if_null_or_empty:nTF { #3 }
+       {
+         \tl_set_eq:NN \l__person_gender_tl \c_person_unknown_label_tl
+       }
+       {
+         \tl_set:Ne \l__person_gender_tl { \tl_trim_spaces:n { #3 } }
+       }
+      \__person_new:
+    }
+  }
+}
+\keys_define:nn { datatool/person }
+{
+  fullname .tl_set:N = \l__person_full_name_tl ,
+  expand-once-fullname .code:n =
+   { \tl_set:No \l__person_full_name_tl { #1 } } ,
+  expand-fullname .tl_set_x:N = \l__person_full_name_tl ,
+  forenames .tl_set:N = \l__person_forenames_tl ,
+  expand-once-forenames .code:n =
+   { \tl_set:No \l__person_forenames_tl { #1 } } ,
+  expand-forenames .tl_set_x:N = \l__person_forenames_tl ,
+  name .tl_set:N = \l__person_name_tl ,
+  expand-once-name .code:n =
+   { \tl_set:No \l__person_name_tl { #1 } },
+  expand-name .tl_set_x:N = \l__person_name_tl ,
+  gender .code:n =
+   {
+    \datatool_if_null_or_empty:nTF { #1 }
+     {
+       \tl_set_eq:NN \l__person_gender_tl \c_person_unknown_label_tl
+     }
+     { \tl_set:Ne \l__person_gender_tl { #1 } }
+   },
+  title .tl_set:N = \l__person_title_tl ,
+  expand-once-title .code:n =
+   { \tl_set:No \l__person_title_tl { #1 } },
+  expand-title .tl_set_x:N = \l__person_title_tl ,
+  surname .tl_set:N = \l__person_surname_tl ,
+  expand-once-surname .code:n =
+   { \tl_set:No \l__person_surname_tl { #1 } },
+  expand-surname .tl_set_x:N = \l__person_surname_tl ,
+}
+\cs_new:Nn \__person_new:n
+{
+  \person_if_exist:nTF { \l_person_label_tl }
+  {
+    \PackageError { person }
+     {
+        Person ~ ` \l_person_label_tl ' ~ has ~ already ~ been ~ defined
+     }
+     {
+       Each ~ defined ~ person ~ must ~ have ~ a ~ unique ~ label
+     }
+  }
+  {
+    \tl_if_empty:NTF \l_person_label_tl
+    {
+      \PackageError { person }
+       { Empty ~ person ~ label ~ not ~ permitted}
+       {
+         You ~ need ~ to ~ supply ~ a ~ non-empty ~
+         label ~ to ~ identify ~ the ~ person
+       }
+    }
+    {
+      \keys_set:nn { datatool/person } { #1 }
+      \__person_new:
+    }
+  }
+}
+\cs_new:Nn \__person_new:
+{
+  \bool_lazy_or:nnTF
+      { \tl_if_empty_p:N \l__person_gender_tl }
+      { \tl_if_eq_p:NN \l__person_gender_tl \c_person_unknown_label_tl }
+   {
+     \bool_if:NTF \l__person_local_bool
+      {
+        \tl_set:cV
+         { person@ \l_person_label_tl @gender }
+         \c_person_unknown_label_tl
+      }
+      {
+        \tl_gset:cV
+         { person@ \l_person_label_tl @gender }
+         \c_person_unknown_label_tl
+      }
+   }
+   {
+     \exp_args:NV \PersonIfMaleLabel \l__person_gender_tl
+      {
+        \bool_if:NTF \l__person_local_bool
+         {
+           \tl_set:cV
+            { person@ \l_person_label_tl @gender }
+            \c_person_male_label_tl
+           \int_incr:N \l__person_male_int
+         }
+         {
+           \tl_gset:cV
+            { person@ \l_person_label_tl @gender }
+            \c_person_male_label_tl
+           \int_gincr:N \l__person_male_int
+         }
+      }
+      {
+        \exp_args:NV \PersonIfFemaleLabel \l__person_gender_tl
+         {
+           \bool_if:NTF \l__person_local_bool
+            {
+              \tl_set:cV
+               { person@ \l_person_label_tl @gender }
+               \c_person_female_label_tl
+              \int_incr:N \l__person_female_int
+            }
+            {
+              \tl_gset:cV
+               { person@ \l_person_label_tl @gender }
+               \c_person_female_label_tl
+              \int_gincr:N \l__person_female_int
+            }
+         }
+         {
+            \exp_args:NV \PersonIfNonBinaryLabel \l__person_gender_tl
+            {
+              \bool_if:NTF \l__person_local_bool
+               {
+                \tl_set:cV
+                 { person@ \l_person_label_tl @gender }
+                 \c_person_nonbinary_label_tl
+                \int_incr:N \l__person_nonbinary_int
+               }
+               {
+                \tl_gset:cV
+                 { person@ \l_person_label_tl @gender }
+                 \c_person_nonbinary_label_tl
+                \int_gincr:N \l__person_nonbinary_int
+               }
+            }
+            {
+              \tl_if_eq:NN \l__person_gender_tl \c_person_unknown_label_tl
+              {
+                \bool_if:NTF \l__person_local_bool
+                 {
+                  \tl_set:cV
+                   { person@ \l_person_label_tl @gender }
+                   \c_person_unknown_label_tl
+                  \int_incr:N \l__person_unknown_int
+                 }
+                 {
+                  \tl_gset:cV
+                   { person@ \l_person_label_tl @gender }
+                   \c_person_unknown_label_tl
+                  \int_gincr:N \l__person_unknown_int
+                 }
+              }
+              {
+                \PackageError { person }
+                 {
+                   Unknown ~ gender ~ ` \l__person_gender_tl ' ~
+                   for ~ person ~ ` \l_person_label_tl '
+                 }
+                 {
+                   Known ~ gender ~ identifiers ~ are: ~
+                   \clist_use:Nn \g_person_male_label_clist { , ~ }  ~
+                   or ~ \clist_use:Nn \g_person_female_label_clist { , ~ } ~
+                   or ~ \clist_use:Nn \g_person_nonbinary_label_clist { , ~ }
+                   or ~ \c_person_unknown_label_tl
+                 }
+                \bool_if:NTF \l__person_local_bool
+                 {
+                   \tl_set:cV
+                     { person@ \l_person_label_tl @gender }
+                     \c_person_unknown_label_tl
+                   \int_incr:N \l__person_unknown_int
+                 }
+                 {
+                   \tl_gset:cV
+                     { person@ \l_person_label_tl @gender }
+                     \c_person_unknown_label_tl
+                   \int_gincr:N \l__person_unknown_int
+                 }
+              }
+            }
+         }
+       }
+   }
+  \tl_if_empty:NT \l__person_full_name_tl
+   {
+     \tl_if_empty:NTF \l__person_forenames_tl
+      {
+       \tl_if_empty:NTF \l__person_name_tl
+        {
+          \tl_if_empty:NTF \l__person_title_tl
+           {
+             \tl_set_eq:NN
+               \l__person_full_name_tl
+               \l__person_surname_tl
+           }
+           {
+            \tl_set:Nx \l__person_full_name_tl
+             {
+               \exp_not:V \l__person_title_tl
+               \exp_not:N \persontitlesurnamesep
+               \exp_not:V \l__person_surname_tl
+             }
+           }
+        }
+        {
+         \tl_if_empty:NTF \l__person_surname_tl
+          {
+            \tl_set_eq:NN
+              \l__person_full_name_tl
+              \l__person_name_tl
+          }
+          {
+            \tl_set:Nx \l__person_full_name_tl
+             {
+              \exp_not:V \l__person_name_tl
+              \c_space_tl
+              \exp_not:V \l__person_surname_tl
+             }
+          }
+        }
+      }
+      {
+         \tl_if_empty:NTF \l__person_surname_tl
+          {
+            \tl_set_eq:NN
+              \l__person_full_name_tl
+              \l__person_forenames_tl
+          }
+          {
+            \tl_set:Nx \l__person_full_name_tl
+             {
+              \exp_not:V \l__person_forenames_tl
+              \c_space_tl
+              \exp_not:V \l__person_surname_tl
+             }
+          }
+      }
+   }
+  \tl_if_empty:NT \l__person_forenames_tl
+   {
+     \tl_set_eq:NN
+       \l__person_forenames_tl
+       \l__person_name_tl
+   }
+  \bool_if:NTF \l__person_local_bool
+   {
+     \tl_set_eq:cN
+       { person@ \l_person_label_tl @name }
+       \l__person_name_tl
+     \tl_set_eq:cN
+       { person@ \l_person_label_tl @surname }
+       \l__person_surname_tl
+     \tl_set_eq:cN
+       { person@ \l_person_label_tl @title }
+       \l__person_title_tl
+     \tl_set_eq:cN
+       { person@ \l_person_label_tl @fullname }
+       \l__person_full_name_tl
+     \tl_set_eq:cN
+       { person@ \l_person_label_tl @forenames }
+       \l__person_forenames_tl
+     \seq_put_right:NV \l__person_people_seq \l_person_label_tl
+     \int_incr:N \c@people
+   }
+   {
+     \tl_gset_eq:cN
+       { person@ \l_person_label_tl @name }
+       \l__person_name_tl
+     \tl_gset_eq:cN
+       { person@ \l_person_label_tl @surname }
+       \l__person_surname_tl
+     \tl_gset_eq:cN
+       { person@ \l_person_label_tl @title }
+       \l__person_title_tl
+     \tl_gset_eq:cN
+       { person@ \l_person_label_tl @fullname }
+       \l__person_full_name_tl
+     \tl_gset_eq:cN
+       { person@ \l_person_label_tl @forenames }
+       \l__person_forenames_tl
+     \seq_gput_right:NV \l__person_people_seq \l_person_label_tl
+     \int_gincr:N \c@people
+   }
+  \g__person_new_finish_tl
+}
+\cs_new:Nn \person_set_attribute:nnn
+{
+  \bool_if:NTF \l__person_local_bool
+   {
+     \tl_set_eq:cn { person@ #1 @ #2 } { #3 }
+   }
+   {
+     \tl_gset_eq:cn { person@ #1 @ #2 } { #3 }
+   }
+}
+\cs_generate_variant:Nn \person_set_attribute:nnn { nnV }
+\cs_new:Nn \person_get_attribute:nn
+{
+  \tl_use:c { person@ #1 @ #2 }
+}
+\cs_new:Nn \person_get_attribute:Nnn
+{
+  \tl_seq_eq:Nc #1 { person@ #2 @ #3 }
+}
+\cs_new:Nn \person_unset_attribute:nn
+{
+  \bool_if:NTF \l__person_local_bool
+   {
+     \csundef { person@ #1 @ #2 }
+   }
+   {
+     \csgundef { person@ #1 @ #2 }
+   }
+}
+\NewDocumentCommand \removeperson { O{anon} }
+{
+  \person_set_label:n { #1 }
+  \person_if_exist_or_err:nT { \l_person_label_tl }
+  {
+    \__person_remove:x { \l_person_label_tl }
+  }
+}
+\cs_new:Nn \__person_remove:
+{
+  \bool_if:NTF \l__person_local_bool
+   {
+    \seq_remove_all:NV \l__person_people_seq \l_person_label_tl
+    \int_decr:N \c@people
+    \int_if_exist:cT
+     { l__person_ \csuse{ person@ \l_person_label_tl @gender } _int }
+     {
+       \int_decr:c
+        { l__person_ \csuse { person@ \l_person_label_tl @gender } _int }
+     }
+    \csundef { person@ \l_person_label_tl @name }
+    \csundef { person@ \l_person_label_tl @fullname }
+    \csundef { person@ \l_person_label_tl @forenames }
+    \csundef { person@ \l_person_label_tl @gender }
+    \csundef { person@ \l_person_label_tl @title }
+    \csundef { person@ \l_person_label_tl @surname }
+   }
+   {
+    \seq_gremove_all:NV \l__person_people_seq \l_person_label_tl
+    \int_gdecr:N \c@people
+    \int_if_exist:cT
+     { l__person_ \csuse{ person@ \l_person_label_tl @gender } _int }
+     {
+       \int_gdecr:c
+        { l__person_ \csuse { person@ \l_person_label_tl @gender } _int }
+     }
+    \csgundef { person@ \l_person_label_tl @name }
+    \csgundef { person@ \l_person_label_tl @fullname }
+    \csgundef { person@ \l_person_label_tl @forenames }
+    \csgundef { person@ \l_person_label_tl @gender }
+    \csgundef { person@ \l_person_label_tl @title }
+    \csgundef { person@ \l_person_label_tl @surname }
+   }
+  \g__person_remove_tl
+}
+\cs_new:Nn \__person_remove:n
+{
+  \person_set_label:n { #1 }
+  \__person_remove:
+}
+\cs_generate_variant:Nn \__person_remove:n { x }
+\tl_new:N \g__person_remove_tl
+\cs_new:Nn \person_remove_appto:n
+{
+ \tl_gput_right:N \g__person_remove_tl { #1 }
+}
+\NewDocumentCommand \removepeople { m }
+{
+  \clist_map_function:nN { #1 } \__person_remove:n
+}
+\NewDocumentCommand \removeallpeople { }
+{
+  \bool_if:NTF \l__person_local_bool
+   {
+    \seq_map_inline:Nn  \l__person_people_seq
+     {
+      \person_set_label:n { ##1 }
+      \csundef{person@ \l_person_label_tl @name}
+      \csundef{person@ \l_person_label_tl @fullname}
+      \csundef{person@ \l_person_label_tl @forenames}
+      \csundef{person@ \l_person_label_tl @gender}
+      \csundef{person@ \l_person_label_tl @title}
+      \csundef{person@ \l_person_label_tl @surname}
+      \g__person_remove_tl
+     }
+    \int_zero:c { c@people }
+    \int_zero:N \l__person_male_int
+    \int_zero:N \l__person_female_int
+    \int_zero:N \l__person_nonbinary_int
+    \seq_clear:N \l__person_people_seq
+   }
+   {
+    \seq_map_inline:Nn  \l__person_people_seq
+     {
+      \person_set_label:n { ##1 }
+      \csgundef{person@ \l_person_label_tl @name}
+      \csgundef{person@ \l_person_label_tl @fullname}
+      \csgundef{person@ \l_person_label_tl @forenames}
+      \csgundef{person@ \l_person_label_tl @gender}
+      \csgundef{person@ \l_person_label_tl @title}
+      \csgundef{person@ \l_person_label_tl @surname}
+      \g__person_remove_tl
+     }
+    \int_gzero:c { c@people }
+    \int_gzero:N \l__person_male_int
+    \int_gzero:N \l__person_female_int
+    \int_gzero:N \l__person_nonbinary_int
+    \seq_gclear:N \l__person_people_seq
+   }
+}
+\newcommand{\ifpersonexists}[3]{
+ \exp_args:Ne \person_if_exist:nTF
+  { \tl_trim_spaces:n { #1 } }
+  { #2 } { #3 }
+}
+\prg_new_conditional:Npnn \person_if_exist:n #1 { p, T, F, TF }
+{
+  \tl_if_exist:cTF { person@ #1 @name}
+  { \prg_return_true: }
+  { \prg_return_false: }
+}
+\cs_new:Nn \person_if_exist_or_err:nT
+{
+ \person_if_exist:nTF
+  { #1 } { #2 }
+  {
+    \PackageError { person }
+     {
+       Person ~ ` #1 ' ~ doesn't ~ exist
+     }
+     {
+       Check ~ that ~ you ~ have ~ correctly ~ spelt ~ the ~ label
+     }
+  }
+}
+\cs_new:Nn \person_gender_case:Nnnnnn
+{
+  \tl_if_eq:NNTF #1 \c_person_male_label_tl
+   { #3 }
+   {
+    \tl_if_eq:NNTF #1 \c_person_female_label_tl
+     { #4 }
+     {
+      \tl_if_eq:NNTF #1 \c_person_nonbinary_label_tl
+       { #5 }
+       {
+         \tl_if_eq:NNTF #1 \c_person_unknown_label_tl
+          { #6 } { #2 }
+       }
+     }
+   }
+}
+\cs_new:Nn \person_gender_case:nnnnnn
+{
+  \tl_if_eq:NnTF \c_person_male_label_tl { #1 }
+   { #3 }
+   {
+    \tl_if_eq:NnTF \c_person_female_label_tl { #1 }
+     { #4 }
+     {
+      \tl_if_eq:NnTF \c_person_nonbinary_label_tl { #1 }
+       { #5 }
+       {
+         \tl_if_eq:NnTF \c_person_unknown_label_tl { #1 }
+          { #6 } { #2 }
+       }
+     }
+   }
+}
+\cs_generate_variant:Nn \person_gender_case:nnnnnn
+ { xnnnnn }
+\cs_new:Nn \person_gender_case:Nnnnn
+{
+  \person_gender_case:Nnnnnn #1
+   {
+     \PackageError { person }
+      {
+        Unrecognised ~ internal ~ gender ~ label ~ `#1'. ~
+        Treating ~ as ~ ` \c_person_unknown_label_tl '
+      }
+      {
+        Internal ~ gender ~ labels ~ must ~ be ~ one ~ of ~
+        the ~ following: ` \c_person_male_label_tl ', ~
+        ` \c_person_female_label_tl ', ~
+        ` \c_person_nonbinary_label_tl ', ~
+        ` \c_person_unknown_label_tl '
+      }
+     #5
+   }
+   { #2 } { #3 } { #4 } { #5 }
+}
+\cs_new:Nn \person_gender_case:nnnnn
+{
+  \person_gender_case:nnnnnn { #1 }
+   {
+     \PackageError { person }
+      {
+        Unrecognised ~ internal ~ gender ~ label ~ `#1'. ~
+        Treating ~ as ~ ` \c_person_unknown_label_tl '
+      }
+      {
+        Internal ~ gender ~ labels ~ must ~ be ~ one ~ of ~
+        the ~ following: ` \c_person_male_label_tl ', ~
+        ` \c_person_female_label_tl ', ~
+        ` \c_person_nonbinary_label_tl ', ~
+        ` \c_person_unknown_label_tl '
+      }
+     #5
+   }
+   { #2 } { #3 } { #4 } { #5 }
+}
+\cs_generate_variant:Nn  \person_gender_case:nnnnn
+ { xnnnn }
+\cs_new:Nn \person_do_if_valid_gender:nT
+{
+  \person_gender_case:nnnnnn { #1 }
+   {
+     \PackageError { person }
+      {
+        Unrecognised ~ internal ~ gender ~ label ~ `#1'
+      }
+      {
+        Internal ~ gender ~ labels ~ must ~ be ~ one ~ of ~
+        the ~ following: ` \c_person_male_label_tl ', ~
+        ` \c_person_female_label_tl ', ~
+        ` \c_person_nonbinary_label_tl ', ~
+        ` \c_person_unknown_label_tl '
+      }
+   }
+   { #2 } { #2 } { #2 } { #2 }
+}
+\cs_generate_variant:Nn  \person_do_if_valid_gender:nT
+ { xT }
+\cs_new:Nn \person_all_gender_case:nnnn
+{
+  \int_compare:nNnTF
+    { \c@people } = { \l__person_male_int }
+  { #1 }
+  {
+    \int_compare:nNnTF
+      { \c@people } = { \l__person_female_int }
+    { #2 }
+    {
+      \int_compare:nNnTF
+        { \c@people } = { \l__person_nonbinary_int }
+      { #3 } { #4 }
+    }
+  }
+}
+\NewDocumentCommand \PersonIfMale { m m m }
+{
+  \person_set_label:n { #1 }
+  \person_if_exist_or_err:nT { \l_person_label_tl  }
+   {
+     \tl_if_eq:cNTF
+      { person@ \l_person_label_tl @gender }
+       \c_person_male_label_tl
+      {#2} {#3}
+   }
+}
+\__person_define_deprecated_cmd:NN
+ \ifmale \PersonIfMale
+\NewDocumentCommand \PersonIfAllMale { o m m }
+{
+ \IfNoValueTF { #1 }
+ {
+   \int_compare:nNnTF
+     { \c@people } = { \l__person_male_int }
+    { #2 } { #3 }
+ }
+ {
+   \cs_set_eq:NN \__person_do:TF \cs_use_i:nn
+   \clist_map_inline:nn { #1 }
+    {
+      \tl_if_eq:cNF
+        { person@ \text_purify:n { ##1 } @gender}
+        \c_person_male_label_tl
+      {
+        \cs_set_eq:NN \__person_do:TF \cs_use_ii:nn
+        \clist_map_break:
+      }
+    }
+   \__person_do:TF { #2 } { #3 }
+ }
+}
+\__person_define_deprecated_cmd:NN
+ \ifallmale \PersonIfAllMale
+\NewDocumentCommand \PersonIfFemale { m m m }
+{
+  \person_set_label:n { #1 }
+  \person_if_exist_or_err:nT { \l_person_label_tl }
+   {
+     \tl_if_eq:cNTF
+      { person@ \l_person_label_tl @gender }
+       \c_person_female_label_tl
+      {#2} {#3}
+   }
+}
+\__person_define_deprecated_cmd:NN
+ \iffemale \PersonIfFemale
+\NewDocumentCommand \PersonIfAllFemale { o m m }
+{
+ \IfNoValueTF { #1 }
+ {
+   \int_compare:nNnTF
+     { \c@people } = { \l__person_female_int }
+    { #2 } { #3 }
+ }
+ {
+   \cs_set_eq:NN \__person_do:TF \cs_use_i:nn
+   \clist_map_inline:nn { #1 }
+    {
+      \tl_if_eq:cNF
+        { person@ \text_purify:n { ##1 } @gender}
+        \c_person_female_label_tl
+      {
+        \cs_set_eq:NN \__person_do:TF \cs_use_ii:nn
+        \clist_map_break:
+      }
+    }
+   \__person_do:TF { #2 } { #3 }
+ }
+}
+\__person_define_deprecated_cmd:NN
+ \ifallfemale \PersonIfAllFemale
+\NewDocumentCommand \PersonIfNonBinary { m m m }
+{
+  \person_set_label:n { #1 }
+  \person_if_exist_or_err:nT { \l_person_label_tl }
+   {
+     \tl_if_eq:cNTF
+      { person@ \l_person_label_tl @gender }
+       \c_person_nonbinary_label_tl
+      { #2 } { #3 }
+   }
+}
+\NewDocumentCommand \PersonIfAllNonBinary { o m m }
+{
+ \IfNoValueTF { #1 }
+ {
+   \int_compare:nNnTF
+     { \c@people } = { \l__person_nonbinary_int }
+    { #2 } { #3 }
+ }
+ {
+   \cs_set_eq:NN \__person_do:TF \cs_use_i:nn
+   \clist_map_inline:nn { #1 }
+    {
+      \tl_if_eq:cNF
+        { person@ \text_purify:n { ##1 } @gender}
+        \c_person_nonbinary_label_tl
+      {
+        \cs_set_eq:NN \__person_do:TF \cs_use_ii:nn
+        \clist_map_break:
+      }
+    }
+   \__person_do:TF { #2 } { #3 }
+ }
+}
+\NewDocumentCommand \PersonIfUnknownGender { m m m }
+{
+  \person_set_label:n { #1 }
+  \person_if_exist_or_err:nT { \l_person_label_tl }
+   {
+     \tl_if_eq:cNTF
+      { person@ \l_person_label_tl @gender }
+       \c_person_unknown_label_tl
+      { #2 } { #3 }
+   }
+}
+\NewDocumentCommand \PersonIfAllUnknownGender { o m m }
+{
+ \IfNoValueTF { #1 }
+ {
+   \int_compare:nNnTF
+     { \c@people } = { \l__person_unknown_int }
+    { #2 } { #3 }
+ }
+ {
+   \cs_set_eq:NN \__person_do:TF \cs_use_i:nn
+   \clist_map_inline:nn { #1 }
+    {
+      \tl_if_eq:cNF
+        { person@ \text_purify:n { ##1 } @gender}
+        \c_person_unknown_label_tl
+      {
+        \cs_set_eq:NN \__person_do:TF \cs_use_ii:nn
+        \clist_map_break:
+      }
+    }
+   \__person_do:TF { #2 } { #3 }
+ }
+}
+\newcommand{\foreachpersonbreak}
+{
+  \PackageError { person }
+  {
+    \token_to_str:N \foreachpersonbreak \c_space_tl ~
+    can't ~ be ~ used ~ outside ~ of
+    \token_to_str:N \forallpeople \c_space_tl ~
+    or \token_to_str:N \foreachperson
+  }
+  { }
+}
+\newcommand \foreachperson { \__person_foreach:wn }
+\cs_new:Npn \__person_foreach:wn ( #1 , #2 , #3 , #4 ) #5
+{
+  \tl_if_eq:nnTF { #5 } { \in }
+   {
+     \__person_foreach:NNNNnn #1 #2 #3 #4
+   }
+   {
+     \renewcommand \foreachpersonbreak { \seq_break: }
+     \seq_map_inline:Nn \l__person_people_seq
+      {
+        \__person_foreach_fn:NNNNnn #1 #2 #3 #4 { ##1 } { #5 }
+      }
+   }
+}
+\cs_new:Nn \__person_foreach:NNNNnn
+{
+  \renewcommand \foreachpersonbreak { \clist_break: }
+  \clist_map_inline:nn { #5 }
+   {
+     \__person_foreach_fn:NNNNxn #1 #2 #3 #4
+       { \text_purify:n { \tl_trim_spaces:n { ##1 } } } { #6 }
+   }
+}
+\cs_new:Nn \__person_foreach_fn:NNNNnn
+{
+  \person_if_exist_or_err:nT { #5 }
+   {
+     \tl_set:Nn #4 { #5 }
+     \tl_set_eq:Nc #1 { person@ #5 @name }
+     \tl_set_eq:Nc #2 { person@ #5 @fullname }
+     \tl_set:Nx #3 { \__person_language:nn { #5 } { gender } }
+     #6
+   }
+}
+\cs_generate_variant:Nn \__person_foreach_fn:NNNNnn
+ { NNNNxn }
+\NewDocumentCommand \forallpeople { o m +m }
+{
+  \IfValueTF { #1 }
+   {
+     \renewcommand \foreachpersonbreak { \clist_break: }
+     \clist_map_inline:nn { #1 }
+      {
+        \__person_set_label:Nn #2 { ##1 }
+        \person_if_exist_or_err:nT { #2 }
+         { #3 }
+      }
+   }
+   {
+     \renewcommand \foreachpersonbreak { \seq_break: }
+     \seq_map_inline:Nn \l__person_people_seq
+      {
+        \tl_set:Nn #2 { ##1 }
+        \person_if_exist_or_err:nT { #2 }
+         { #3 }
+      }
+   }
+}
+\NewDocumentCommand \PersonSetLocalisation
+   { m m m }
+{
+ \person_do_if_valid_gender:nT { #1 }
+  {
+    \tl_gset:cn { g__person_ #1 _ #2 _tl } { #3 }
+  }
+}
+\cs_new:Nn \person_new_localisation:nnn
+{
+ \person_do_if_valid_gender:nT { #1 }
+  {
+    \tl_new:c { g__person_ #1 _ #2 _tl }
+    \tl_gset:cn { g__person_ #1 _ #2 _tl } { #3 }
+  }
+}
+\cs_new:Nn \person_get_localisation:nn
+{
+  \tl_if_exist:cTF {  g__person_ #1 _ #2 _tl }
+   { \tl_use:c { g__person_ #1 _ #2 _tl } }
+   {
+     \tl_if_exist:cTF { g__person_unknown_ #2 _tl }
+      {
+        \tl_use:c { g__person_unknown_ #2 _tl }
+      }
+      {
+       \tl_if_exist:cTF { g__person_nonbinary_ #2 _tl }
+        {
+          \tl_use:c { g__person_nonbinary_ #2 _tl }
+        }
+        {
+          ??
+          \NoCaseChange
+           {
+             \PackageWarning { person }
+              {
+                Unknown ~ localisation ~ combination: ~
+                gender = ` #1 ' ~ and ~ type = ` #2 '
+              }
+           }
+        }
+      }
+   }
+}
+\cs_generate_variant:Nn \person_get_localisation:nn { vn, Vn }
+\cs_new:Nn \__person_deprecated_lang_cs:Nnnn
+ {
+   \tl_if_exist:NTF #1
+    {
+      \person_new_localisation:nnn { #2 } { #3 } { #4 }
+    }
+    {
+      \newcommand* #1 { #4 }
+      \person_new_localisation:nnn { #2 } { #3 } { #1 }
+    }
+ }
+\__person_deprecated_lang_cs:Nnnn
+ \malepronoun
+  { male } { pronoun } { he }
+\__person_deprecated_lang_cs:Nnnn
+ \femalepronoun
+   { female } { pronoun } { she }
+\person_new_localisation:nnn { nonbinary } { pronoun } { they }
+\__person_deprecated_lang_cs:Nnnn
+ \pluralpronoun
+  { unknown } { pluralpronoun } { they }
+\__person_deprecated_lang_cs:Nnnn
+ \maleobjpronoun
+  { male } { objpronoun } { him }
+\__person_deprecated_lang_cs:Nnnn
+ \femaleobjpronoun
+  { female } { objpronoun } { her }
+\person_new_localisation:nnn
+  { nonbinary } { objpronoun } { them }
+\__person_deprecated_lang_cs:Nnnn
+ \pluralobjpronoun
+  { unknown } { pluralobjpronoun } { them }
+\__person_deprecated_lang_cs:Nnnn
+ \malepossadj
+  { male } { possadj } { his }
+\__person_deprecated_lang_cs:Nnnn
+ \femalepossadj
+  { female } { possadj } { her }
+\person_new_localisation:nnn
+  { nonbinary } { possadj } { their }
+\__person_deprecated_lang_cs:Nnnn
+ \pluralpossadj
+  { unknown } { pluralpossadj } { their }
+\__person_deprecated_lang_cs:Nnnn
+ \maleposspronoun
+  { male } { posspronoun } { his }
+\__person_deprecated_lang_cs:Nnnn
+ \femaleposspronoun
+  { female } { posspronoun } { hers }
+\person_new_localisation:nnn
+  { nonbinary } { posspronoun } { theirs }
+\__person_deprecated_lang_cs:Nnnn
+ \pluralposspronoun
+  { unknown } { pluralposspronoun } { theirs }
+\person_new_localisation:nnn { unknown } { pronoun2 } { you }
+\person_new_localisation:nnn { unknown } { pluralpronoun2 } { you }
+\person_new_localisation:nnn
+  { unknown } { objpronoun2 } { you }
+\person_new_localisation:nnn
+  { unknown } { pluralobjpronoun2 } { you }
+\person_new_localisation:nnn
+  { unknown } { possadj2 } { your }
+\person_new_localisation:nnn
+  { unknown } { pluralpossadj2 } { your }
+\person_new_localisation:nnn
+  { unknown } { posspronoun2 } { yours }
+\person_new_localisation:nnn
+  { unknown } { pluralposspronoun2 } { yours }
+\__person_deprecated_lang_cs:Nnnn
+ \malechild
+  { male } { child } { son }
+\__person_deprecated_lang_cs:Nnnn
+ \femalechild
+  { female } { child } { daughter }
+\person_new_localisation:nnn
+  { nonbinary } { child } { child }
+\__person_deprecated_lang_cs:Nnnn
+ \pluralchild
+  { unknown } { pluralchild } { children }
+\__person_deprecated_lang_cs:Nnnn
+ \malechildren
+  { male } { pluralchild } { sons }
+\__person_deprecated_lang_cs:Nnnn
+ \femalechildren
+  { female } { pluralchild } { daughters }
+\person_new_localisation:nnn
+  { nonbinary } { pluralchild } { children }
+\__person_deprecated_lang_cs:Nnnn
+ \maleparent
+  { male } { parent } { father }
+\__person_deprecated_lang_cs:Nnnn
+ \femaleparent
+  { female } { parent } { mother }
+\person_new_localisation:nnn
+  { nonbinary } { parent } { parent }
+\__person_deprecated_lang_cs:Nnnn
+ \pluralparent
+  { unknown } { pluralparent } { parents }
+\__person_deprecated_lang_cs:Nnnn
+ \malesibling
+  { male } { sibling } { brother }
+\__person_deprecated_lang_cs:Nnnn
+ \femalesibling
+  { female } { sibling } { sister }
+\person_new_localisation:nnn
+  { nonbinary } { sibling } { sibling }
+\__person_deprecated_lang_cs:Nnnn
+ \pluralsibling
+  { unknown } { pluralsibling } { siblings }
+\__person_deprecated_lang_cs:Nnnn
+ \malesiblings
+  { male } { pluralsibling } { brothers }
+\__person_deprecated_lang_cs:Nnnn
+ \femalesiblings
+  { female } { pluralsibling } { sisters }
+\person_new_localisation:nnn
+  { nonbinary } { pluralsibling } { siblings }
+\__person_deprecated_lang_cs:Nnnn
+ \malename
+  { male } { gender } { male }
+\__person_deprecated_lang_cs:Nnnn
+ \femalename
+  { female } { gender } { female }
+\person_new_localisation:nnn
+  { nonbinary } { gender } { non-binary }
+\person_new_localisation:nnn
+  { unknown } { gender } { unknown }
+\newcommand*{\personsep}{\DTLlistformatsep}
+\newcommand*{\personlastsep}{
+ \DTLlistformatoxford
+ \DTLlistformatlastsep
+}
+\newcommand*{\twopeoplesep}{\DTLlistformatlastsep}
+\cs_new:Nn \person_display_list:N
+{
+  \int_case:nnF { \seq_count:N \l__person_people_seq }
+   {
+     { \c_zero_int }
+      {
+        \PackageWarning { person }
+         { No ~ people ~ defined }
+      }
+     { \c_one_int }
+      {
+        \exp_args:Nx #1
+         { \seq_item:Nn \l__person_people_seq { \c_one_int } }
+       }
+     { 2 }
+      {
+        \exp_args:Nx #1
+         { \seq_item:Nn \l__person_people_seq { \c_one_int } }
+        \twopeoplesep
+        \exp_args:Nx #1
+         { \seq_item:Nn \l__person_people_seq { 2 } }
+      }
+   }
+   {
+     \seq_map_indexed_inline:Nn \l__person_people_seq
+      {
+        \int_case:nnF { ##1 }
+         {
+           { \seq_count:N \l__person_people_seq }
+             { \personlastsep }
+           { \c_one_int } { }
+         }
+         { \personsep }
+        #1 { ##2 }
+      }
+   }
+}
+\NewDocumentCommand \personfullname { O{anon} }
+{
+ \person_set_label:n { #1 }
+ \person_if_exist_or_err:nT { \l_person_label_tl }
+  {
+    \__person_full_name:n { \l_person_label_tl }
+  }
+}
+\cs_new:Nn \__person_full_name:n
+{
+  \tl_use:c { person@ #1 @fullname }
+}
+\cs_generate_variant:Nn \__person_full_name:n { x }
+\NewDocumentCommand \peoplefullname { }
+{
+  \person_display_list:N \__person_full_name:n
+}
+\NewDocumentCommand \personforenames { O{anon} }
+{
+ \person_set_label:n { #1 }
+ \person_if_exist_or_err:nT { \l_person_label_tl }
+  {
+    \__person_forenames:n { \l_person_label_tl }
+  }
+}
+\cs_new:Nn \__person_forenames:n
+{
+  \tl_use:c { person@ #1 @forenames }
+}
+\cs_generate_variant:Nn \__person_forenames:n { x }
+\NewDocumentCommand \peopleforenames { }
+{
+  \person_display_list:N \__person_forenames:n
+}
+\NewDocumentCommand \personname { O{anon} }
+{
+ \person_set_label:n { #1 }
+ \person_if_exist_or_err:nT { \l_person_label_tl }
+  {
+    \__person_name:n { \l_person_label_tl }
+  }
+}
+\cs_new:Nn \__person_name:n
+{
+  \tl_use:c { person@ #1 @name }
+}
+\cs_generate_variant:Nn \__person_name:n { x }
+\NewDocumentCommand \peoplename { }
+{
+  \person_display_list:N \__person_name:n
+}
+\NewDocumentCommand \personsurname { O{anon} }
+{
+ \person_set_label:n { #1 }
+ \person_if_exist_or_err:nT { \l_person_label_tl }
+  {
+    \__person_surname:n { \l_person_label_tl }
+  }
+}
+\cs_new:Nn \__person_surname:n
+{
+  \tl_use:c { person@ #1 @surname }
+}
+\cs_generate_variant:Nn \__person_surname:n { x }
+\NewDocumentCommand \peoplesurname { }
+{
+  \person_display_list:N \__person_surname:n
+}
+\NewDocumentCommand \persontitlesurname { O{anon} }
+{
+ \person_set_label:n { #1 }
+ \person_if_exist_or_err:nT { \l_person_label_tl }
+  {
+    \__person_title_surname:n { \l_person_label_tl }
+  }
+}
+\cs_new:Nn \__person_title_surname:n
+{
+  \tl_if_empty:cTF { person@ #1 @surname }
+  { \__person_full_name:n { #1 } }
+  {
+    \tl_if_empty:cTF { person@#1@title }
+    { \__person_full_name:n { #1 } }
+    {
+     \tl_use:c { person@ #1 @title }
+     \persontitlesurnamesep
+     \tl_use:c { person@ #1 @surname}
+    }
+  }
+}
+\ExplSyntaxOff
+\newcommand{\persontitlesurnamesep}{\ }
+\ExplSyntaxOn
+\NewDocumentCommand \peopletitlesurname { }
+{
+  \person_display_list:N \__person_title_surname:n
+}
+\cs_new:Nn \__person_language:nn
+{
+  \person_get_localisation:vn
+    { person@ #1 @gender } { #2 }
+}
+\cs_generate_variant:Nn \__person_language:nn { xn }
+\cs_new:Nn \__person_Language:nn
+{
+  \text_titlecase_first:n
+   {
+     \__person_language:nn { #1 } { #2 }
+   }
+}
+\cs_generate_variant:Nn \__person_Language:nn { xn }
+\cs_new:Nn \person_language_text:nn
+{
+ \person_set_label:n { #1 }
+ \person_if_exist_or_err:nT { \l_person_label_tl }
+  {
+    \__person_language:nn { \l_person_label_tl } { #2 }
+  }
+}
+\cs_new:Nn \person_Language_text:nn
+{
+ \person_set_label:n { #1 }
+ \person_if_exist_or_err:nT { \l_person_label_tl }
+  {
+    \__person_Language:nn { \l_person_label_tl } { #2 }
+  }
+}
+\cs_new:Nn \person_language_all_text:n
+{
+ \__person_case:nnn
+  {
+    \PackageWarning { person } { No ~ people ~ defined }
+    \person_get_localisation:nn { unknown } { plural#1 }
+  }
+  {
+    \exp_args:Nx \person_language_text:nn
+      { \seq_item:Nn \l__person_people_seq { 1 } } { #1 }
+  }
+  {
+    \person_all_gender_case:nnnn
+     {
+       \person_get_localisation:nn { male } { plural#1 }
+     }
+     {
+       \person_get_localisation:nn { female } { plural#1 }
+     }
+     {
+       \person_get_localisation:nn { nonbinary } { plural#1 }
+     }
+     {
+       \person_get_localisation:nn { unknown } { plural#1 }
+     }
+  }
+}
+\cs_new:Nn \person_Language_all_text:n
+{
+ \__person_case:nnn
+  {
+    \PackageWarning { person } { No ~ people ~ defined }
+    \text_titlecase_first:n
+     {
+       \person_get_localisation:nn { unknown } { plural#1 }
+     }
+  }
+  {
+    \exp_args:Nx \person_Language_text:nn
+      { \seq_item:Nn \l__person_people_seq { 1 } } { #1 }
+  }
+  {
+    \person_all_gender_case:nnnn
+     {
+       \text_titlecase_first:n
+        {
+          \person_get_localisation:nn { male } { plural#1 }
+        }
+     }
+     {
+       \text_titlecase_first:n
+        {
+          \person_get_localisation:nn { female } { plural#1 }
+        }
+     }
+     {
+       \text_titlecase_first:n
+        {
+          \person_get_localisation:nn { nonbinary } { plural#1 }
+        }
+     }
+     {
+       \text_titlecase_first:n
+        {
+          \person_get_localisation:nn { unknown } { plural#1 }
+        }
+     }
+  }
+}
+\NewDocumentCommand \personpronoun { O{anon} }
+{
+  \person_language_text:nn { #1 } { pronoun }
+}
+\NewDocumentCommand \Personpronoun { O{anon} }
+{
+  \person_Language_text:nn { #1 } { pronoun }
+}
+\NewDocumentCommand \peoplepronoun { }
+{
+ \person_language_all_text:n { pronoun }
+}
+\NewDocumentCommand \Peoplepronoun { }
+{
+ \person_Language_all_text:n { pronoun }
+}
+\NewDocumentCommand \personobjpronoun { O{anon} }
+{
+  \person_language_text:nn { #1 } { objpronoun }
+}
+\NewDocumentCommand \Personobjpronoun { O{anon} }
+{
+  \person_Language_text:nn { #1 } { objpronoun }
+}
+\NewDocumentCommand \peopleobjpronoun { }
+{
+  \person_language_all_text:n { objpronoun }
+}
+\NewDocumentCommand \Peopleobjpronoun { }
+{
+  \person_Language_all_text:n { objpronoun }
+}
+\NewDocumentCommand \personpossadj { O{anon} }
+{
+  \person_language_text:nn { #1 } { possadj }
+}
+\NewDocumentCommand \Personpossadj { O{anon} }
+{
+  \person_Language_text:nn { #1 } { possadj }
+}
+\NewDocumentCommand \peoplepossadj { }
+{
+ \person_language_all_text:n { possadj }
+}
+\NewDocumentCommand \Peoplepossadj { }
+{
+ \person_Language_all_text:n { possadj }
+}
+\NewDocumentCommand \personposspronoun { O{anon} }
+{
+  \person_language_text:nn { #1 } { posspronoun }
+}
+\NewDocumentCommand \Personposspronoun { O{anon} }
+{
+  \person_Language_text:nn { #1 } { posspronoun }
+}
+\NewDocumentCommand \peopleposspronoun { }
+{
+ \person_language_all_text:n { posspronoun }
+}
+\NewDocumentCommand \Peopleposspronoun { }
+{
+ \person_Language_all_text:n { posspronoun }
+}
+\NewDocumentCommand \personpronounii { O{anon} }
+{
+  \person_language_text:nn { #1 } { pronoun2 }
+}
+\NewDocumentCommand \Personpronounii { O{anon} }
+{
+  \person_Language_text:nn { #1 } { pronoun2 }
+}
+\NewDocumentCommand \peoplepronounii { }
+{
+ \person_language_all_text:n { pronoun2 }
+}
+\NewDocumentCommand \Peoplepronounii { }
+{
+ \person_Language_all_text:n { pronoun2 }
+}
+\NewDocumentCommand \personobjpronounii { O{anon} }
+{
+  \person_language_text:nn { #1 } { objpronoun2 }
+}
+\NewDocumentCommand \Personobjpronounii { O{anon} }
+{
+  \person_Language_text:nn { #1 } { objpronoun2 }
+}
+\NewDocumentCommand \peopleobjpronounii { }
+{
+  \person_language_all_text:n { objpronoun2 }
+}
+\NewDocumentCommand \Peopleobjpronounii { }
+{
+  \person_Language_all_text:n { objpronoun2 }
+}
+\NewDocumentCommand \personpossadjii { O{anon} }
+{
+  \person_language_text:nn { #1 } { possadj2 }
+}
+\NewDocumentCommand \Personpossadjii { O{anon} }
+{
+  \person_Language_text:nn { #1 } { possadj2 }
+}
+\NewDocumentCommand \peoplepossadjii { }
+{
+ \person_language_all_text:n { possadj2 }
+}
+\NewDocumentCommand \Peoplepossadjii { }
+{
+ \person_Language_all_text:n { possadj2 }
+}
+\NewDocumentCommand \personposspronounii { O{anon} }
+{
+  \person_language_text:nn { #1 } { posspronoun2 }
+}
+\NewDocumentCommand \Personposspronounii { O{anon} }
+{
+  \person_Language_text:nn { #1 } { posspronoun2 }
+}
+\NewDocumentCommand \peopleposspronounii { }
+{
+ \person_language_all_text:n { posspronoun2 }
+}
+\NewDocumentCommand \Peopleposspronounii { }
+{
+ \person_Language_all_text:n { posspronoun2 }
+}
+\NewDocumentCommand \personchild { O{anon} }
+{
+  \person_language_text:nn { #1 } { child }
+}
+\NewDocumentCommand \Personchild { O{anon} }
+{
+  \person_Language_text:nn { #1 } { child }
+}
+\NewDocumentCommand \peoplechild { }
+{
+  \person_language_all_text:n { child }
+}
+\NewDocumentCommand \Peoplechild { }
+{
+  \person_Language_all_text:n { child }
+}
+\NewDocumentCommand \personparent { O{anon} }
+{
+  \person_language_text:nn { #1 } { parent }
+}
+\NewDocumentCommand \Personparent { O{anon} }
+{
+  \person_Language_text:nn { #1 } { parent }
+}
+\NewDocumentCommand \peopleparent { }
+{
+ \person_language_all_text:n { parent }
+}
+\NewDocumentCommand \Peopleparent { }
+{
+  \person_Language_all_text:n { parent }
+}
+\NewDocumentCommand \personsibling { O{anon} }
+{
+  \person_language_text:nn { #1 } { sibling }
+}
+\NewDocumentCommand \Personsibling { O{anon} }
+{
+  \person_Language_text:nn { #1 } { sibling }
+}
+\NewDocumentCommand \peoplesibling { }
+{
+  \person_language_all_text:n { sibling }
+}
+\NewDocumentCommand \Peoplesibling { }
+{
+  \person_Language_all_text:n { sibling }
+}
+\NewDocumentCommand \persongender { m }
+{
+  \person_language_text:nn { #1 } { gender }
+}
+\NewDocumentCommand \Persongender { m }
+{
+  \person_Language_text:nn { #1 } { gender }
+}
+\NewDocumentCommand \getpersongender { m m }
+{
+ \person_set_label:n { #2 }
+ \person_if_exist_or_err:nT { \l_person_label_tl }
+  {
+    \tl_set:Ne #1
+     { \__person_language:nn { \l_person_label_tl } { gender } }
+  }
+}
+\NewDocumentCommand \getpersongenderlabel { m m }
+{
+ \person_set_label:n { #2 }
+ \person_if_exist_or_err:nT { \l_person_label_tl }
+  {
+    \tl_set:Nx #1
+     { person@ \l_person_label_tl @gender }
+  }
+}
+\NewDocumentCommand \getpersonname { m m }
+{
+ \person_set_label:n { #2 }
+ \person_if_exist_or_err:nT { \l_person_label_tl }
+  {
+    \tl_set_eq:Nc #1
+     { person@ \l_person_label_tl @name }
+  }
+}
+\NewDocumentCommand \getpersonforenames { m m }
+{
+ \person_set_label:n { #2 }
+ \person_if_exist_or_err:nT { \l_person_label_tl }
+  {
+    \tl_set_eq:Nc #1
+     { person@ \l_person_label_tl @forenames }
+  }
+}
+\NewDocumentCommand \getpersonfullname { m m }
+{
+ \person_set_label:n { #2 }
+ \person_if_exist_or_err:nT { \l_person_label_tl }
+  {
+    \tl_set_eq:Nc #1
+     { person@ \l_person_label_tl @fullname }
+  }
+}
+\NewDocumentCommand \getpersonsurname { m m }
+{
+ \person_set_label:n { #2 }
+ \person_if_exist_or_err:nT { \l_person_label_tl }
+  {
+    \tl_set_eq:Nc #1
+     { person@ \l_person_label_tl @surname }
+  }
+}
+\NewDocumentCommand \getpersontitle { m m }
+{
+ \person_set_label:n { #2 }
+ \person_if_exist_or_err:nT { \l_person_label_tl }
+  {
+    \tl_set_eq:Nc #1
+     { person@ \l_person_label_tl @title }
+  }
+}
+\ExplSyntaxOff
+\newcommand*{\RequirePersonDialect}[1]{%
+ \TrackLangRequireDialect{person}{#1}%
+}
+\datatool@load@locales{%
+  \AnyTrackedLanguages
+  {%
+    \ForEachTrackedDialect{\@dtl@thisdialect}%
+    {%
+      \RequirePersonDialect{\@dtl@thisdialect}%
+    }%
+  }%
+  {}%
+}
+\endinput
+%%
+%% End of file `person.sty'.

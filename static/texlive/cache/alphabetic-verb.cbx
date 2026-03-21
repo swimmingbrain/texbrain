@@ -1,0 +1,88 @@
+\ProvidesFile{alphabetic-verb.cbx}
+[\abx@cbxid]
+
+\ExecuteBibliographyOptions{labelalpha,autocite=inline}
+
+\renewcommand*{\iffinalcitedelim}{\iflastcitekey}
+
+\providebool{bbx:subentry}
+
+\DeclareFieldFormat{entrysetcount}{\mkbibparens{\mknumalph{#1}}}
+
+\newbibmacro*{cite}{%
+  \printtext[bibhyperref]{%
+    \printfield{labelprefix}%
+    \printfield{labelalpha}%
+    \printfield{extraalpha}%
+    \ifbool{bbx:subentry}
+      {\printfield{entrysetcount}}
+      {}}}
+
+\newbibmacro*{textcite}{%
+  \ifnameundef{labelname}
+    {\printfield[citetitle]{labeltitle}}
+    {\printnames{labelname}}%
+  \printdelim{namelabeldelim}\bibopenbracket
+  \ifnumequal{\value{citecount}}{1}
+    {\usebibmacro{prenote}}
+    {}%
+  \usebibmacro{cite}}
+
+\DeclareCiteCommand{\cite}
+  {\bibopenbracket
+   \usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \ifnumgreater{\value{citecount}}{1}
+     {\bibopenbracket}
+     {}%
+   \usebibmacro{cite}}
+  {\bibclosebracket\multicitedelim}
+  {\usebibmacro{postnote}%
+   \bibclosebracket}
+
+\DeclareCiteCommand{\parencite}[\mkbibbrackets]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\footcite}[\mkbibfootnote]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\footcitetext}[\mkbibfootnotetext]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\smartcite}[\iffootnote\mkbibbrackets\mkbibfootnote]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\textcite}
+  {}
+  {\usebibmacro{citeindex}%
+   \iffirstcitekey
+     {\setcounter{textcitetotal}{1}}
+     {\stepcounter{textcitetotal}%
+      \textcitedelim}%
+   \usebibmacro{textcite}}
+  {\bibclosebracket}
+  {\usebibmacro{postnote}%
+   \bibclosebracket}
+
+\DeclareMultiCiteCommand{\parencites}[\mkbibbrackets]{\parencite}{\multicitedelim}
+\DeclareMultiCiteCommand{\smartcites}[\iffootnote\mkbibbrackets\mkbibfootnote]
+  {\smartcite}{\multicitedelim}
+\DeclareMultiCiteCommand{\textcites}{\textcite}{}
+
+\endinput

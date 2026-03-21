@@ -1,0 +1,292 @@
+\ProvidesFile{verbose-note.cbx}
+[\abx@cbxid]
+
+\DeclareFieldFormat{bibhyperlink}{%
+  \bibhyperlink{%
+    \thefield{entrykey}:\csuse{cbx@\iffootnote{f}{t}@\thefield{entrykey}}}{#1}}
+\DeclareFieldFormat{bibhypertarget}{%
+  \bibhypertarget{\thefield{entrykey}:\the\value{instcount}}{#1}}
+
+\newtoggle{cbx:pageref}
+
+\renewcommand*{\iffinalcitedelim}{%
+  \ifnumequal{\value{textcitecount}}{\value{textcitetotal}-1}}
+
+\newbibmacro*{cite:citepages}{}
+\newbibmacro*{cite:full:citepages}{}
+\newbibmacro*{cite:postnote}{}
+
+\DeclareBibliographyOption[boolean]{pageref}[true]{%
+  \settoggle{cbx:pageref}{#1}%
+  \iftoggle{cbx:pageref}
+    {\ExecuteBibliographyOptions{pagetracker}}
+    {}}
+
+\DeclareBibliographyOption[string]{citepages}[permit]{%
+  \ifcsdef{cbx@opt@citepages@#1}
+    {\csuse{cbx@opt@citepages@#1}}
+    {\PackageError{biblatex}
+       {Invalid option 'citepages=#1'}
+       {Valid values are 'permit', 'suppress', 'omit', 'separate'.}}}
+
+\providebibmacro*{cite:citepages}{}
+\providebibmacro*{cite:full:citepages}{}
+\providebibmacro*{cite:postnote}{}
+
+\def\cbx@opt@citepages@permit{%
+  \renewbibmacro*{cite:citepages}{}%
+  \renewbibmacro*{cite:full:citepages}{}%
+  \renewbibmacro*{cite:postnote}{\usebibmacro{postnote}}}
+
+\def\cbx@opt@citepages@suppress{%
+  \renewbibmacro*{cite:citepages}{}%
+  \renewbibmacro*{cite:full:citepages}{%
+    \clearfield{pages}%
+    \clearfield{pagetotal}}%
+  \renewbibmacro*{cite:postnote}{\usebibmacro{postnote}}}
+
+\def\cbx@opt@citepages@omit{%
+  \renewbibmacro*{cite:citepages}{}%
+  \renewbibmacro*{cite:full:citepages}{%
+    \ifboolexpr{
+      test {\ifnumequal{\value{citecount}}{\value{citetotal}}}
+      and
+      test {\iffieldpages{postnote}}
+    }
+      {\clearfield{pages}%
+       \clearfield{pagetotal}}
+      {}}%
+  \renewbibmacro*{cite:postnote}{\usebibmacro{postnote}}}
+
+\def\cbx@opt@citepages@separate{%
+  \providetoggle{cbx:fullcite}%
+  \renewbibmacro*{cite:citepages}{%
+    \global\togglefalse{cbx:fullcite}}%
+  \renewbibmacro*{cite:full:citepages}{%
+    \global\toggletrue{cbx:fullcite}}%
+  \renewbibmacro*{cite:postnote}{%
+    \ifboolexpr{
+      togl {cbx:fullcite}
+      and
+      test {\iffieldpages{postnote}}
+      and
+      test {\ifnumequal{\value{citecount}}{\value{citetotal}}}
+      and
+      (
+       not test {\iffieldundef{pages}}
+       or
+       not test {\iffieldundef{pagetotal}}
+      )
+    }
+      {\usebibmacro{cite:postnote:pages}}
+      {\usebibmacro{postnote}}}
+  \providebibmacro*{cite:postnote:pages}{%
+    \setunit{\printdelim{postnotedelim}}%
+    \bibstring{thiscite}%
+    \setunit{\addspace}%
+    \printfield{postnote}}}
+
+\ExecuteBibliographyOptions{citetracker=context,singletitle,autocite=footnote,
+  citepages=permit}
+
+\newbibmacro*{cite}{%
+  \usebibmacro{cite:citepages}%
+  \ifciteseen
+    {\iffieldundef{shorthand}
+       {\usebibmacro{cite:short}}
+       {\usebibmacro{cite:shorthand}}}
+    {\usebibmacro{cite:full}%
+     \usebibmacro{cite:save}}}
+
+\newbibmacro*{cite:save}{%
+  \csxdef{cbx@t@\thefield{entrykey}}{\the\value{instcount}}}
+
+\newbibmacro*{cite:full}{%
+  \usebibmacro{cite:full:citepages}%
+  \printtext[bibhypertarget]{%
+    \usedriver
+      {\DeclareNameAlias{sortname}{default}}
+      {\thefield{entrytype}}}%
+  \usebibmacro{shorthandintro}}
+
+\newbibmacro*{cite:short}{%
+  \printnames{labelname}%
+  \setunit*{\printdelim{nametitledelim}}%
+  \printtext[bibhyperlink]{%
+    \printfield[citetitle]{labeltitle}}}
+
+\newbibmacro*{cite:shorthand}{%
+  \printtext[bibhyperlink]{\printfield{shorthand}}}
+
+\newbibmacro*{footcite}{%
+  \usebibmacro{cite:citepages}%
+  \ifciteseen
+    {\iffieldundef{shorthand}
+       {\usebibmacro{footcite:note}}
+       {\usebibmacro{footcite:shorthand}}}
+    {\usebibmacro{footcite:full}%
+     \usebibmacro{footcite:save}}}
+
+\newbibmacro*{footcite:save}{%
+  \csxdef{cbx@f@\thefield{entrykey}}{\the\value{instcount}}%
+  \label{cbx@\the\value{instcount}}}
+
+\newbibmacro*{footcite:full}{%
+  \usebibmacro{cite:full:citepages}%
+  \printtext[bibhypertarget]{%
+    \usedriver
+      {\DeclareNameAlias{sortname}{default}}
+      {\thefield{entrytype}}}%
+  \usebibmacro{shorthandintro}}
+
+\newbibmacro*{footcite:note}{%
+  \ifnameundef{labelname}
+    {\printfield{label}}
+    {\printnames{labelname}}%
+  \ifsingletitle
+    {}
+    {\setunit*{\printdelim{nametitledelim}}%
+     \printfield[title]{labeltitle}}%
+  \setunit*{\addcomma\space}%
+  \printtext{%
+    \bibstring{seenote}\addnbspace
+    \ref{cbx@\csuse{cbx@f@\thefield{entrykey}}}%
+    \iftoggle{cbx:pageref}
+      {\ifsamepage{\the\value{instcount}}
+                  {\csuse{cbx@f@\thefield{entrykey}}}
+         {}
+         {\addcomma\space\bibstring{page}\addnbspace
+          \pageref{cbx@\csuse{cbx@f@\thefield{entrykey}}}}}
+      {}}}
+
+\newbibmacro*{footcite:shorthand}{%
+  \printtext[bibhyperlink]{\printfield{shorthand}}}
+
+\DeclareCiteCommand{\cite}
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \iffootnote
+     {\usebibmacro{footcite}}
+     {\usebibmacro{cite}}}
+  {\multicitedelim}
+  {\usebibmacro{cite:postnote}}
+
+\DeclareCiteCommand{\parencite}[\mkbibparens]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \iffootnote
+     {\usebibmacro{footcite}}
+     {\usebibmacro{cite}}}
+  {\multicitedelim}
+  {\usebibmacro{cite:postnote}}
+
+\DeclareCiteCommand{\footcite}[\mkbibfootnote]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{footcite}}
+  {\multicitedelim}
+  {\usebibmacro{cite:postnote}}
+
+\DeclareCiteCommand{\footcitetext}[\mkbibfootnotetext]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{footcite}}
+  {\multicitedelim}
+  {\usebibmacro{cite:postnote}}
+
+\DeclareCiteCommand{\smartcite}[\iffootnote\mkbibparens\mkbibfootnote]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \iffootnote
+     {\usebibmacro{footcite}}
+     {\usebibmacro{cite}}}
+  {\multicitedelim}
+  {\usebibmacro{cite:postnote}}
+
+\newbibmacro*{textcite}{%
+  \ifnameundef{labelname}
+    {\printfield[citetitle]{labeltitle}}
+    {\printnames{labelname}}}
+
+\newbibmacro*{textcite:init}{%
+  \citetrackerfalse%
+  \pagetrackerfalse%
+  \iffirstcitekey
+    {\global\undef\cbx@lasthash}
+    {}}
+
+\newbibmacro*{textcite:count}{%
+  \stepcounter{textcitetotal}%
+  \ifnumgreater{\value{uniquelist}}{\value{maxnames}}
+    {\ifnumgreater{\value{uniquelist}}{\value{textcitemaxnames}}
+       {\setcounter{textcitemaxnames}{\value{uniquelist}}}
+       {}}
+    {\ifnumless{\value{labelname}}{\value{maxnames}}
+       {\ifnumgreater{\value{labelname}}{\value{textcitemaxnames}}
+          {\setcounter{textcitemaxnames}{\value{labelname}}}
+          {}}
+       {\ifnumgreater{\value{maxnames}}{\value{textcitemaxnames}}
+          {\setcounter{textcitemaxnames}{\value{maxnames}}}
+          {}}}}
+
+\DeclareCiteCommand{\cbx@textcite}
+  {\usebibmacro{textcite:init}}
+  {\iffieldequals{namehash}{\cbx@lasthash}
+     {}
+     {\iffirstcitekey
+        {}
+        {\textcitedelim}%
+      \stepcounter{textcitecount}%
+      \usebibmacro{textcite}%
+      \savefield{namehash}{\cbx@lasthash}}}
+  {}
+  {}
+
+\DeclareCiteCommand{\textcite}[\cbx@textcite@init\cbx@textcite\footcite]
+  {\usebibmacro{textcite:init}%
+   \gdef\cbx@savedkeys{}%
+   \DeferNextCitekeyHook}
+  {\ifthenelse{\iffirstcitekey\AND\value{multicitetotal}>0}
+     {\protected@xappto\cbx@footcite@args{%
+        (\thefield{multiprenote})(\thefield{multipostnote})}}
+     {}%
+   \xappto\cbx@savedkeys{\thefield{entrykey},}%
+   \iffieldequals{namehash}{\cbx@lasthash}
+     {}
+     {\usebibmacro{textcite:count}%
+      \savefield{namehash}{\cbx@lasthash}}%
+   \ifnumequal{\value{citecount}}{\value{citetotal}}
+     {\protected@xappto\cbx@textcite@args{{\cbx@savedkeys}}%
+      \protected@xappto\cbx@footcite@args{%
+        [\thefield{prenote}][\thefield{postnote}]{\cbx@savedkeys}}%
+      \iflastcitekey
+        {\protected@xappto\cbx@textcite@args{\thefield{postpunct}}%
+         \protected@xappto\cbx@footcite@args{\nopunct}}
+        {}}
+     {}}
+  {}
+  {}
+
+% textcite has nested \DeclareCiteCommand definitions for textcite and we want to use
+% the normal textcite context
+\DeclareDelimcontextAlias{cbx@textcite}{textcite}
+
+\newrobustcmd{\cbx@textcite@init}[3]{%
+  \setcounter{textcitetotal}{0}%
+  \setcounter{textcitecount}{0}%
+  \setcounter{textcitemaxnames}{0}%
+  \def\cbx@textcite@args{#1}\def\cbx@footcite@args{#2}#3%
+  \cbx@textcite@args\empty\cbx@footcite@args\empty}
+
+\DeclareMultiCiteCommand{\cbx@textcites}{\cbx@textcite}{}
+\DeclareMultiCiteCommand{\textcites}
+  [\cbx@textcites@init\cbx@textcites\footcites]{\textcite}{}
+
+\let\cbx@textcites@init\cbx@textcite@init
+\pretocmd{\cbx@textcites@init}{%
+  \UseNextMultiCiteHook%
+  \AtNextMultiCite{%
+    \renewbibmacro{multiprenote}{}%
+    \renewbibmacro{multipostnote}{}}}{}{}
+
+\endinput

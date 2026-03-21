@@ -1,0 +1,193 @@
+%%
+%% This is file `ppluatex.def',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% pdfpages.dtx  (with options: `ppluatexdef')
+%% 
+%% This file is part of the pdfpages package.
+%% 
+%% Copyright (C) 2001-2025 Andreas MATTHIAS
+%%
+%% This work may be distributed and/or modified under the conditions
+%% of the LaTeX Project Public License, either version 1.3c
+%% of this license or (at your option) any later version.
+%% The latest version of this license is in
+%%   <http://www.latex-project.org/lppl.txt>.
+%%
+%% This work has the LPPL maintenance status `maintained'.
+%%
+%% The Current Maintainer of this work is
+%%   Andreas Matthias <andreas.matthias@gmail.com>.
+%%
+%% Please send error reports and suggestions for improvements to
+%%   Andreas MATTHIAS <andreas.matthias@gmail.com>.
+%%
+\def\AM@git@tag{v0.6g}
+\def\AM@git@date{2025/07/23}
+\def\AM@git@hash{b55a30b6b0}
+\ProvidesFile{ppluatex.def}
+   [\AM@git@date\space\AM@git@tag\space
+    Pdfpages driver for LuaTeX (AM)]
+\ifnum\luatexversion<85
+  \let\AM@outputmode\pdfoutput
+  \let\AM@saveimageresource\pdfximage
+  \let\AM@lastsavedimageresourcepages\pdflastximagepages
+  \let\AM@luatexpagewidth\pdfpagewidth
+  \let\AM@luatexpageheight\pdfpageheight
+  \let\AM@annotation\pdfannot
+  \let\AM@thread\pdfthread
+  \let\AM@destination\pdfdest
+\else
+  \let\AM@outputmode\outputmode
+  \let\AM@saveimageresource\saveimageresource
+  \let\AM@lastsavedimageresourcepages\lastsavedimageresourcepages
+  \let\AM@luatexpagewidth\pagewidth
+  \let\AM@luatexpageheight\pageheight
+  \protected\def\AM@annotation {\pdfextension annot }%
+  \protected\def\AM@thread {\pdfextension thread }%
+  \protected\def\AM@destination {\pdfextension dest }%
+\fi
+\ifcase\AM@outputmode
+  \input{ppnull.def}
+  \expandafter\endinput
+\fi
+
+\let\AM@Gread@@pdftex\Gread@@pdftex
+\renewcommand*{\Gread@@pdftex}[1]{%
+  \xdef\AM@currentdocname@fix{#1}%
+  \AM@Gread@@pdftex{#1}%
+}
+\def\AM@getpagecount{%
+  \setbox\@tempboxa=\hbox{\includegraphics{\AM@currentdocname}}%
+  \AM@saveimageresource{\AM@currentdocname@fix}%
+  \edef\AM@pagecount{\the\AM@lastsavedimageresourcepages}%
+}
+\def\AM@getpagedimen{%
+  \AM@pagewidth=\paperwidth
+  \AM@pageheight=\paperheight
+}
+\def\AM@setpagedimen{%
+  \AM@luatexpagewidth\AM@pagewidth
+  \AM@luatexpageheight\AM@pageheight
+}
+\let\AM@pagesize@boogie\relax
+\let\AM@fitpaper@special\relax
+\def\AM@findfile#1{%
+  \AM@findfile@i{#1}{pdf}%
+  \AM@findfile@ii{#1}%
+}
+\AtBeginDocument{%
+  \let\AM@IfFileExists\IfFileExists
+  \@ifpackageloaded{grffile}{%
+    \@ifundefined{grffile@IfFileExists}{}{%
+      \let\AM@IfFileExists\grffile@IfFileExists}%
+  }{}%
+}
+\ExplSyntaxOn
+\@ifundefined{pdfmanagement_add:nnn}{%
+  \def\AM@setRotate{\PLS@Rotate{90}}%
+  \def\AM@resetRotate{\PLS@Rotate{0}}%
+}{%
+  \def\AM@setRotate{\pdfmanagement_add:nnn{ThisPage}{Rotate}{90}}%
+  \def\AM@resetRotate{}%
+}%
+\ExplSyntaxOff
+\def\AM@linktodoc@special@begin{%
+    \AM@annotation width \wd\@tempboxa
+                   height \ht\@tempboxa
+                   depth \dp\@tempboxa
+                   {/Subtype /Link /Border [0 0 0]
+                    /A << /S /GoToR
+                          /F (\AM@linkfilename)
+                          /D [\AM@linktodoc@page@m@ne \AM@linktodocfit]
+                          \ifAM@newwindow/NewWindow true\fi >>}%
+}
+\let\AM@linktodoc@special@end\relax
+\def\AM@survey@special@begin{%
+    \AM@annotation width \wd\@tempboxa
+                   height \ht\@tempboxa
+                   depth \dp\@tempboxa
+                   {/Subtype /Link /Border [0 0 0]
+                    /A << /S /GoTo
+                          /D (pdfpages.\AM@linktodoc@page@m@ne) >>}%
+}
+\let\AM@survey@special@end\relax
+\def\AM@thread@special@begin{%
+      \AM@thread width \wd\@tempboxa
+                 height \ht\@tempboxa
+                 depth \dp\@tempboxa
+                 attr {/I <<\threadinfodict>>}%
+                 name {\AM@threadname}%
+}
+\let\AM@thread@special@end\relax
+\def\AM@reset@view{%
+  \def\AM@view{fit}%
+  \def\AM@view@xpos{0}%
+  \def\AM@view@ypos{}}
+\def\AM@dest@special{\AM@destination name {\AM@linkname.\AM@page} \AM@view}
+\def\AM@anchor@special{\AM@destination name {pdfpages.\the\count1} fit}
+\def\AM@convert@dest#1{%
+  \AM@convert@dest@i #1 0 0 0\END}
+\def\AM@convert@dest@i#1 #2 #3 #4\END{%
+  \def\tag{#1}%
+  \def\x{FitH}%
+  \ifx\x\tag
+    \def\AM@view{fith}%
+    \def\AM@view@ypos{#2}%
+  \else
+    \def\x{FitBH}%
+    \ifx\x\tag
+      \def\AM@view{fitbh}%
+      \def\AM@view@ypos{#2}%
+    \else
+      \def\x{FitV}%
+      \ifx\x\tag
+        \def\AM@view{fitv}%
+        \def\AM@view@xpos{#2}%
+      \else
+        \def\x{FitBV}%
+        \ifx\x\tag
+          \def\AM@view{fitbv}%
+          \def\AM@view@xpos{#2}%
+        \else
+          \def\x{FitR}%
+          \ifx\x\tag
+            \def\AM@view{fitr}%
+            \PackageWarningNoLine{pdfpages}{%
+              `linkfit=FitR' is not supported,
+              I will try `linkfit=Region'.}%
+            \def\tag{region}%
+          \else
+            \def\x{FitB}%
+            \ifx\x\tag
+              \def\AM@view{fitb}%
+            \else
+              \def\x{XYZ}%
+              \ifx\x\tag
+                \def\AM@view{xyz zoom \AM@thousand{#4}}%
+                \def\AM@view@xpos{#2}
+                \def\AM@view@ypos{#3}
+              \else
+                \def\x{Region}%
+                \ifx\x\tag
+                  \def\AM@view{fitr
+                    width \the\wd\@tempboxa
+                    height \the\ht\@tempboxa
+                    depth \the\dp\@tempboxa}%
+                \else
+                  \def\AM@view{fit}%
+                \fi
+              \fi
+            \fi
+          \fi
+        \fi
+      \fi
+    \fi
+  \fi
+}
+\let\AM@disable@includegraphics\relax
+\endinput
+%%
+%% End of file `ppluatex.def'.

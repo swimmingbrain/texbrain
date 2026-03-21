@@ -1,0 +1,2760 @@
+%%
+%% This is file `databib.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% datatool.dtx  (with options: `databib.sty,package')
+%% 
+%%  datatool.dtx
+%%  Copyright 2025 Nicola Talbot
+%% 
+%%  This work may be distributed and/or modified under the
+%%  conditions of the LaTeX Project Public License, either version 1.3
+%%  of this license or (at your option) any later version.
+%%  The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%%  and version 1.3 or later is part of all distributions of LaTeX
+%%  version 2005/12/01 or later.
+%% 
+%%  This work has the LPPL maintenance status `maintained'.
+%% 
+%%  The Current Maintainer of this work is Nicola Talbot.
+%% 
+%%  This work consists of the files datatool.dtx and datatool.ins and the derived files datatool-base.sty, datatool-undetermined.ldf, datatool-latin1.ldf, datatool-utf8.ldf, datatool-l3fp.def, datatool-lua.def, datatool-fp.def, datatool-fp.sty, datatool-pgfmath.def, datatool-pgfmath.sty, datatool.sty, datagidx.sty, databib.sty, databar.sty, datapie.sty, dataplot.sty, person.sty, databib.bst, databar-2019-09-27.sty, databib-2019-09-27.sty, datagidx-2019-09-27.sty, datapie-2019-09-27.sty, dataplot-2019-09-27.sty, datatool-2019-09-27.sty, datatool-base-2019-09-27.sty, datatool-fp-2019-09-27.sty, datatool-pgfmath-2019-09-27.sty, person-2019-09-27.sty.
+%% 
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\NeedsTeXFormat{LaTeX2e}
+\DeclareRelease{v2.32}{2019-09-27}{databib-2019-09-27.sty}
+\DeclareCurrentRelease{v3.4.3}{2025-12-04}
+\ProvidesPackage{databib}[2025/12/04 v3.4.3 (NLCT)]
+\ExplSyntaxOn
+\tl_new:N \l__databib_style_tl
+\tl_set:Nn \l__databib_style_tl { plain }
+\bool_new:N \l_databib_auto_build_bool
+\bool_set_false:N \l_databib_auto_build_bool
+\cs_new:Nn \__databib_auto_build:n
+{
+ \bool_if:NT \l_databib_auto_build_bool
+  {
+    \sys_if_shell:TF
+     {
+       \IfFileExists { #1.aux }
+        {
+          \sys_shell_now:e { bibtex ~ #1 }
+        }
+        {
+          \PackageWarning { databib }
+           {
+             File ~ `#1' ~ does ~ not ~ exist. ~
+             Rerun ~ may ~ be ~ required
+           }
+        }
+     }
+     {
+       \PackageWarning { databib }
+        {
+          Can't ~ run ~ `bibtex #1`: shell ~ not ~ enabled
+        }
+     }
+  }
+}
+\keys_define:nn { datatool }
+{
+   style .choice: ,
+   style / plain .code:n =
+     { \tl_set:Nn \l__databib_style_tl { plain } } ,
+   style / abbrv .code:n =
+     { \tl_set:Nn \l__databib_style_tl { abbrv } } ,
+   style / alpha .code:n =
+     { \tl_set:Nn \l__databib_style_tl { alpha } } ,
+   auto .bool_set:N = \l_databib_auto_build_bool ,
+}
+\ExplSyntaxOff
+\IfPackageLoadedTF{datatool}
+{
+  \ProcessKeyOptions[datatool]
+}
+{
+  \DeclareOption*{\PassOptionsToPackage{\CurrentOption}{datatool}}
+  \ProcessOptions
+}
+\RequirePackage{datatool}
+\ExplSyntaxOn
+\keys_define:nn { datatool }
+{
+  style .undefine: ,
+  auto .undefine: ,
+}
+\NewDocumentCommand \DTLloadbbl { O{\jobname.bbl} m m }
+{
+  \bibliographystyle {databib}
+  \ifx \@begindocumenthook \@undefined
+    \bool_if:NT \l_databib_auto_build_bool
+    {
+      \PackageError { databib }
+       {
+         \token_to_str:N \DTLloadbbl \c_space_tl
+         may ~ only ~ be ~ used ~ in ~ the ~ preamble ~
+         with `auto=true'
+       }
+       {
+         Move ~ \token_to_str:N \DTLloadbbl \c_space_tl
+         to ~ the ~ preamble ~ or ~ switch ~ off ~ the ~
+         `auto' ~ option
+       }
+    }
+  \else
+    \__databib_auto_build:n { \c_sys_jobname_str }
+    \expandafter \AtBeginDocument \fi
+   {
+    \if@filesw
+      \immediate \write \@auxout { \string \bibdata { #3 } }
+    \fi
+   }
+  \tl_if_blank:nTF { #2 }
+   {
+     \tl_set_eq:NN \DTLBIBdbname \l__datatool_default_dbname_tl
+   }
+   {
+     \tl_set:Nx \DTLBIBdbname { \tl_trim_spaces:n { #2 } }
+   }
+  \DTLnewdb { \DTLBIBdbname }
+  \@input@ { #1 }
+}
+\NewDocumentCommand \DTLnewbibrow { }
+ {
+   \@sDTLnewrow { \DTLBIBdbname }
+ }
+\NewDocumentCommand \DTLnewbibitem { m m }
+{
+  \@sDTLnewdbentry { \DTLBIBdbname } { #1 } { #2 }
+}
+\NewDocumentCommand \DTLnewbibliteralitem { m }
+{
+  \group_begin:
+   \char_set_catcode_other:N \%
+   \__databib_literal_item:nn { #1 }
+}
+\cs_new:Nn \__databib_literal_item:nn
+{
+  \exp_args:NNne
+   \group_end:
+   \DTLnewbibitem { #1 } { \detokenize { #2 } }
+}
+\NewDocumentCommand \DTLbibsetlongestlabel { O { \DTLBIBdbname } m }
+{
+  \tl_set:cn { __databib_longest_label_ #1 _ tl } { #2 }
+}
+\newcommand{\DTLbibgetlongestlabel}[1]{
+  \tl_if_exist:cT {  __databib_longest_label_ #1 _ tl }
+   { \tl_use:c { __databib_longest_label_ #1 _ tl } }
+}
+\tl_new:N \__databib_longest_label_tl
+\providecommand*{\ofname}{of}
+\providecommand*{\inname}{in}
+\providecommand*{\etalname}{et ~ al.}
+\providecommand*{\editorname}{editor}
+\providecommand*{\editorsname}{editors}
+\providecommand*{\volumename}{volume}
+\providecommand*{\numbername}{number}
+\providecommand*{\pagesname}{pages}
+\providecommand*{\pagename}{page}
+\providecommand*{\editionname}{edition}
+\providecommand*{\techreportname}{Technical ~ report}
+\providecommand*{\mscthesisname}{Master's ~ thesis}
+\providecommand*{\phdthesisname}{PhD ~ thesis}
+\NewDocumentCommand \DTLbibliography { O{\boolean{true}} m }
+{
+  \begin{DTLthebibliography} [ #1 ] { #2 }
+  \DTLforeachbibentry * [ #1 ] { #2 }
+   {
+     \DTLbibitem \DTLformatbibentry \DTLendbibitem
+   }
+  \end{DTLthebibliography}
+}
+\cs_new:Nn \databib_check_fmt:nT
+{
+  \tl_if_exist:cTF { DTLformat #1 }
+   { #2 }
+   {
+     \PackageError { databib }
+     {
+       Don't ~ know ~ how ~ to ~ format ~ bibliography ~
+       entries ~ of ~ type ~ ` #1 '
+     }
+     {
+       The ~ current ~ bibliography ~ format ~ doesn't ~ seem ~ to ~
+       support ~ the ~ given ~ entry ~ type
+     }
+   }
+}
+\NewDocumentCommand \DTLformatbibentry { }
+{
+  \databib_check_fmt:nT { \DBIBentrytype }
+  {
+    \dtl@message { [ \DBIBcitekey ] }
+    \legacy_if_set_false:n { DTLstartsentence }
+    \legacy_if_set_false:n { DTLmidsentence }
+    \legacy_if_set_false:n { DTLperiod }
+    \tl_use:c { DTLformat \DBIBentrytype }
+  }
+}
+\NewDocumentCommand \gDTLformatbibentry { }
+{
+  \databib_check_fmt:nT { \DBIBentrytype }
+  {
+    \dtl@message { [ \DBIBcitekey ] }
+    \legacy_if_gset_false:n { DTLstartsentence }
+    \legacy_if_gset_false:n { DTLmidsentence }
+    \legacy_if_gset_false:n { DTLperiod }
+    \tl_use:c { DTLformat \DBIBentrytype }
+  }
+}
+\NewDocumentCommand \DTLformatthisbibentry { m m }
+{
+  \tl_set:Ne \DBIBname { \exp_args:Ne \tl_to_str:n { #1 } }
+  \tl_set:Ne \DBIBcitekey { \exp_args:Ne \tl_to_str:n { #2 } }
+  \edtlgetrowforvalue { \DBIBname }
+    { \dtlcolumnindex { \DBIBname } { CiteKey } }
+    { \DBIBcitekey }
+  \dtl@gathervalues { \DBIBname } { \dtlcurrentrow }
+  \tl_set_eq:Nc \DBIBentrytype { @dtl@key@EntryType }
+  \DTLformatbibentry
+}
+\newcommand*{\DTLendbibitem}{}
+\dim_new:N \l__databib_widest_dim
+\NewDocumentCommand \DTLcomputewidestbibentry { m m m m }
+{
+ \dim_zero:N \l__databib_widest_dim
+ \tl_clear:N #4
+ \DTLforeachbibentry * [ #1 ] { #2 }
+ {
+   \datatool_measure_width:Nn \dtl@tmplength { #3 }
+   \dim_compare:nNnT
+     { \dtl@tmplength } > { \l__databib_widest_dim }
+    {
+      \dim_set_eq:NN \l__databib_widest_dim \dtl@tmplength
+      \tl_set:Ne #4 { #3 }
+    }
+ }
+}
+\NewDocumentCommand \DTLforeachbibentry { s o m m }
+{
+  \IfBooleanTF { #1 }
+  {
+    \__databib_foreach_entry:Nnnn
+     \@sDTLforeach { #2 } { #3 } { #4 }
+  }
+  {
+    \__databib_foreach_entry:Nnnn
+      \@DTLforeach { #2 } { #3 } { #4 }
+  }
+}
+\cs_new:Nn \__databib_foreach_entry:Nnnn
+{
+  \tl_set:Ne \DBIBname { \exp_args:Ne \tl_to_str:n { #3 } }
+  \int_zero:c { c@DTLbibrow }
+  \IfValueTF { #2 }
+   {
+     \tl_if_empty:nTF { #2 }
+      {
+        \cs_set_eq:NN \__databib_do_foreach:n \use:n
+      }
+      {
+        \cs_set:Nn \__databib_do_foreach:n
+        {
+          \ifthenelse { #2 } { ##1 } { }
+        }
+      }
+   }
+   {
+     \cs_set_eq:NN \__databib_do_foreach:n \use:n
+   }
+  #1 { #3 } {  }
+   {
+      \dtl@gathervalues { #3 } { \dtlcurrentrow }
+      \tl_set_eq:Nc \DBIBcitekey { @dtl@key@CiteKey }
+      \tl_set_eq:Nc \DBIBentrytype { @dtl@key@EntryType }
+      \__databib_do_foreach:n
+       {
+         \refstepcounter{DTLbibrow}
+         #4
+       }
+   }
+}
+\NewDocumentCommand \gDTLforeachbibentry { s O{\boolean{true}} m m }
+{
+  \IfBooleanTF { #1 }
+  {
+    \__databib_gforeach_entry:Nnnn
+     \@sDTLforeach { #2 } { #3 } { #4 }
+  }
+  {
+    \__databib_gforeach_entry:Nnnn
+     \@DTLforeach { #2 } { #3 } { #4 }
+  }
+}
+\cs_new:Nn \__databib_gforeach_entry:Nnnn
+{
+  \tl_gset:Ne \DBIBname { \exp_args:Ne \tl_to_str:n { #3 } }
+  \int_gzero:c { c@DTLbibrow }
+  #1 { #3 }
+      { \DBIBcitekey = CiteKey , \DBIBentrytype = EntryType }
+   {
+     \dtl@g@gathervalues { #3 } { \dtlcurrentrow }
+     \ifthenelse { #2 }
+      {
+        \refstepcounter{DTLbibrow}
+        #4
+      }
+      { }
+   }
+}
+\newcounter{DTLbibrow}
+\def\theHDTLbibrow{\theHDTLrow.bib.\arabic{DTLbibrow}}%
+\newcommand*{\DTLbibfield}[1]{
+ \tl_if_exist:cT { @dtl@key@#1 }
+  {
+    \exp_not:v { @dtl@key@#1 }
+  }
+}
+\newcommand*{\DTLbibdatefield}[1]{
+  \DTLbibfield { #1 }
+}
+\newcommand*{\DTLencapbibfield}[2]{
+ \tl_if_exist:cT { @dtl@key@#2 }
+  {
+    \exp_args:Nv #1 { @dtl@key@#2 }
+  }
+}
+\NewDocumentCommand \DTLbibfieldlet { m m }
+{
+  \tl_set_eq:Nc #1 { @dtl@key@#2 }
+}
+\newcommand*{\DTLifbibfieldexists}[3]{%
+ \tl_if_exist:cTF { @dtl@key@#1 }
+  {
+    \datatool_if_null:cTF { @dtl@key@ #1 }
+     { #3 } { #2 }
+  }
+  { #3 }
+}
+\NewDocumentCommand \DTLifanybibfieldexists { m m m }
+{
+  \cs_set_eq:NN \__databib_do:nn \use_ii:nn
+  \clist_map_inline:nn { #1 }
+   {
+     \DTLifbibfieldexists { ##1 }
+     {
+       \cs_set_eq:NN \__databib_do:nn \use_i:nn
+       \clist_map_break:
+     }
+     { }
+   }
+  \__databib_do:nn { #2 } { #3 }
+}
+\newif\ifDTLperiod
+\regex_new:N \l_databib_end_sentence_regex
+\regex_set:Nn \l_databib_end_sentence_regex
+  { [\.?!] \Z }
+\NewDocumentCommand \DTLcheckendsperiod { m }
+{
+ \regex_match:NnTF \l_databib_end_sentence_regex { #1 }
+  { \legacy_if_gset_true:n { DTLperiod } }
+  { \legacy_if_gset_false:n { DTLperiod } }
+}
+\NewDocumentCommand \DTLcheckbibfieldendsperiod { m }
+{
+  \exp_args:Ne \DTLcheckendsperiod { \DTLbibfield { #1 } }
+}
+\cs_new:Nn \databib_do_and_check:n
+ {
+   \legacy_if:nTF { DTLmidsentence }
+    { #1 }
+    {
+      \DTLstartsentencespace
+      \text_titlecase:n { #1 }
+    }
+   \DTLcheckendsperiod { #1 }
+ }
+\cs_generate_variant:Nn \databib_do_and_check:n { e }
+\newif\ifDTLmidsentence
+\newif\ifDTLstartsentence
+\newcommand*{\DTLaddperiod}{
+ \ifDTLperiod\else.\fi
+ \DTLmidsentencefalse
+ \DTLperiodfalse
+ \DTLstartsentencetrue
+}
+\newcommand*{\DTLaddcomma}{
+ , ~
+ \DTLmidsentencetrue
+ \DTLperiodfalse
+ \DTLstartsentencefalse
+}
+\ExplSyntaxOff
+\newcommand*{\DTLstartsentencespace}{%
+\ifDTLstartsentence\spacefactor=\sfcode`\.\relax\space
+\fi\DTLstartsentencefalse}
+\newcommand*{\DTLtwoand}{\ \DTLlistand \ }
+\newcommand*{\DTLandlast}{, \DTLlistand \ }
+\ExplSyntaxOn
+\newcommand*{\DTLandnotlast}{, ~ }
+\int_new:N \l__databib_author_count_int
+\newcounter{DTLmaxauthors}
+\setcounter{DTLmaxauthors}{10}
+\NewDocumentCommand \DTLformatbibnamelist { m m m }
+{
+ \int_set:Nn \l__databib_author_count_int
+   { \clist_count:n { #1 } }
+ \int_zero:N \l__datatool_count_int
+ \int_compare:nNnTF
+    { \l__databib_author_count_int } > { #2 }
+  {
+    \clist_map_inline:nn { #1 }
+    {
+      \int_incr:N \l__datatool_count_int
+      \int_compare:nNnTF
+         { \l__datatool_count_int } = { \c_one_int }
+       {
+         \__databib_format_name:Nn #3 { ##1 }
+       }
+       {
+         \int_compare:nNnTF
+           { \l__datatool_count_int } > { #2 }
+          {
+            \DTLandnotlast
+            \etalname
+            \exp_args:NV \DTLcheckendsperiod \etalname
+            \clist_map_break:
+          }
+          {
+            \DTLandnotlast
+            \__databib_format_name:Nn #3 { ##1 }
+          }
+       }
+    }
+  }
+  {
+    \clist_map_inline:nn { #1 }
+     {
+       \int_incr:N \l__datatool_count_int
+       \int_compare:nNnTF { \l__datatool_count_int } = { \c_one_int }
+        {
+          \__databib_format_name:Nn #3 { ##1 }
+        }
+        {
+          \int_compare:nNnTF
+             { \l__datatool_count_int } = { \l__databib_author_count_int }
+           {
+             \int_compare:nNnTF
+               { \l__databib_author_count_int } = { 2 }
+              {
+                \DTLtwoand
+              }
+              {
+                \DTLandlast
+              }
+             \__databib_format_name:Nn #3 { ##1 }
+           }
+           {
+             \DTLandnotlast
+             \__databib_format_name:Nn #3 { ##1 }
+           }
+        }
+     }
+  }
+}
+\newcommand*{\DTLformatauthorlist}{
+ \DTLifbibfieldexists{Author}
+ {
+   \DTLstartsentencespace
+   \exp_args:NV \DTLformatbibnamelist \@dtl@key@Author
+    { \c@DTLmaxauthors } { \DTLformatauthor }
+ }
+ { }
+}
+\newcounter{DTLmaxeditors}
+\setcounter{DTLmaxeditors}{10}
+\newcommand*{\DTLformateditorlist}{%
+ \DTLifbibfieldexists {Editor}
+  {
+   \DTLstartsentencespace
+   \exp_args:NV \DTLformatbibnamelist \@dtl@key@Editor
+    { \c@DTLmaxeditors } { \DTLformateditor }
+    , ~
+   \int_compare:nNnTF
+      { \l__databib_author_count_int } = { \c_one_int }
+    {
+      \editorname
+      \exp_args:NV \DTLcheckendsperiod \editorname
+    }
+    {
+      \editorsname
+      \exp_args:NV \DTLcheckendsperiod \editorsname
+    }
+  }
+  { }
+}
+\ExplSyntaxOff
+\newcommand{\DTLpostvon}{~}
+\newcommand{\DTLpostvolnum}{:}
+\newcommand{\DTLpostpagename}{~}
+\newcommand{\DTLpostvolumename}{~}
+\newcommand{\DTLpostchaptername}{~}
+\newcommand{\DTLpostnumbername}{~}
+\newcommand{\DTLprecite}{~}
+\newcommand{\DTLofseries}[1]{%
+  \ \ofname\ \DTLofseriesfmt{#1}%
+}
+\newcommand{\DTLofseriesfmt}[1]{\emph{#1}}
+\newcommand{\DTLinseries}[1]{%
+  \ \inname\ #1%
+}
+\newcommand{\DTLjournalfmt}[1]{\emph{#1}}
+\newcommand{\DTLinbooktitlefmt}[1]{\emph{#1}}
+\newcommand{\DTLmanualtitlefmt}[1]{\emph{#1}}
+\newcommand{\DTLthesistitlefmt}[1]{\emph{#1}}
+\newcommand{\DTLproceedingstitlefmt}[1]{\emph{#1}}
+\ExplSyntaxOn
+\NewDocumentCommand \DTLformatsurnameonly { m m m m }
+{
+  \tl_if_empty:nF { #1 }
+   { #1 \DTLpostvon }
+  #2
+  \tl_if_empty:nTF { #3 }
+   {
+     \DTLcheckendsperiod { #2 }
+   }
+   {
+     , ~ #3
+     \DTLcheckendsperiod { #3 }
+   }
+}
+\NewDocumentCommand \DTLformatforenames { m }
+{
+  #1
+  \DTLcheckendsperiod { #1 }
+}
+\NewDocumentCommand \DTLformatabbrvforenames { m }
+{
+  \DTLstoreinitials { #1 } \@dtl@tmp
+  \@dtl@tmp
+  \exp_args:NV \DTLcheckendsperiod \@dtl@tmp
+}
+\NewDocumentCommand \DTLformatvon { m }
+{
+  \tl_if_empty:nF { #1 }
+   {
+     #1 \DTLpostvon
+   }
+}
+\NewDocumentCommand \DTLformatsurname { m }
+{
+  #1
+  \DTLcheckendsperiod { #1 }
+}
+\NewDocumentCommand \DTLformatjr { m }
+{
+  \tl_if_empty:nF { #1 }
+   {
+     , ~ #1
+     \DTLcheckendsperiod { #1 }
+   }
+}
+\NewDocumentCommand \DTLformatcrossrefeditor { }
+{
+ \DTLifbibfieldexists {Editor}
+  {
+    \DTLstartsentencespace
+    \int_set:Nn \l__databib_author_count_int
+     { \clist_count:N \@dtl@key@Editor }
+    \int_zero:N \l__datatool_count_int
+    \clist_map_inline:Nn \@dtl@key@Editor
+     {
+       \int_compare:nNnTF
+         { \l__databib_author_count_int } = { \c_one_int }
+        {
+          \__databib_format_name:Nn
+            \DTLformatsurnameonly { ##1 }
+        }
+        {
+          \int_incr:N \l__datatool_count_int
+          \int_compare:nNnTF
+            { \l__datatool_count_int } = { \c_one_int }
+           {
+             \__databib_format_name:Nn
+               \DTLformatsurnameonly { ##1 }
+           }
+           {
+             \int_compare:nNnTF
+               { \l__databib_author_count_int } = { 2 }
+              {
+                \DTLtwoand
+                \__databib_format_name:Nn
+                  \DTLformatsurnameonly { ##1 }
+              }
+              {
+                \c_space_tl
+                \etalname
+                \exp_args:NV \DTLcheckendsperiod \etalname
+              }
+             \clist_map_break:
+           }
+        }
+     }
+  }
+  { }
+}
+\NewDocumentCommand \DTLformatvolnumpages { }
+{
+ \cs_set_eq:NN \__databib_do:nn \use_ii:nn
+ \DTLifbibfieldexists {Volume}
+  {
+    \DTLstartsentencespace
+    \DTLbibfield {Volume}
+    \DTLperiodfalse
+    \cs_set_eq:NN \__databib_do:nn \use_i:nn
+  }
+  { }
+ \DTLifbibfieldexists {Number}
+  {
+    \DTLstartsentencespace
+    ( \DTLbibfield{Number} )
+    \DTLperiodfalse
+    \cs_set_eq:NN \__databib_do:nn \use_i:nn
+  }
+  { }
+ \DTLifbibfieldexists {Pages}
+  {
+    \__databib_do:nn
+     { \DTLpostvolnum }
+     {
+       \DTLstartsentencespace
+       \exp_args:Ne \DTLifnumerical
+         { 0 \DTLbibfield {Pages} }
+         { \pagename } { \pagesname }
+       \DTLpostpagename
+     }
+    \DTLbibfield {Pages}
+    \DTLperiodfalse
+  }
+  { }
+}
+\NewDocumentCommand \DTLformatbvolume { }
+{
+ \DTLifbibfieldexists {Volume}
+  {
+    \legacy_if:nTF { DTLmidsentence }
+     {
+       \volumename
+     }
+     {
+       \DTLstartsentencespace
+       \text_titlecase_first:n { \volumename }
+     }
+    \DTLpostvolumename
+    \DTLbibfield {Volume}
+    \DTLifbibfieldexists {Series}
+     {
+       \DTLofseries { \DTLbibfield{Series} }
+       \DTLcheckbibfieldendsperiod {Series}
+     }
+     {
+       \DTLcheckbibfieldendsperiod {Volume}
+     }
+  }
+  { }
+}
+\NewDocumentCommand \DTLformatchapterpages { }
+{
+ \DTLifbibfieldexists {Chapter}
+  {
+    \DTLifbibfieldexists {Type}
+     {
+       \DTLstartsentencespace
+       \DTLbibfield {Type}
+     }
+     {
+       \DTLstartsentencespace
+       \chaptername
+     }
+    \DTLpostchaptername
+    \DTLbibfield {Chapter}
+    \DTLifbibfieldexists {Pages}
+     { \DTLaddcomma }
+     {
+       \DTLcheckbibfieldendsperiod {Chapter}
+     }
+  }
+  { }
+ \DTLstartsentencespace
+ \DTLformatpages
+}
+\NewDocumentCommand \DTLformatpages { }
+{
+  \DTLifbibfieldexists{Pages}
+   {
+     \DTLstartsentencespace
+     \exp_args:Ne \DTLifnumerical { 0\DTLbibfield{Pages} }
+       { \pagename } { \pagesname }
+     \DTLpostpagename
+     \DTLbibfield {Pages}
+     \DTLcheckbibfieldendsperiod {Pages}
+   }
+   { }
+}
+\NewDocumentCommand \DTLformatnumberseries { }
+{
+ \DTLifbibfieldexists {Volume}
+  { }
+  {
+   \DTLifbibfieldexists {Number}
+    {
+      \legacy_if:nTF { DTLmidsentence }
+       {
+         \numbername
+       }
+       {
+         \DTLstartsentencespace
+         \text_titlecase_first:n { \numbername }
+       }
+     \DTLpostnumbername
+     \DTLbibfield {Number}
+     \DTLifbibfieldexists {Series}
+       {
+         \DTLinseries { \DTLbibfield {Series} }
+         \DTLcheckbibfieldendsperiod {Series}
+       }
+       {
+         \DTLcheckbibfieldendsperiod {Number}
+       }
+    }
+    {
+      \DTLifbibfieldexists {Series}
+       {
+         \DTLstartsentencespace
+         \DTLbibfield {Series}
+         \DTLcheckbibfieldendsperiod {Series}
+       }
+       { }
+    }
+  }
+}
+\NewDocumentCommand \DTLformatbookcrossref { }
+{
+ \DTLifbibfieldexists {Volume}
+  {
+    \legacy_if:nTF { DTLmidsentence }
+     {
+       \volumename
+     }
+     {
+       \DTLstartsentencespace
+       \text_titlecase:n { \volumename }
+     }
+    \DTLpostvolumename
+    \DTLbibfield {Volume}
+    \c_space_tl \ofname \c_space_tl
+  }
+  {
+    \legacy_if:nTF { ifDTLmidsentence }
+     {
+       \inname
+     }
+     {
+       \DTLstartsentencespace
+       \text_titlecase:n { \inname }
+     }
+    \c_space_tl
+  }
+ \DTLifbibfieldexists {Editor}
+  {
+    \DTLformatcrossrefeditor
+  }
+  {
+    \DTLifbibfieldexists {Key}
+     {
+       \DTLbibfield {Key}
+     }
+     {
+       \DTLifbibfieldexists {Series}
+        {
+          \DTLofseriesfmt { \DTLbibfield {Series} }
+        }
+        { }
+     }
+  }
+ \DTLprecite
+ \DTLpcite { \DTLbibfield{CrossRef} }
+}
+\NewDocumentCommand \DTLformatincollproccrossref { }
+{
+ \DTLifbibfieldexists {Editor}
+  {
+    \legacy_if:nTF { DTLmidsentence }
+     {
+       \inname
+     }
+     {
+       \DTLstartsentencespace
+       \text_titlecase:n { \inname }
+     }
+    \c_space_tl
+    \DTLformatcrossrefeditor
+  }
+  {
+    \DTLifbibfieldexists {Key}
+     {
+       \legacy_if:nTF { DTLmidsentence }
+        {
+          \inname
+        }
+        {
+          \DTLstartsentencespace
+          \text_titlecase_first:n { \inname }
+        }
+       \c_space_tl
+       \DTLbibfield {Key}
+     }
+     {
+       \DTLifbibfieldexists {BookTitle}
+        {
+          \legacy_if:nTF { DTLmidsentence }
+           {
+             \inname
+           }
+           {
+             \DTLstartsentencespace
+             \text_titlecase_first:n { \inname }
+           }
+          \c_space_tl
+          \DTLformatbooktitle { \DTLbibfield {BookTitle} }
+        }
+        { }
+     }
+  }
+ \DTLprecite
+ \DTLpcite { \DTLbibfield {CrossRef} }
+}
+\NewDocumentCommand \DTLformatinedbooktitle { }
+{
+ \DTLifbibfieldexists {BookTitle}
+  {
+    \legacy_if:nTF { DTLmidsentence }
+     {
+       \inname
+     }
+     {
+       \DTLstartsentencespace
+       \text_titlecase_first:n { \inname }
+     }
+    \c_space_tl
+    \DTLifbibfieldexists {Editor}
+     {
+       \DTLformateditorlist
+       \DTLaddcomma
+       \DTLformatbooktitle { \DTLbibfield {BookTitle} }
+       \DTLcheckbibfieldendsperiod {BookTitle}
+     }
+     {
+       \DTLformatbooktitle { \DTLbibfield {BookTitle} }
+       \DTLcheckbibfieldendsperiod {BookTitle}
+     }
+  }
+  { }
+}
+\NewDocumentCommand \DTLformatdate { }
+{
+ \DTLifbibfieldexists {Date}
+  {
+    \DTLstartsentencespace
+    \DTLbibdatefield {Date}
+  }
+  {
+   \DTLifbibfieldexists {Year}
+    {
+      \DTLifbibfieldexists {Month}
+       {
+         \legacy_if:nTF { DTLmidsentence }
+          {
+            \DTLbibfield {Month}
+          }
+          {
+            \DTLstartsentencespace
+            \text_titlecase:n { \DTLbibfield {Month} }
+          }
+         \c_space_tl
+         \DTLmidsentencefalse
+       }
+       { }
+      \DTLstartsentencespace
+      \DTLbibfield {Year}
+    }
+    {
+      \DTLifbibfieldexists {Month}
+       {
+         \legacy_if:nTF { DTLmidsentence }
+          {
+            \DTLbibfield {Month}
+          }
+          {
+            \DTLstartsentencespace
+            \text_titlecase_first:n { \DTLbibfield {Month} }
+          }
+         \DTLcheckbibfieldendsperiod {Month}
+       }
+       { }
+    }
+  }
+}
+\NewDocumentCommand \DTLformatarticlecrossref { }
+{
+ \DTLifbibfieldexists {Key}
+  {
+    \legacy_if:nTF { DTLmidsentence }
+     {
+       \inname
+     }
+     {
+       \DTLstartsentencespace
+       \text_titlecase_first:n { \inname }
+     }
+    \c_space_tl
+    \DTLjournalfmt { \DTLbibfield {Key} }
+  }
+  {
+    \DTLifbibfieldexists {Journal}
+     {
+       \legacy_if:nTF { DTLmidsentence }
+        {
+          \inname
+        }
+        {
+          \DTLstartsentencespace
+          \text_titlecase_first:n { \inname }
+        }
+       \c_space_tl
+       \DTLjournalfmt { \DTLbibfield{Journal} }
+     }
+     { }
+  }
+ \DTLprecite
+ \DTLpcite { \DTLbibfield{CrossRef} }
+}
+\NewDocumentCommand \DTLpcite { m }
+{
+  \exp_args:Ne \cite { #1 }
+}
+\ExplSyntaxOff
+\newcommand{\DTLbibdoihome}{https://doi.org/}
+\newcommand{\DTLbibpubmedhome}{https://pubmed.ncbi.nlm.nih.gov/}
+\newcommand{\DTLbibdoitag}{\textsc{doi}: }
+\newcommand{\DTLbibpubmedtag}{\textsc{pmid}: }
+\newcommand*{\DTLbiburldate}[1]{%
+  \space (\DTLbibaccessedname : #1)%
+}
+\newcommand*{\DTLbibeprints}[2]{%
+ \ifdef\href
+  {\href{#1}{#2}}%
+  {%
+    #2: % space intended
+    \ifdef\url{\url{#1}}{\texttt{#1}}%
+  }%
+}
+\ExplSyntaxOn
+\newcommand*{\DTLbibdoi}[1]{
+ \DTLbibdoitag
+ \cs_if_exist:NTF \href
+  {
+     \exp_args:Ne \href { \DTLbibdoihome #1 } { \nolinkurl { #1 } }
+  }
+  {
+    \cs_if_exist:NTF \url
+     { \url { #1 } } { \texttt { #1 } }
+  }
+}
+\newcommand*{\DTLbiburl}[1]{
+  \cs_if_exist:NTF \url
+   { \url { #1 } }
+   { \texttt { #1 } }
+}
+\newcommand*{\DTLbibaccessedname}{accessed}
+\newcommand*{\DTLbibpubmed}[1]{
+  \DTLbibpubmedtag
+  \cs_if_exist:NTF \href
+   { \exp_args:Ne \href { \DTLbibpubmedhome #1 } { #1 } }
+   { #1 }
+}
+\NewDocumentCommand \DTLbibformatdigital { }
+{
+ \DTLifbibfieldexists {PubMed}
+  {
+    \exp_args:Ne \DTLbibpubmed { \DTLbibfield { PubMed } }
+    \legacy_if_set_true:n { DTLmidsentence }
+  }
+  { }
+ \DTLifbibfieldexists {DOI}
+  {
+    \legacy_if:nT { DTLmidsentence }
+     {
+       \DTLaddcomma
+     }
+    \exp_args:Ne \DTLbibdoi { \DTLbibfield { DOI } }
+    \legacy_if_set_true:n { DTLmidsentence }
+  }
+  { }
+ \DTLifbibfieldexists {Url}
+  {
+    \legacy_if:nT { DTLmidsentence }
+     {
+       \DTLaddcomma
+     }
+    \exp_args:Ne \DTLbiburl { \DTLbibfield { Url } }
+    \DTLifbibfieldexists {UrlDate}
+     {
+       \DTLbiburldate { \DTLbibdatefield { UrlDate } }
+     }
+     { }
+    \legacy_if_set_true:n { DTLmidsentence }
+  }
+  { }
+ \DTLifbibfieldexists {Eprints}
+  {
+    \legacy_if:nT { DTLmidsentence }
+     {
+       \DTLaddcomma
+     }
+    \exp_args:Nee \DTLbibeprints
+     { \DTLbibfield { Eprints } }
+     {
+       \tl_if_exist:NTF \@dtl@key@EprintType
+        { \exp_not:V \@dtl@key@EprintType } { eprint }
+     }
+    \legacy_if_set_true:n { DTLmidsentence }
+  }
+  { }
+}
+\newcommand*{\DTLbibfieldexists}[1]{%
+ \TE@throw
+ \noexpand \dtl@testbibfieldexists {#1}
+ \noexpand \if@dtl@condition
+}
+\newcommand*{\dtl@testbibfieldexists}[1]{%
+ \DTLifbibfieldexists {#1}
+  { \@dtl@conditiontrue }
+  { \@dtl@conditionfalse }
+}
+\newcommand*{\DTLbibfieldiseq}[2]{%
+ \TE@throw
+ \noexpand
+ \dtl@testbibfieldiseq {#1} {#2}
+ \noexpand\if@dtl@condition
+}
+\newcommand*{\dtl@testbibfieldiseq}[2]{%
+ \DTLifbibfieldexists {#1}
+  {
+    \exp_args:NNv \dtlcompare
+       \@dtl@tmpcount
+       { @dtl@key@ #1 } { #2 }
+    \int_if_zero:nTF { \@dtl@tmpcount }
+     {
+       \@dtl@conditiontrue
+     }
+     {
+       \@dtl@conditionfalse
+     }
+  }
+  {
+    \@dtl@conditionfalse
+  }
+}
+\newcommand*{\DTLbibfieldislt}[2]{%
+ \TE@throw
+ \noexpand \dtl@testbibfieldislt { #1 } { #2 }
+ \noexpand \if@dtl@condition
+}
+\newcommand*{\dtl@testbibfieldislt}[2]{%
+ \DTLifbibfieldexists {#1}
+  {
+    \exp_args:NNv \dtlcompare
+       \@dtl@tmpcount
+       { @dtl@key@ #1 } { #2 }
+    \int_compare:nNnTF { \@dtl@tmpcount } = { -1 }
+     {
+       \@dtl@conditiontrue
+     }
+     {
+       \@dtl@conditionfalse
+     }
+  }
+  {
+    \@dtl@conditionfalse
+  }
+}
+\newcommand*{\DTLbibfieldisle}[2]{%
+ \TE@throw
+ \noexpand \dtl@testbibfieldisle { #1 } { #2 }
+ \noexpand \if@dtl@condition
+}
+\newcommand*{\dtl@testbibfieldisle}[2]{%
+ \DTLifbibfieldexists {#1}
+  {
+    \exp_args:NNv \dtlcompare
+       \@dtl@tmpcount
+       { @dtl@key@ #1 } { #2 }
+    \int_compare:nNnTF { \@dtl@tmpcount } < { \c_one_int }
+     {
+       \@dtl@conditiontrue
+     }
+     {
+       \@dtl@conditionfalse
+     }
+  }
+  {
+    \@dtl@conditionfalse
+  }
+}
+\newcommand*{\DTLbibfieldisgt}[2]{%
+ \TE@throw
+ \noexpand \dtl@testbibfieldisgt { #1 } { #2 }
+ \noexpand \if@dtl@condition
+}
+\newcommand*{\dtl@testbibfieldisgt}[2]{%
+ \DTLifbibfieldexists {#1}
+  {
+    \exp_args:NNv \dtlcompare
+       \@dtl@tmpcount
+       { @dtl@key@ #1 } { #2 }
+    \int_compare:nNnTF { \@dtl@tmpcount } = { \c_one_int }
+     {
+       \@dtl@conditiontrue
+     }
+     {
+       \@dtl@conditionfalse
+     }
+  }
+  {
+    \@dtl@conditionfalse
+  }
+}
+\newcommand*{\DTLbibfieldisge}[2]{%
+ \TE@throw
+ \noexpand \dtl@testbibfieldisge { #1 } { #2 }
+ \noexpand \if@dtl@condition
+}
+\newcommand*{\dtl@testbibfieldisge}[2]{%
+ \DTLifbibfieldexists {#1}
+  {
+    \exp_args:NNv \dtlcompare
+       \@dtl@tmpcount
+       { @dtl@key@ #1 } { #2 }
+    \int_compare:nNnTF { \@dtl@tmpcount } > { -1 }
+     {
+       \@dtl@conditiontrue
+     }
+     {
+       \@dtl@conditionfalse
+     }
+  }
+  {
+    \@dtl@conditionfalse
+  }
+}
+\newcommand*{\DTLbibfieldcontains}[2]{%
+ \TE@throw
+ \noexpand \dtl@testbibfieldcontains { #1 } { #2 }
+ \noexpand \if@dtl@condition
+}
+\newcommand*{\dtl@testbibfieldcontains}[2]{%
+ \DTLifbibfieldexists { #1 }
+ {
+   \exp_args:Nc \dtl@testifsubstring
+     { @dtl@key@ #1 } { #2 }
+ }
+ { \@dtl@conditionfalse }
+}
+\NewDocumentEnvironment { DTLthebibliography }
+ { O{\boolean{true}} m }
+{
+  \tl_clear:N \__databib_longest_label_tl
+  \tl_if_eq:nnT { #1 } { \boolean{true} }
+   {
+    \tl_if_exist:cT { __databib_longest_label_ #1 _ tl }
+     {
+       \tl_set_eq:Nc
+         \__databib_longest_label_tl
+        { __databib_longest_label_ #1 _ tl }
+     }
+   }
+  \tl_if_empty:NT \__databib_longest_label_tl
+   {
+     \int_zero:N \l__datatool_count_int
+     \@sDTLforeach [ #1 ] { #2 } { }
+      { \int_incr:N \l__datatool_count_int }
+     \tl_set:NV \__databib_longest_label_tl
+       \l__datatool_count_int
+   }
+  \exp_args:NnV \begin { thebibliography }
+   \__databib_longest_label_tl
+}
+{ \end {thebibliography} }
+\newcommand*{\DTLmonthname}[1]{%
+\dtl@monthname{#1}}
+\dtlSortWordCommands{\let\DTLmonthname\@firstofone}
+\newcommand*{\dtl@monthname}[1]{%
+  \ifcase#1%
+  \or January%
+  \or February%
+  \or March%
+  \or April%
+  \or May%
+  \or June%
+  \or July%
+  \or August%
+  \or September%
+  \or October%
+  \or November%
+  \or December%
+  \fi
+}
+\newcommand*{\dtl@abbrvmonthname}[1]{%
+  \ifcase#1%
+   \or Jan.%
+   \or Feb.%
+   \or Mar.%
+   \or Apr.%
+   \or May%
+   \or June%
+   \or July%
+   \or Aug.%
+   \or Sept.%
+   \or Oct.%
+   \or Nov.%
+   \or Dec.%
+  \fi
+}
+\newcommand*{\DTLbibitem}{\bibitem{\DBIBcitekey}}
+\newcommand*{\DTLmbibitem}[1]{\bibitem{#1@\DBIBcitekey}}
+\NewDocumentCommand \DTLcustombibitem { m m m }
+{%
+  #1%
+  \if@filesw
+    \immediate\write\@auxout{\string\bibcite{#3}{#2}}%
+  \fi
+  \ignorespaces
+}
+\newcommand*{\DTLformatauthor}[4]{%
+ \DTLformatforenames { #4 } ~
+ \DTLformatvon { #1 }
+ \DTLformatsurname { #2 }
+ \DTLformatjr { #3 }
+}
+\cs_new:Nn \__databib_format_name:Nn
+ {
+   #1 #2
+ }
+\newcommand*{\DTLformateditor}[4]{%
+ \DTLformatforenames { #4 } ~
+ \DTLformatvon { #1 }
+ \DTLformatsurname { #2 }
+ \DTLformatjr { #3 }
+}
+\newcommand*{\DTLformatedition}[1]{#1 ~ \editionname}
+\newcommand{\DTLformatarticle}{}
+\newcommand{\DTLformatbook}{}
+\newcommand{\DTLformatbooklet}{}
+\newcommand{\DTLformatinbook}{}
+\newcommand{\DTLformatincollection}{}
+\newcommand{\DTLformatinproceedings}{}
+\newcommand{\DTLformatmanual}{}
+\newcommand{\DTLformatmastersthesis}{}
+\newcommand{\DTLformatmisc}{}
+\newcommand{\DTLformatphdthesis}{}
+\newcommand{\DTLformatproceedings}{}
+\newcommand{\DTLformattechreport}{}
+\newcommand{\DTLformatunpublished}{}
+\ExplSyntaxOff
+\newcommand*{\DTLacmcs}{ACM Computing Surveys}
+\newcommand*{\DTLacta}{Acta Informatica}
+\newcommand*{\DTLcacm}{Communications of the ACM}
+\newcommand*{\DTLibmjrd}{IBM Journal of Research and Development}
+\newcommand*{\DTLibmsj}{IBM Systems Journal}
+\newcommand*{\DTLieeese}{IEEE Transactions on Software Engineering}
+\newcommand*{\DTLieeetc}{IEEE Transactions on Computers}
+\newcommand*{\DTLieeetcad}{IEEE Transactions on Computer-Aided Design
+of Integrated Circuits}
+\newcommand*{\DTLipl}{Information Processing Letters}
+\newcommand*{\DTLjacm}{Journal of the ACM}
+\newcommand*{\DTLjcss}{Journal of Computer and System Sciences}
+\newcommand*{\DTLscp}{Science of Computer Programming}
+\newcommand*{\DTLsicomp}{SIAM Journal on Computing}
+\newcommand*{\DTLtocs}{ACM Transactions on Computer Systems}
+\newcommand*{\DTLtods}{ACM Transactions on Database Systems}
+\newcommand*{\DTLtog}{ACM Transactions on Graphics}
+\newcommand*{\DTLtoms}{ACM Transactions on Mathematical Software}
+\newcommand*{\DTLtoois}{ACM Transactions on Office Information
+Systems}
+\newcommand*{\DTLtoplas}{ACM Transactions on Programming Languages
+and Systems}
+\newcommand*{\DTLtcs}{Theoretical Computer Science}
+\newcommand{\DTLresetpredefined}{%
+  \renewcommand*{\DTLacmcs}{ACM Computing Surveys}
+  \renewcommand*{\DTLacta}{Acta Informatica}
+  \renewcommand*{\DTLcacm}{Communications of the ACM}
+  \renewcommand*{\DTLibmjrd}{IBM Journal of Research and Development}
+  \renewcommand*{\DTLibmsj}{IBM Systems Journal}
+  \renewcommand*{\DTLieeese}{IEEE Transactions on Software Engineering}
+  \renewcommand*{\DTLieeetc}{IEEE Transactions on Computers}
+  \renewcommand*{\DTLieeetcad}{IEEE Transactions on Computer-Aided Design
+of Integrated Circuits}
+  \renewcommand*{\DTLipl}{Information Processing Letters}
+  \renewcommand*{\DTLjacm}{Journal of the ACM}
+  \renewcommand*{\DTLjcss}{Journal of Computer and System Sciences}
+  \renewcommand*{\DTLscp}{Science of Computer Programming}
+  \renewcommand*{\DTLsicomp}{SIAM Journal on Computing}
+  \renewcommand*{\DTLtocs}{ACM Transactions on Computer Systems}
+  \renewcommand*{\DTLtods}{ACM Transactions on Database Systems}
+  \renewcommand*{\DTLtog}{ACM Transactions on Graphics}
+  \renewcommand*{\DTLtoms}{ACM Transactions on Mathematical Software}
+  \renewcommand*{\DTLtoois}{ACM Transactions on Office Information
+Systems}
+  \renewcommand*{\DTLtoplas}{ACM Transactions on Programming Languages
+and Systems}
+  \renewcommand*{\DTLtcs}{Theoretical Computer Science}
+}
+\newcommand{\DTLresetpredefinedabbrv}{%
+  \renewcommand*{\DTLacmcs}{ACM Comput.\ Surv.}%
+  \renewcommand*{\DTLacta}{Acta Inf.}%
+  \renewcommand*{\DTLcacm}{Commun.\ ACM}%
+  \renewcommand*{\DTLibmjrd}{IBM J.\ Res.\ Dev.}%
+  \renewcommand*{\DTLibmsj}{IBM Syst.~J.}%
+  \renewcommand*{\DTLieeese}{IEEE Trans. Softw.\ Eng.}%
+  \renewcommand*{\DTLieeetc}{IEEE Trans.\ Comput.}%
+  \renewcommand*{\DTLieeetcad}{IEEE Trans.\ Comput.-Aided Design
+     Integrated Circuits}%
+  \renewcommand*{\DTLipl}{Inf.\ Process.\ Lett.}%
+  \renewcommand*{\DTLjacm}{J.~ACM}%
+  \renewcommand*{\DTLjcss}{J.~Comput.\ Syst.\ Sci.}%
+  \renewcommand*{\DTLscp}{Sci.\ Comput.\ Programming}%
+  \renewcommand*{\DTLsicomp}{SIAM J.~Comput.}%
+  \renewcommand*{\DTLtocs}{ACM Trans.\ Comput.\ Syst.}%
+  \renewcommand*{\DTLtods}{ACM Trans.\ Database Syst.}%
+  \renewcommand*{\DTLtog}{ACM Trans.\ Gr.}%
+  \renewcommand*{\DTLtoms}{ACM Trans.\ Math. Softw.}%
+  \renewcommand*{\DTLtoois}{ACM Trans. Office Inf.\ Syst.}%
+  \renewcommand*{\DTLtoplas}{ACM Trans.\ Prog. Lang.\ Syst.}%
+  \renewcommand*{\DTLtcs}{Theoretical Comput.\ Sci.}%
+}
+\ExplSyntaxOn
+\newcommand{\dtlbst@plain}{%
+  \RenewDocumentEnvironment { DTLthebibliography }
+   { O{\boolean{true}} m }
+  {
+    \int_zero:N \l__datatool_count_int
+    \@sDTLforeach [ ##1 ] { ##2 } { }
+     { \int_incr:N \l__datatool_count_int }
+    \exp_args:NnV \begin { thebibliography }
+      \l__datatool_count_int
+  }
+  { \end {thebibliography} }
+  \renewcommand*{\DTLbibitem}{\bibitem{\DBIBcitekey}}%
+  \renewcommand*{\DTLmbibitem}[1]{\bibitem{##1@\DBIBcitekey}}%
+  \renewcommand*{\DTLformatauthor}[4]{
+    \DTLformatforenames {##4} ~
+    \DTLformatvon {##1}
+    \DTLformatsurname {##2}
+    \DTLformatjr {##3}
+  }
+  \renewcommand*{\DTLformateditor}[4]{
+    \DTLformatforenames {##4} ~
+    \DTLformatvon {##1}
+    \DTLformatsurname {##2}
+    \DTLformatjr {##3}
+  }
+  \renewcommand*{\DTLformatedition}[1]{##1 ~ \editionname}%
+  \let\DTLmonthname\dtl@monthname
+  \DTLresetpredefined
+  \renewcommand*{\DTLformatarticle}{%
+    \DTLformatauthorlist
+    \DTLifbibfieldexists {Author}
+     { \DTLaddperiod } { }
+    \DTLifbibfieldexists {Title}
+     {
+       \DTLstartsentencespace
+       \DTLbibfield {Title}
+       \DTLcheckbibfieldendsperiod {Title}
+       \DTLaddperiod
+     }
+     { }
+    \DTLifbibfieldexists{CrossRef}
+     {
+       \DTLformatarticlecrossref
+       \DTLifbibfieldexists {Pages}
+         {\DTLaddcomma} { }
+       \DTLformatpages
+       \DTLaddperiod
+     }
+     {
+       \DTLifbibfieldexists {Journal}
+        {
+          \DTLstartsentencespace
+          \DTLjournalfmt { \DTLbibfield{Journal} }
+          \DTLcheckbibfieldendsperiod {Journal}
+          \DTLifanybibfieldexists {Number,Volume,Pages,Month,Year}
+           { \DTLaddcomma }
+           { \DTLaddperiod }
+        }
+        { }
+       \DTLformatvolnumpages
+       \DTLifanybibfieldexists {Volume,Number,Pages}
+        {
+          \DTLifanybibfieldexists {Year,Month}
+           { \DTLaddcomma }
+           { \DTLaddperiod }
+          \DTLmidsentencefalse
+        }
+        { }
+       \DTLformatdate
+       \DTLifanybibfieldexists {Year,Month}
+        { \DTLaddperiod } { }
+     }
+    \DTLifbibfieldexists {Note}
+     {
+      \DTLstartsentencespace
+      \DTLbibfield {Note}
+      \DTLcheckbibfieldendsperiod {Note}
+      \DTLaddperiod
+     }
+     { }
+  }
+  \renewcommand*{\DTLformatbook}{
+   \DTLifbibfieldexists {Author}
+    {
+      \DTLformatauthorlist
+      \DTLaddperiod
+    }
+    {
+      \DTLformateditorlist
+      \DTLifbibfieldexists {Editor}
+      {
+        \DTLaddperiod
+      }
+      { }
+    }
+  \DTLifbibfieldexists {Title}
+   {
+    \DTLstartsentencespace
+    \DTLformatbooktitle { \DTLbibfield {Title} }
+    \DTLcheckbibfieldendsperiod {Title}
+   }
+   { }
+  \DTLifbibfieldexists{CrossRef}
+   {
+    \DTLifbibfieldexists {Title}
+      { \DTLaddperiod } { }
+    \DTLformatbookcrossref
+    \DTLifanybibfieldexists {Edition,Month,Year}
+     { \DTLaddcomma }
+     { \DTLaddperiod }
+   }
+   {
+    \DTLifbibfieldexists {Title}
+     {
+      \DTLifbibfieldexists {Volume}
+        { \DTLaddcomma }
+        { \DTLaddperiod }
+     }
+     { }
+    \DTLformatbvolume
+    \DTLformatnumberseries
+    \DTLifanybibfieldexists {Number,Series,Volume}
+     { \DTLaddperiod } { }
+    \DTLifbibfieldexists {Publisher}
+     {
+      \DTLstartsentencespace
+      \DTLbibfield {Publisher}
+      \DTLcheckbibfieldendsperiod {Publisher}
+      \DTLifbibfieldexists {Address}
+       { \DTLaddcomma }
+       {
+         \DTLifanybibfieldexists {Month,Year}
+         { \DTLaddcomma }
+         { \DTLaddperiod }
+       }
+     }
+     { }
+    \DTLifbibfieldexists{Address}
+     {
+      \DTLstartsentencespace
+      \DTLbibfield {Address}
+      \DTLcheckbibfieldendsperiod {Address}
+      \DTLifanybibfieldexists {Month,Year}
+       { \DTLaddcomma }
+       { \DTLaddperiod }
+     }
+     { }
+   }
+  \DTLifbibfieldexists{Edition}
+   {
+    \databib_do_and_check:e
+      { \DTLformatedition { \DTLbibfield {Edition} } }
+    \DTLifanybibfieldexists { Month, Year }
+      { \DTLaddcomma } { \DTLaddperiod }
+   }
+   { }
+  \DTLformatdate
+  \DTLifanybibfieldexists {Year,Month}
+    { \DTLaddperiod } { }
+  \DTLifbibfieldexists {Note}
+   {
+     \DTLstartsentencespace
+     \DTLbibfield {Note}
+     \DTLcheckbibfieldendsperiod{Note}
+     \DTLaddperiod
+   }
+   { }
+ }
+  \renewcommand*{\DTLformatbooklet}{
+    \DTLifbibfieldexists {Author}
+     {
+       \DTLformatauthorlist
+       \DTLaddperiod
+     }
+     { }
+    \DTLifbibfieldexists {Title}
+     {
+       \DTLstartsentencespace
+       \DTLbibfield {Title}
+       \DTLcheckbibfieldendsperiod {Title}
+       \DTLaddperiod
+     }
+     { }
+    \DTLifbibfieldexists {HowPublished}
+     {
+       \DTLstartsentencespace
+       \DTLbibfield {HowPublished}
+       \DTLcheckbibfieldendsperiod {HowPublished}
+       \DTLifanybibfieldexists {Address,Month,Year}
+        { \DTLaddcomma } { \DTLaddperiod }
+     }
+     { }
+    \DTLifbibfieldexists {Address}
+     {
+       \DTLstartsentencespace
+       \DTLbibfield {Address}
+       \DTLcheckbibfieldendsperiod {Address}
+       \DTLifanybibfieldexists {Month,Year}
+         { \DTLaddcomma } { \DTLaddperiod }
+     }
+     { }
+    \DTLformatdate
+    \DTLifanybibfieldexists {Year,Month}
+     { \DTLaddperiod } { }
+    \DTLifbibfieldexists {Note}
+     {
+       \DTLstartsentencespace
+       \DTLbibfield{Note}
+       \DTLcheckbibfieldendsperiod {Note}
+       \DTLaddperiod
+     }
+     { }
+   }
+  \renewcommand*{\DTLformatinbook}
+   {
+     \DTLifbibfieldexists {Author}
+      {
+        \DTLformatauthorlist
+        \DTLaddperiod
+      }
+      {
+        \DTLifbibfieldexists {Editor}
+         {
+           \DTLformateditorlist
+           \DTLaddperiod
+         }
+         { }
+      }
+     \DTLifbibfieldexists {Title}
+      {
+        \DTLstartsentencespace
+        \DTLinbooktitlefmt { \DTLbibfield{Title} }
+        \DTLcheckbibfieldendsperiod {Title}
+      }
+      { }
+     \DTLifbibfieldexists {CrossRef}
+      {
+        \DTLifbibfieldexists {Title}
+         {
+           \DTLifbibfieldexists {Chapter}
+            { \DTLaddcomma } { \DTLaddperiod }
+         }
+         { }
+        \DTLformatchapterpages
+        \DTLifanybibfieldexists {Chapter,Pages}
+         { \DTLaddperiod } { }
+        \DTLformatbookcrossref
+      }
+      {
+        \DTLifbibfieldexists {Title}
+         {
+           \DTLifanybibfieldexists {Chapter,Volume}
+            { \DTLaddcomma } { \DTLaddperiod }
+         }
+         { }
+        \DTLformatbvolume
+        \DTLifanybibfieldexists {Volume,Series}
+         {
+           \DTLifanybibfieldexists {Chapter,Pages}
+            { \DTLaddcomma } { \DTLaddperiod }
+         }
+         { }
+        \DTLformatchapterpages
+        \DTLifanybibfieldexists {Chapter,Pages}
+         { \DTLaddperiod } { }
+        \DTLifbibfieldexists {Publisher}
+         {
+           \DTLstartsentencespace
+           \DTLbibfield {Publisher}
+           \DTLcheckbibfieldendsperiod {Publisher}
+           \DTLifbibfieldexists {Address}
+            { \DTLaddcomma } { }
+         }
+         { }
+        \DTLifbibfieldexists{Address}
+         {
+           \DTLstartsentencespace
+           \DTLbibfield {Address}
+           \DTLcheckbibfieldendsperiod {Address}
+         }
+         { }
+      }
+     \DTLifanybibfieldexists {Edition,Month,Year}
+      { \DTLaddcomma } { \DTLaddperiod }
+     \DTLifbibfieldexists {Edition}
+      {
+        \databib_do_and_check:e
+         { \DTLformatedition { \DTLbibfield{Edition} } }
+        \DTLifanybibfieldexists {Month,Year}
+         { \DTLaddcomma } { \DTLaddperiod }
+      }
+      { }
+     \DTLformatdate
+     \DTLifanybibfieldexists {Month,Year}
+      { \DTLaddperiod } { }
+     \DTLifbibfieldexists {Note}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Note}
+        \DTLcheckbibfieldendsperiod {Note}
+        \DTLaddperiod
+      }
+      { }
+   }
+  \renewcommand*{\DTLformatincollection}
+   {
+     \DTLifbibfieldexists {Author}
+      {
+        \DTLformatauthorlist
+        \DTLaddperiod
+      }
+      { }
+     \DTLifbibfieldexists {Title}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Title}
+        \DTLcheckbibfieldendsperiod {Title}
+        \DTLaddperiod
+      }
+      { }
+     \DTLifbibfieldexists {CrossRef}
+      {
+        \DTLformatincollproccrossref
+        \DTLifanybibfieldexists {Chapter,Pages}
+         { \DTLaddcomma } { }
+        \DTLformatchapterpages
+        \DTLaddperiod
+      }
+      {
+        \DTLformatinedbooktitle
+        \DTLifbibfieldexists {BookTitle}
+         {
+           \DTLifanybibfieldexists
+             {Volume,Series,Chapter,Pages,Number}
+            { \DTLaddcomma } { \DTLaddperiod }
+         }
+         { }
+        \DTLformatbvolume
+        \DTLifbibfieldexists {Volume}
+         {
+           \DTLifanybibfieldexists
+             {Number,Series,Chapter,Pages}
+            { \DTLaddcomma } { \DTLaddperiod }
+         }
+         { }
+        \DTLformatnumberseries
+        \DTLifanybibfieldexists {Number,Series}
+         {
+          \DTLifanybibfieldexists {Chapter,Pages}
+           { \DTLaddcomma } { \DTLaddperiod }
+         }
+         { }
+        \DTLformatchapterpages
+        \DTLifanybibfieldexists {Chapter,Pages}
+         { \DTLaddperiod } { }
+        \DTLifbibfieldexists {Publisher}
+         {
+           \DTLstartsentencespace
+           \DTLbibfield {Publisher}
+           \DTLcheckbibfieldendsperiod {Publisher}
+           \DTLifanybibfieldexists {Address,Edition,Month,Year}
+            { \DTLaddcomma } { \DTLaddperiod }
+         }
+         { }
+        \DTLifbibfieldexists{Address}
+         {
+           \DTLstartsentencespace
+           \DTLbibfield {Address}
+           \DTLcheckbibfieldendsperiod {Address}
+           \DTLifanybibfieldexists {Edition,Month,Year}
+            { \DTLaddcomma } { \DTLaddperiod }
+         }
+         { }
+        \DTLifbibfieldexists {Edition}
+         {
+           \databib_do_and_check:e
+            { \DTLformatedition { \DTLbibfield {Edition} } }
+           \DTLifanybibfieldexists {Month,Year}
+            { \DTLaddcomma } { \DTLaddperiod }
+         }
+         { }
+        \DTLformatdate
+        \DTLifanybibfieldexists {Month,Year}
+         { \DTLaddperiod } { }
+      }
+     \DTLifbibfieldexists {Note}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Note}
+        \DTLcheckbibfieldendsperiod {Note}
+        \DTLaddperiod
+      }
+      { }
+   }%
+  \renewcommand*{\DTLformatinproceedings}
+   {
+     \DTLifbibfieldexists {Author}
+      {
+        \DTLformatauthorlist
+        \DTLaddperiod
+      }
+      { }
+     \DTLifbibfieldexists {Title}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Title}
+        \DTLcheckbibfieldendsperiod {Title}
+        \DTLaddperiod
+      }
+      { }
+     \DTLifbibfieldexists {CrossRef}
+      {
+       \DTLformatincollproccrossref
+       \DTLifbibfieldexists {Pages}
+        { \DTLaddcomma } { \DTLaddperiod }
+       \DTLformatpages
+       \DTLifbibfieldexists {Pages}
+        { \DTLaddperiod } { }
+      }
+      {
+        \DTLformatinedbooktitle
+        \DTLifbibfieldexists {BookTitle}
+         {
+           \DTLifanybibfieldexists
+            { Volume,Series,Pages,Number,Address,Month,Year}
+           { \DTLaddcomma } { \DTLaddperiod }
+         }
+         { }
+        \DTLformatbvolume
+        \DTLifbibfieldexists {Volume}
+         {
+           \DTLifanybibfieldexists
+            { Number,Series,Pages,Address,Month,Year }
+           { \DTLaddcomma } { \DTLaddperiod }
+         }
+         { }
+        \DTLformatnumberseries
+        \DTLifanybibfieldexists {Number,Series}
+         {
+           \DTLifanybibfieldexists
+             {Pages,Address,Month,Year}
+            { \DTLaddcomma } { \DTLaddperiod }
+         }
+         { }
+        \DTLformatpages
+        \DTLifbibfieldexists {Pages}
+         {
+           \DTLifanybibfieldexists {Address,Month,Year}
+            { \DTLaddcomma } { \DTLaddperiod }
+         }
+         { }
+        \DTLifbibfieldexists {Address}
+         {
+           \DTLstartsentencespace
+           \DTLbibfield {Address}
+           \DTLcheckbibfieldendsperiod {Address}
+           \DTLifanybibfieldexists {Month,Year}
+            { \DTLaddcomma } { \DTLaddperiod }
+           \DTLformatdate
+           \DTLifanybibfieldexists {Month,Year}
+            { \DTLaddperiod } { }
+           \DTLifbibfieldexists {Organization}
+            {
+              \DTLstartsentencespace
+              \DTLbibfield {Organization}
+              \DTLcheckbibfieldendsperiod {Organization}
+              \DTLifbibfieldexists {Publisher}
+               { \DTLaddcomma } { \DTLaddperiod }
+            }
+            { }
+           \DTLifbibfieldexists {Publisher}
+            {
+              \DTLstartsentencespace
+              \DTLbibfield {Publisher}
+              \DTLcheckbibfieldendsperiod {Publisher}
+              \DTLaddperiod
+            }
+            { }
+         }
+         {
+           \DTLifanybibfieldexists {Publisher,Organization}
+            { \DTLaddperiod } { }
+           \DTLifbibfieldexists {Organization}
+            {
+              \DTLstartsentencespace
+              \DTLbibfield {Organization}
+              \DTLcheckbibfieldendsperiod {Organization}
+              \DTLifanybibfieldexists {Publisher,Month,Year}
+               { \DTLaddcomma } { }
+            }
+            { }
+           \DTLifbibfieldexists {Publisher}
+            {
+              \DTLstartsentencespace
+              \DTLbibfield{Publisher}
+              \DTLcheckbibfieldendsperiod {Publisher}
+              \DTLifanybibfieldexists {Month,Year}
+               { \DTLaddcomma } { \DTLaddperiod }
+            }
+            { }
+           \DTLformatdate
+           \DTLifanybibfieldexists {Month,Year}
+            { \DTLaddperiod } { }
+         }
+      }
+     \DTLifbibfieldexists{Note}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Note}
+        \DTLcheckbibfieldendsperiod {Note}
+        \DTLaddperiod
+      }
+      { }
+    }
+   \renewcommand*{\DTLformatmanual}
+    {
+      \DTLifbibfieldexists {Author}
+       {
+         \DTLformatauthorlist
+         \DTLaddperiod
+       }
+       {
+         \DTLifbibfieldexists {Organization}
+          {
+            \DTLstartsentencespace
+            \DTLbibfield {Organization}
+            \DTLcheckbibfieldendsperiod {Organization}
+            \DTLifbibfieldexists {Address}
+             {
+               \DTLaddcomma
+               \DTLbibfield {Address}
+               \DTLcheckbibfieldendsperiod {Address}
+             }
+             { }
+            \DTLaddperiod
+          }
+          { }
+       }
+      \DTLifbibfieldexists {Title}
+       {
+         \DTLstartsentencespace
+         \DTLmanualtitlefmt { \DTLbibfield{Title} }
+         \DTLcheckbibfieldendsperiod {Title}
+         \DTLifbibfieldexists {Author}
+          {
+            \DTLifanybibfieldexists {Organization,Address}
+             { \DTLaddperiod } { \DTLaddcomma }
+          }
+          {
+            \DTLifanybibfieldexists
+              {Organization,Address,Edition,Month,Year}
+             { \DTLaddcomma } { \DTLaddperiod }
+          }
+       }
+       { }
+      \DTLifbibfieldexists {Author}
+       {
+         \DTLifbibfieldexists {Organization}
+          {
+            \DTLstartsentencespace
+            \DTLbibfield{Organization}%
+            \DTLcheckbibfieldendsperiod{Organization}%
+            \DTLifanybibfieldexists {Address,Edition,Month,Year}
+             { \DTLaddcomma } { \DTLaddperiod }
+          }
+          { }
+         \DTLifbibfieldexists {Address}
+          {
+            \DTLstartsentencespace
+            \DTLbibfield {Address}
+            \DTLcheckbibfieldendsperiod {Address}
+            \DTLifanybibfieldexists
+              {Edition,Month,Year}
+             { \DTLaddcomma } { \DTLaddperiod }
+          }
+          { }
+       }
+       {
+         \DTLifbibfieldexists {Organization} { }
+          {
+            \DTLifbibfieldexists {Address}
+             {
+               \DTLstartsentencespace
+               \DTLbibfield {Address}
+               \DTLcheckbibfieldendsperiod {Address}
+               \DTLifanybibfieldexists
+                 {Edition,Month,Year}
+                { \DTLaddcomma } { \DTLaddperiod }
+             }
+             { }
+          }
+       }
+      \DTLifbibfieldexists {Edition}
+       {
+        \databib_do_and_check:e
+         { \DTLformatedition { \DTLbibfield {Edition} } }
+        \DTLifanybibfieldexists {Month,Year}
+         { \DTLaddcomma } { \DTLaddperiod }
+       }
+       { }
+      \DTLformatdate
+      \DTLifanybibfieldexists {Month,Year}
+       { \DTLaddperiod } { }
+      \DTLifbibfieldexists {Note}
+       {
+         \DTLstartsentencespace
+         \DTLbibfield {Note}
+         \DTLcheckbibfieldendsperiod {Note}
+         \DTLaddperiod
+       }
+       { }
+    }
+  \renewcommand*{\DTLformatmastersthesis}
+   {
+     \DTLifbibfieldexists {Author}
+      {
+        \DTLformatauthorlist
+        \DTLaddperiod
+      }
+      { }
+     \DTLifbibfieldexists {Title}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Title}
+        \DTLcheckbibfieldendsperiod {Title}
+        \DTLaddperiod
+      }
+      { }
+     \DTLifbibfieldexists{Type}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Type}
+        \DTLcheckbibfieldendsperiod {Type}
+        \DTLifanybibfieldexists
+          {School,Address,Month,Year}
+         { \DTLaddcomma } { \DTLaddperiod }
+      }
+      { }
+     \DTLifbibfieldexists {School}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {School}
+        \DTLcheckbibfieldendsperiod {School}
+        \DTLifanybibfieldexists
+          {Address,Month,Year}
+         { \DTLaddcomma } { \DTLaddperiod }
+      }
+      { }
+     \DTLifbibfieldexists {Address}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Address}
+        \DTLcheckbibfieldendsperiod {Address}
+        \DTLifanybibfieldexists {Month,Year}
+         { \DTLaddcomma } { \DTLaddperiod }
+      }
+      { }
+     \DTLformatdate
+     \DTLifanybibfieldexists {Month,Year}
+      { \DTLaddperiod } { }
+     \DTLifbibfieldexists {Note}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Note}
+        \DTLcheckbibfieldendsperiod {Note}
+        \DTLaddperiod
+      }
+      { }
+   }
+  \renewcommand*{\DTLformatmisc}
+   {
+     \DTLifbibfieldexists {Author}
+      {
+        \DTLformatauthorlist
+        \DTLaddperiod
+      }
+      { }
+     \DTLifbibfieldexists {Title}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Title}
+        \DTLcheckbibfieldendsperiod {Title}
+        \DTLifbibfieldexists {HowPublished}
+         {
+           \DTLaddperiod
+         }
+         {
+           \DTLifanybibfieldexists {Month,Year}
+             { \DTLaddcomma } { \DTLaddperiod }
+         }
+        \DTLmidsentencefalse
+      }
+      { }
+     \DTLifbibfieldexists {HowPublished}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {HowPublished}
+        \DTLcheckbibfieldendsperiod {HowPublished}
+        \DTLifanybibfieldexists {Month,Year}
+         { \DTLaddcomma } { \DTLaddperiod }
+      }
+      { }
+     \DTLformatdate
+     \DTLifanybibfieldexists {Month,Year}
+      { \DTLaddperiod } { }
+     \DTLifbibfieldexists {Note}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Note}
+        \DTLcheckbibfieldendsperiod {Note}
+        \DTLaddperiod
+      }
+      { }
+   }
+  \renewcommand*{\DTLformatphdthesis}
+   {
+     \DTLifbibfieldexists {Author}
+      {
+        \DTLformatauthorlist
+        \DTLaddperiod
+      }
+      { }
+     \DTLifbibfieldexists {Title}
+      {
+        \DTLstartsentencespace
+        \DTLthesistitlefmt { \DTLbibfield{Title} }
+        \DTLcheckbibfieldendsperiod {Title}
+        \DTLaddperiod
+      }
+      { }
+     \DTLifbibfieldexists {Type}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Type}
+        \DTLcheckbibfieldendsperiod {Type}
+        \DTLifanybibfieldexists {School,Address,Month,Year}
+          { \DTLaddcomma } { \DTLaddperiod }
+      }
+      { }
+     \DTLifbibfieldexists {School}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {School}
+        \DTLcheckbibfieldendsperiod {School}
+        \DTLifanybibfieldexists {Address,Month,Year}
+          { \DTLaddcomma } { \DTLaddperiod }
+      }
+      { }
+     \DTLifbibfieldexists {Address}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Address}
+        \DTLcheckbibfieldendsperiod {Address}
+        \DTLifanybibfieldexists {Month,Year}
+          { \DTLaddcomma } { \DTLaddperiod }
+      }
+      { }
+     \DTLformatdate
+     \DTLifanybibfieldexists {Month,Year}
+      { \DTLaddperiod } { }
+     \DTLifbibfieldexists {Note}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Note}
+        \DTLcheckbibfieldendsperiod {Note}
+        \DTLaddperiod
+      }
+      { }
+   }
+  \renewcommand*{\DTLformatproceedings}
+   {
+     \DTLifbibfieldexists {Editor}
+      {
+        \DTLformateditorlist
+        \DTLaddperiod
+      }
+      {
+        \DTLifbibfieldexists {Organization}
+         {
+           \DTLstartsentencespace
+           \DTLbibfield {Organization}
+           \DTLcheckbibfieldendsperiod {Organization}
+           \DTLaddperiod
+         }
+         { }
+      }
+     \DTLifbibfieldexists {Title}
+      {
+        \DTLstartsentencespace
+        \DTLproceedingstitlefmt { \DTLbibfield{Title} }
+        \DTLcheckbibfieldendsperiod {Title}
+        \DTLifanybibfieldexists
+          {
+            Volume,Number,Address,Editor,Publisher,
+            Month,Year
+          }
+        { \DTLaddcomma } { \DTLaddperiod }
+      }
+      { }
+     \DTLformatbvolume
+     \DTLifbibfieldexists {Volume}
+      {
+        \DTLifanybibfieldexists
+          {
+            Number,Address,Editor,Publisher,
+            Month,Year
+          }
+         { \DTLaddcomma } { \DTLaddperiod }
+      }
+      { }
+     \DTLformatnumberseries
+     \DTLifbibfieldexists {Number}
+      {
+        \DTLifanybibfieldexists
+          {
+            Address,Editor,Publisher,Month,Year
+          }
+         { \DTLaddcomma } { \DTLaddperiod }
+      }
+      { }
+     \DTLifbibfieldexists {Address}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Address}
+        \DTLcheckbibfieldendsperiod {Address}
+        \DTLifanybibfieldexists {Month,Year}
+         { \DTLaddcomma } { \DTLaddperiod }
+        \DTLformatdate
+        \DTLifanybibfieldexists {Month,Year}
+         { \DTLaddperiod } { }
+        \DTLifbibfieldexists {Editor}
+         {
+           \DTLifbibfieldexists {Organization}
+            {
+              \DTLstartsentencespace
+              \DTLbibfield {Organization}
+              \DTLcheckbibfieldendsperiod {Organization}
+              \DTLifbibfieldexists {Publisher}
+               { \DTLaddcomma } { \DTLaddperiod }
+            }
+            { }
+         }
+         { }
+        \DTLifbibfieldexists {Publisher}
+         {
+           \DTLstartsentencespace
+           \DTLbibfield {Publisher}
+           \DTLcheckbibfieldendsperiod {Publisher}
+           \DTLaddperiod
+         }
+         { }
+      }
+      {
+        \DTLifbibfieldexists {Editor}
+         {
+           \DTLifbibfieldexists {Organization}
+            {
+              \DTLstartsentencespace
+              \DTLbibfield {Organization}
+              \DTLcheckbibfieldendsperiod {Organization}
+              \DTLifanybibfieldexists {Publisher,Month,Year}
+               { \DTLaddcomma } { \DTLaddperiod }
+            }
+            { }
+         }
+         { }
+        \DTLifbibfieldexists {Publisher}
+         {
+           \DTLstartsentencespace
+           \DTLbibfield {Publisher}
+           \DTLcheckbibfieldendsperiod {Publisher}
+           \DTLifanybibfieldexists {Month,Year}
+            { \DTLaddcomma } { \DTLaddperiod }
+         }
+         { }
+        \DTLformatdate
+        \DTLifanybibfieldexists {Month,Year}
+         { \DTLaddperiod } { }
+      }
+     \DTLifbibfieldexists {Note}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Note}
+        \DTLcheckbibfieldendsperiod {Note}
+        \DTLaddperiod
+      }
+      { }
+   }
+  \renewcommand*{\DTLformattechreport}
+   {
+     \DTLifbibfieldexists {Author}
+      {
+        \DTLformatauthorlist
+        \DTLaddperiod
+      }
+      { }
+     \DTLifbibfieldexists {Title}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Title}
+        \DTLcheckbibfieldendsperiod {Title}
+        \DTLaddperiod
+      }
+      { }
+     \DTLifbibfieldexists {Type}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Type}
+        \DTLcheckbibfieldendsperiod {Type}
+        \DTLifbibfieldexists {Number}
+         { \DTLpostnumbername } { }
+      }
+      { }
+     \DTLifbibfieldexists {Number}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Number}
+        \DTLcheckbibfieldendsperiod {Number}
+      }
+      { }
+     \DTLifanybibfieldexists {Type,Number}
+      {
+        \DTLifanybibfieldexists
+          {Institution,Address,Month,Year}
+         { \DTLaddcomma } { \DTLaddperiod }
+      }
+      { }
+     \DTLifbibfieldexists {Institution}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Institution}
+        \DTLcheckbibfieldendsperiod {Institution}
+        \DTLifanybibfieldexists {Address,Month,Year}
+         { \DTLaddcomma } { \DTLaddperiod }
+      }
+      { }
+     \DTLifbibfieldexists {Address}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Address}
+        \DTLcheckbibfieldendsperiod {Address}
+        \DTLifanybibfieldexists {Month,Year}
+          { \DTLaddcomma } { \DTLaddperiod }
+      }
+      { }
+     \DTLformatdate
+     \DTLifanybibfieldexists {Month,Year}
+      { \DTLaddperiod } { }
+     \DTLifbibfieldexists {Note}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Note}
+        \DTLcheckbibfieldendsperiod {Note}
+        \DTLaddperiod
+      }
+      { }
+   }
+  \renewcommand*{\DTLformatunpublished}
+   {
+     \DTLifbibfieldexists {Author}
+      {
+        \DTLformatauthorlist
+        \DTLaddperiod
+      }
+      { }
+     \DTLifbibfieldexists {Title}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Title}
+        \DTLcheckbibfieldendsperiod {Title}
+        \DTLaddperiod
+      }
+      { }
+     \DTLifbibfieldexists {Note}
+      {
+        \DTLstartsentencespace
+        \DTLbibfield {Note}
+        \DTLcheckbibfieldendsperiod {Note}
+        \DTLifanybibfieldexists {Month,Year}
+         { \DTLaddcomma } { \DTLaddperiod }
+      }
+      { }
+     \DTLformatdate
+     \DTLifanybibfieldexists {Month,Year}
+      { \DTLaddperiod } { }
+    }
+}
+\newcommand*{\DTLformatbooktitle}[1]{\emph{#1}}
+\newcommand{\dtlbst@abbrv}{%
+  \dtlbst@plain
+  \renewcommand*{\DTLformatauthor}[4]{
+   \DTLformatabbrvforenames { ##4 } ~
+   \DTLformatvon { ##1 }
+   \DTLformatsurname { ##2 }
+   \DTLformatjr { ##3 }
+  }
+  \renewcommand*{\DTLformateditor}[4]{
+    \DTLformatabbrvforenames { ##4 } ~
+    \DTLformatvon { ##1 }
+    \DTLformatsurname { ##2 }
+    \DTLformatjr { ##3 }
+  }
+  \let\DTLmonthname\dtl@abbrvmonthname
+  \DTLresetpredefinedabbrv
+}
+\newcommand{\dtlbst@alpha}{%
+  \dtlbst@plain
+  \RenewDocumentEnvironment { DTLthebibliography }
+   { O{\boolean{true}} m }
+  {
+    \dtl@createalphabiblabels { ##1 } { ##2 }
+    \exp_args:NnV \begin { thebibliography }
+      \g__databib_widest_label_tl
+  }
+  { \end {thebibliography} }
+  \renewcommand* \DTLbibitem
+   {
+     \exp_last_unbraced:NNf
+      \bibitem
+       [
+         { \tl_use:c { dtl@biblabel@ \DBIBcitekey } }
+       ]
+      { \DBIBcitekey }
+   }
+  \renewcommand* \DTLmbibitem [1]
+   {
+     \exp_last_unbraced:NNf
+      \bibitem
+       [
+         { \tl_use:c { dtl@biblabel@ \DBIBcitekey } }
+       ]
+      { ##1 @ \DBIBcitekey }
+   }
+}
+\tl_new:N \g__databib_widest_label_tl
+\tl_new:N \l__databib_label_tl
+\newcommand*{\dtl@createalphabiblabels}[2]{
+ \dtl@message { Creating ~ bib ~ labels }
+ \group_begin:
+   \tl_gclear:N \g__databib_widest_label_tl
+   \dim_zero:N \l__databib_widest_dim
+   \DTLforeachbibentry * [ #1 ] { #2 }
+    {
+      \dtl@message { \DBIBcitekey }
+      \DTLifbibfieldexists {Author}
+       {
+         \__databib_get_alpha_label:NV
+           \l__databib_label_tl \@dtl@key@Author
+       }
+       {
+         \DTLifbibfieldexists {Editor}
+          {
+            \__databib_get_alpha_label:NV
+              \l__databib_label_tl \@dtl@key@Editor
+          }
+          {
+            \DTLifbibfieldexists {Key}
+             {
+               \__databib_get_first_three:Nn
+                 \l__databib_label_tl { \@dtl@key@Key }
+             }
+             {
+               \DTLifbibfieldexists {Organization}
+                {
+                  \__databib_get_first_three:Nn
+                    \l__databib_label_tl
+                    { \@dtl@key@Organization }
+                }
+                {
+                  \__databib_get_first_three:Nn
+                    \l__databib_label_tl
+                    { \DBIBentrytype }
+                }
+             }
+          }
+       }
+      \DTLifbibfieldexists {Year}
+       { }
+       {
+         \DTLifbibfieldexists {CrossRef}
+          {
+            \DTLgetvalueforkey
+             \@dtl@key@Year
+             { Year } { #2 } { CiteKey }
+             { \@dtl@key@CrossRef }
+          }
+          { }
+       }
+      \DTLifbibfieldexists {Year}
+       {
+         \__databib_get_year_suffix:V \@dtl@key@Year
+         \tl_put_right:Ne \l__databib_label_tl
+          { \l__databib_year_tl }
+       }
+       { }
+      \int_if_exist:cTF
+        { g__databib_label_ \l__databib_label_tl  _int }
+       {
+         \int_compare:nNnT
+            { \int_use:c { g__databib_label_ \l__databib_label_tl _int } }
+              =
+            { \c_one_int }
+          {
+            \tl_gset:ce
+              {
+                g__databib_key_
+                \tl_use:c {  g__databib_first_ \l__databib_label_tl _tl }
+                 _tl
+              }
+              { \l__databib_label_tl a }
+          }
+         \int_gincr:c
+          { g__databib_label_ \l__databib_label_tl _int }
+         \tl_gset:ce
+           { g__databib_key_ \DBIBcitekey _tl }
+           {
+             \l__databib_label_tl
+             \int_to_alph:n
+               { \int_use:c { g__databib_label_ \l__databib_label_tl _int } }
+           }
+       }
+       {
+         \int_new:c { g__databib_label_ \l__databib_label_tl _int }
+         \int_gset_eq:cN
+            { g__databib_label_ \l__databib_label_tl _int }
+           \c_one_int
+         \tl_gset_eq:cN
+            { g__databib_first_ \l__databib_label_tl _tl }
+           \DBIBcitekey
+         \tl_gset_eq:cN
+            { g__databib_key_ \DBIBcitekey _tl }
+           \l__databib_label_tl
+       }
+      \datatool_measure_width:Nn \dtl@tmplength
+       { \tl_use:c { g__databib_key_ \DBIBcitekey _tl } }
+      \dim_compare:nNnT
+         { \dtl@tmplength } > { \l__databib_widest_dim }
+       {
+         \dim_set_eq:NN
+           \l__databib_widest_dim \dtl@tmplength
+         \tl_gset_eq:Nc \g__databib_widest_label_tl
+           { g__databib_key_ \DBIBcitekey _tl }
+       }
+    }
+ \group_end:
+}
+\cs_new:Nn \__databib_get_alpha_label:Nn
+{
+ \group_begin:
+   \tl_clear:N \DTLafterinitials
+   \tl_clear:N \DTLbetweeninitials
+   \tl_clear:N \DTLafterinitialbeforehyphen
+   \tl_clear:N \DTLinitialhyphen
+   \int_set:Nn \l__databib_author_count_int
+    { \clist_count:n { #2 } }
+   \int_compare:nNnTF
+     { \l__databib_author_count_int } = { \c_one_int }
+    {
+      \int_compare:nNnTF
+        { \tl_count:o { #2 } } = { 4 }
+       {
+         \exp_last_unbraced:No
+           \databib_get_solo_author_initials:nnnnN
+            #2 #1
+       }
+       {
+         \exp_args:No \DTLstoreinitials { #2 } #1
+       }
+    }
+    {
+      \tl_clear:N #1
+      \int_zero:N \l__datatool_count_int
+      \clist_map_inline:nn { #2 }
+       {
+        \int_compare:nNnTF
+          { \tl_count:n { ##1 } } = { 4 }
+         {
+           \databib_get_author_initials:nnnnN
+             ##1 \l__databib_author_initials_tl
+         }
+         {
+           \DTLstoreinitials
+             { ##1 } \l__databib_author_initials_tl
+         }
+        \tl_put_right:NV #1  \l__databib_author_initials_tl
+        \int_incr:N \l__datatool_count_int
+        \int_compare:nNnT
+          { \l__datatool_count_int } > { 2 }
+         {
+           \clist_map_break:
+         }
+       }
+    }
+ \exp_args:NNNV
+   \group_end:
+   \tl_set:Nn #1 #1
+}
+\cs_generate_variant:Nn \__databib_get_alpha_label:Nn { NV }
+\tl_new:N \l__databib_author_initials_tl
+\cs_new:Nn \databib_get_author_initials:nnnnN
+{
+ \tl_if_empty:nTF { #1 }
+  {
+    \DTLstoreinitials { #2 } #5
+  }
+  {
+    \DTLstoreinitials { #1 ~ #2 } #5
+  }
+}
+\cs_new:Nn \databib_get_solo_author_initials:nnnnN
+{
+  \tl_if_empty:nTF { #1 }
+   {
+     \DTLstoreinitials { #2 } #5
+   }
+   {
+     \DTLstoreinitials { #1 ~ #2 } #5
+   }
+  \int_compare:nNnT
+     { \tl_count:N #5 } < { 2 }
+   {
+     \__databib_get_first_three:Nn #5 { #1 #2 }
+   }
+}
+\cs_new:Nn \__databib_get_first_three:Nn
+{
+  \tl_clear:N #1
+  \int_zero:N \l__datatool_count_int
+  \exp_args:Nx \text_map_inline:nn { \text_purify:n { #2 } }
+   {
+     \tl_put_right:Nn #1 { ##1 }
+     \int_incr:N \l__datatool_count_int
+     \int_compare:nNnT
+       { \l__datatool_count_int } = { 3 }
+      {
+        \text_map_break:
+      }
+   }
+}
+\cs_new:Nn \__databib_get_year_suffix:n
+{
+  \regex_extract_once:NnNTF
+     \c_databib_year_suffix_regex
+     { #1 }
+     \l__datatool_tmp_seq
+   {
+     \seq_get_left:NN
+       \l__datatool_tmp_seq
+       \l__databib_year_tl
+   }
+   {
+     \tl_clear:N \l__databib_year_tl
+   }
+}
+\cs_generate_variant:Nn  \__databib_get_year_suffix:n { V }
+\regex_const:Nn \c_databib_year_suffix_regex
+ { ( \d \d ) \Z }
+\tl_new:N \l__databib_year_tl
+\NewDocumentCommand \DTLbibliographystyle { m }
+{
+  \tl_if_exist:cTF { dtlbst@ #1 }
+   {
+     \tl_use:c { dtlbst@ #1 }
+   }
+   {
+     \PackageError {databib}
+      {
+        Unknown ~ bibliography ~ style ~ `#1'
+      }
+      { }
+   }
+}
+\DTLbibliographystyle { \l__databib_style_tl }
+\NewDocumentCommand \DTLmultibibs { m }
+{
+  \clist_map_inline:nn { #1 }
+   {
+     \__databib_auto_build:n { ##1 }
+     \iow_new:c { g__databib_aux_ ##1 _iow }
+     \iow_open:cn { g__databib_aux_ ##1 _iow } { ##1 .aux }
+     \tl_new:c { b@ ##1 @ * }
+   }
+}
+\@onlypreamble { \DTLmultibibs }
+\newcommand{\@dtl@cite@write}[2]{%
+ \if@filesw
+   \tl_if_exist:cTF { g__databib_aux_ #1 _iow }
+    {
+      \iow_now:ce { g__databib_aux_ #1 _iow } { #2 }
+    }
+    {
+      \PackageError {databib}
+       { multibib ~ `#1' ~ not ~ defined }
+       {
+         You ~ need ~ to ~ define ~ `#1' ~ in ~
+         \token_to_str:N \DTLmultibibs
+       }
+    }
+ \fi
+}
+\ExplSyntaxOff
+\newcommand*{\DTLcite}{\@ifnextchar[{\@tempswatrue \dtl@citex
+}{\@tempswafalse \dtl@citex[]}}
+\def\dtl@citex[#1]#2#3{%
+\leavevmode\let\@citea\@empty
+\@cite{\@for\@citeb:=#3\do{\@citea
+  \def\@citea{,\penalty \@m \ }%
+  \edef\@citeb{\expandafter\@firstofone\@citeb\@empty}%
+  \@dtl@cite@write{#2}{\string\citation{\@citeb}}%
+  \@ifundefined{b@#2@\@citeb}{%
+    \hbox{\reset@font\bfseries ?}%
+    \G@refundefinedtrue
+    \PackageWarning{databib}{Citation `\@citeb ' for multibib `#2'
+      undefined}%
+  }{%
+    \@cite@ofmt{\csname b@#2@\@citeb \endcsname }%
+  }%
+  }}{#1}%
+}
+\newcommand*{\DTLnocite}[2]{%
+  \@bsphack
+  \ifx\@onlypreamble\document
+    \@for\@citeb:=#2\do{%
+      \edef\@citeb{\expandafter\@firstofone\@citeb}%
+      \@dtl@cite@write{#1}{\string\citation{\@citeb}}%
+      \@ifundefined{b@#1@\@citeb}{%
+        \G@refundefinedtrue
+        \PackageWarning{databib}{Citation `\@citeb ' undefined for
+         multibib `#1'}}{}%
+    }%
+  \else
+    \@latex@error{Cannot be used in preamble}\@eha
+  \fi
+  \@esphack
+}
+\ExplSyntaxOn
+\NewDocumentCommand \DTLloadmbbl { m m m }
+{
+ \@dtl@cite@write { #1 }
+  {
+    \token_to_str:N \bibstyle { databib }
+    \iow_newline:
+    \token_to_str:N \bibdata { #3 }
+  }
+  \DTLnewdb { #2 }
+  \tl_set:Nx \DTLBIBdbname { \exp_args:Ne \tl_to_str:n { #2 } }
+  \@input@ { #1 .bbl }
+}
+\NewDocumentCommand \DTLmbibliography
+  { O{\boolean{true}} m m }
+{
+  \begin {DTLthebibliography} [ #1 ] { #3 }
+   \DTLforeachbibentry * [ #1 ] { #3 }
+    {
+      \DTLmbibitem { #2 }
+      \DTLformatbibentry
+      \DTLendbibitem
+    }
+  \end {DTLthebibliography}
+}
+\newcommand \DTLbibsortencap [3]
+{
+   \bool_lazy_or:nnTF
+     { \int_compare_p:nNn { #2 } = { \dtlcolumnindex { #3 } { Author } } }
+     { \int_compare_p:nNn { #2 } = { \dtlcolumnindex { #3 } { Editor } } }
+   {
+     \exp_not:N \DTLbibsortname
+     \clist_use:nn { #1 } { \DTLbibsortnamesep \DTLbibsortname }
+   }
+   { \exp_not:n { #1 } }
+}
+\newcommand{\DTLbibsortname}[4]{
+ \tl_if_empty:nF { #1 } { #1 ~ }
+ #2
+ \tl_if_empty:nF { #3 } { , ~ #3 }
+ \datatoolpersoncomma
+ #4
+}
+\newcommand{\DTLbibsortnamesep}{ \datatoolasciiend }
+\ExplSyntaxOff
+\newcommand*{\RequireDataBibDialect}[1]{%
+ \TrackLangRequireDialect{databib}{#1}%
+}
+\datatool@load@locales{%
+  \AnyTrackedLanguages
+  {%
+    \ForEachTrackedDialect{\@dtl@thisdialect}%
+    {%
+      \RequireDataBibDialect{\@dtl@thisdialect}%
+    }%
+  }%
+  {}%
+}
+\endinput
+%%
+%% End of file `databib.sty'.

@@ -1,0 +1,904 @@
+%%
+%% This is file `datapie.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% datatool.dtx  (with options: `datapie.sty,package')
+%% 
+%%  datatool.dtx
+%%  Copyright 2025 Nicola Talbot
+%% 
+%%  This work may be distributed and/or modified under the
+%%  conditions of the LaTeX Project Public License, either version 1.3
+%%  of this license or (at your option) any later version.
+%%  The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%%  and version 1.3 or later is part of all distributions of LaTeX
+%%  version 2005/12/01 or later.
+%% 
+%%  This work has the LPPL maintenance status `maintained'.
+%% 
+%%  The Current Maintainer of this work is Nicola Talbot.
+%% 
+%%  This work consists of the files datatool.dtx and datatool.ins and the derived files datatool-base.sty, datatool-undetermined.ldf, datatool-latin1.ldf, datatool-utf8.ldf, datatool-l3fp.def, datatool-lua.def, datatool-fp.def, datatool-fp.sty, datatool-pgfmath.def, datatool-pgfmath.sty, datatool.sty, datagidx.sty, databib.sty, databar.sty, datapie.sty, dataplot.sty, person.sty, databib.bst, databar-2019-09-27.sty, databib-2019-09-27.sty, datagidx-2019-09-27.sty, datapie-2019-09-27.sty, dataplot-2019-09-27.sty, datatool-2019-09-27.sty, datatool-base-2019-09-27.sty, datatool-fp-2019-09-27.sty, datatool-pgfmath-2019-09-27.sty, person-2019-09-27.sty.
+%% 
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\NeedsTeXFormat{LaTeX2e}
+\DeclareRelease{v2.32}{2019-09-27}{datapie-2019-09-27.sty}
+\DeclareCurrentRelease{v3.4.3}{2025-12-04}
+\ProvidesPackage{datapie}[2025/12/04 v3.4.3 (NLCT)]
+\newif\ifDTLcolorpiechart
+\DTLcolorpiecharttrue
+\newif\ifDTLrotateinner
+\DTLrotateinnerfalse
+\newif\ifDTLrotateouter
+\DTLrotateouterfalse
+\ExplSyntaxOn
+\keys_define:nn { datatool }
+{
+  color .legacy_if_set:n = DTLcolorpiechart,
+  gray .legacy_if_set_inverse:n = DTLcolorpiechart,
+  rotateinner .legacy_if_set:n = DTLrotateinner,
+  norotateinner .legacy_if_set_inverse:n = DTLrotateinner,
+  rotateouter .legacy_if_set:n = DTLrotateouter,
+  norotateouter .legacy_if_set_inverse:n = DTLrotateouter,
+}
+\ExplSyntaxOff
+\IfPackageLoadedTF{datatool}
+{
+  \ProcessKeyOptions[datatool]
+}
+{
+  \DeclareOption*{\PassOptionsToPackage{\CurrentOption}{datatool}}
+  \ProcessOptions
+}
+\RequirePackage{datatool}
+\ExplSyntaxOn
+\keys_define:nn { datatool }
+{
+  color .undefine: ,
+  gray .undefine: ,
+  rotateinner .undefine: ,
+  norotateinner .undefine: ,
+  rotateouter .undefine: ,
+  norotateouter .undefine: ,
+}
+\ExplSyntaxOff
+\RequirePackage{tikz}
+\ExplSyntaxOn
+\tl_new:N \DTLpievariable
+\newlength\DTLradius
+\DTLradius=2cm
+\newcommand*{\DTLinnerratio}{0.5}
+\newcommand*{\DTLouterratio}{1.25}
+\newcommand*\DTLcutawayratio{0.2}
+\newcommand*{\DTLstartangle}{0}
+\dim_new:N \l__datapie_inner_offset_dim
+\dim_set:Nn \l__datapie_inner_offset_dim
+ { \DTLinnerratio \DTLradius }
+\dim_new:N \l__datapie_outer_offset_dim
+\dim_set:Nn \l__datapie_outer_offset_dim
+ { \DTLouterratio \DTLradius }
+\dim_new:N \l__datapie_cutaway_offset_dim
+\dim_set:Nn \l__datapie_cutaway_offset_dim
+ { \DTLcutawayratio \DTLradius }
+\clist_new:N \l__datapie_cutaways_clist
+\tl_new:N \l__datapie_inner_label_tl
+\tl_set:Nn \l__datapie_inner_label_tl { \DTLpievariable }
+\tl_new:N \l__datapie_outer_label_tl
+\newcounter{DTLpieroundvar}
+\setcounter{DTLpieroundvar}{1}
+\newcommand*{\DTLdisplayinnerlabel}[1]{#1}
+\newcommand*{\DTLdisplayouterlabel}[1]{#1}
+\cs_new:Nn \__datapie_noop:N
+{
+  \PackageError { datapie }
+  {
+    Can't ~ use ~ \token_to_str:N #1 \c_space_tl ~ outside ~
+    \token_to_str:N \DTLpiechart
+  }
+  {
+    Certain ~ datapie.sty ~ commands ~ may ~ only ~ be ~ used ~
+    within ~ pie ~ chart ~ hooks ~ or ~ option ~ values
+  }
+}
+\newcommand*{\DTLpiepercent}{%
+  \__datapie_noop:N \DTLpiepercent
+}
+\cs_new:Nn \__datapie_percent:
+{
+  \use:c
+   {
+     dtl@piepercent@
+     \romannumeral \l__datapie_segment_int
+   }
+}
+\newcommand*{\DTLpieatsegment}[9]{}
+\newcommand*{\DTLpieatbegintikz}{}
+\newcommand*{\DTLpieatendtikz}{}
+\newcommand*{\DTLsetpiesegmentcolor}[2]{%
+ \tl_set:cn { dtlpie@segcol\romannumeral#1 } { #2 }
+}
+\newcommand*{\DTLgetpiesegmentcolor}[1]{%
+ \cs_if_exist_use:cF { dtlpie@segcol\romannumeral#1 } { white }
+}
+\newcommand*{\DTLdopiesegmentcolor}[1]{
+ \cs_if_exist:cTF { dtlpie@segcol\romannumeral#1 }
+ {
+   \exp_args:Nc \color { dtlpie@segcol\romannumeral#1 }
+ }
+ {
+   \PackageWarning{datapie}{No ~ colour ~ assigned ~ to ~ segment ~ \number#1}
+ }
+}
+\NewDocumentCommand \DTLdocurrentpiesegmentcolor { }
+{
+  \int_compare:nNnTF
+    { \l__datapie_segment_int } > { \c_zero_int }
+  {
+    \exp_args:NV \DTLdopiesegmentcolor \l__datapie_segment_int
+  }
+  {
+    \int_compare:nNnTF
+      { \l__datatool_row_idx_int } > { \c_zero_int }
+    {
+      \exp_args:NV \DTLdopiesegmentcolor \l__datatool_row_idx_int
+    }
+    {
+      \int_compare:nNnTF
+        { \dtlforeachlevel } > { \c_zero_int }
+      {
+        \exp_args:Nv \DTLdopiesegmentcolor { c@DTLrow\romannumeral\dtlforeachlevel }
+      }
+      {
+         \__datapie_noop:N \DTLdocurrentpiesegmentcolor
+      }
+    }
+  }
+}
+\newcommand*{\DTLpieoutlinecolor}{black}
+\newlength\DTLpieoutlinewidth
+\DTLpieoutlinewidth=0pt
+\ifDTLcolorpiechart
+ \DTLsetpiesegmentcolor{1}{red}
+ \DTLsetpiesegmentcolor{2}{green}
+ \DTLsetpiesegmentcolor{3}{blue}
+ \DTLsetpiesegmentcolor{4}{yellow}
+ \DTLsetpiesegmentcolor{5}{magenta}
+ \DTLsetpiesegmentcolor{6}{cyan}
+ \DTLsetpiesegmentcolor{7}{orange}
+ \DTLsetpiesegmentcolor{8}{white}
+\else
+ \DTLsetpiesegmentcolor{1}{black!15}
+ \DTLsetpiesegmentcolor{2}{black!25}
+ \DTLsetpiesegmentcolor{3}{black!35}
+ \DTLsetpiesegmentcolor{4}{black!45}
+ \DTLsetpiesegmentcolor{5}{black!55}
+ \DTLsetpiesegmentcolor{6}{black!65}
+ \DTLsetpiesegmentcolor{7}{black!75}
+ \DTLsetpiesegmentcolor{8}{black!85}
+\fi
+\keys_define:nn { datatool/pie }
+{
+  rotateinner .legacy_if_set:n = DTLrotateinner,
+  rotate-inner .legacy_if_set:n = DTLrotateinner,
+  rotateouter .legacy_if_set:n = DTLrotateouter,
+  rotate-outer .legacy_if_set:n = DTLrotateouter,
+  innerratio .code:n =
+   {
+     \tl_set:Nn \DTLinnerratio { #1 }
+     \dim_set:Nn \l__datapie_inner_offset_dim
+       { \DTLinnerratio \DTLradius }
+   },
+  inner-ratio .code:n =
+   {
+     \tl_set:Nn \DTLinnerratio { #1 }
+     \dim_set:Nn \l__datapie_inner_offset_dim
+       { \DTLinnerratio \DTLradius }
+   },
+  outerratio .code:n =
+   {
+     \tl_set:Nn \DTLouterratio { #1 }
+     \dim_set:Nn \l__datapie_outer_offset_dim
+       { \DTLouterratio \DTLradius }
+   },
+  outer-ratio .code:n =
+   {
+     \tl_set:Nn \DTLouterratio { #1 }
+     \dim_set:Nn \l__datapie_outer_offset_dim
+      { \DTLouterratio \DTLradius }
+   },
+  cutawayratio .code:n =
+   {
+     \tl_set:Nn \DTLcutawayratio { #1 }
+     \dim_set:Nn \l__datapie_cutaway_offset_dim
+       { \DTLcutawayratio \DTLradius }
+   },
+  cutaway-ratio .code:n =
+   {
+     \tl_set:Nn \DTLcutawayratio { #1 }
+     \dim_set:Nn \l__datapie_cutaway_offset_dim
+       { \DTLcutawayratio \DTLradius }
+   },
+  inneroffset .dim_set:N = \l__datapie_inner_offset_dim ,
+  inner-offset .dim_set:N = \l__datapie_inner_offset_dim ,
+  outeroffset .dim_set:N = \l__datapie_outer_offset_dim ,
+  outer-offset .dim_set:N = \l__datapie_outer_offset_dim ,
+  cutawayoffset .dim_set:N = \l__datapie_cutaway_offset_dim ,
+  cutaway-offset .dim_set:N = \l__datapie_cutaway_offset_dim ,
+  start-angle .tl_set:N = \DTLstartangle,
+  start .tl_set:N = \DTLstartangle,
+  radius .code:n =
+   {
+     \dim_set:Nn \DTLradius { #1 }
+     \dim_set:Nn \l__datapie_inner_offset_dim
+       { \DTLinnerratio \DTLradius }
+     \dim_set:Nn \l__datapie_outer_offset_dim
+       { \DTLouterratio \DTLradius }
+     \dim_set:Nn \l__datapie_cutaway_offset_dim
+       { \DTLcutawayratio \DTLradius }
+   },
+  radius* .dim_set:N = \DTLradius ,
+  round .int_set:N = \c@DTLpieroundvar,
+  segment-colors .code:n =
+   {
+     \seq_set_from_clist:Nn \l__datatool_tmp_seq { #1 }
+     \seq_map_indexed_function:NN
+       \l__datatool_tmp_seq
+       \DTLsetpiesegmentcolor
+   },
+  segment-default-colors .code:n =
+   {
+     \DTLcolorpiecharttrue
+     \DTLsetpiesegmentcolor{1}{red}
+     \DTLsetpiesegmentcolor{2}{green}
+     \DTLsetpiesegmentcolor{3}{blue}
+     \DTLsetpiesegmentcolor{4}{yellow}
+     \DTLsetpiesegmentcolor{5}{magenta}
+     \DTLsetpiesegmentcolor{6}{cyan}
+     \DTLsetpiesegmentcolor{7}{orange}
+     \DTLsetpiesegmentcolor{8}{white}
+   },
+  segment-default-colors .value_forbidden:n = true,
+  segment-default-gray .code:n =
+   {
+     \DTLcolorpiechartfalse
+     \DTLsetpiesegmentcolor{1}{black!15}
+     \DTLsetpiesegmentcolor{2}{black!25}
+     \DTLsetpiesegmentcolor{3}{black!35}
+     \DTLsetpiesegmentcolor{4}{black!45}
+     \DTLsetpiesegmentcolor{5}{black!55}
+     \DTLsetpiesegmentcolor{6}{black!65}
+     \DTLsetpiesegmentcolor{7}{black!75}
+     \DTLsetpiesegmentcolor{8}{black!85}
+   },
+  segment-default-gray .value_forbidden:n = true,
+  outline-color .tl_set:N = \DTLpieoutlinecolor,
+  outline-width .dim_set:N = \DTLpieoutlinewidth,
+  cutaway .clist_set:N = \l__datapie_cutaways_clist,
+  variable .tl_set:N = \DTLpievariable,
+  innerlabel .tl_set:N = \l__datapie_inner_label_tl,
+  inner-label .tl_set:N = \l__datapie_inner_label_tl,
+  outerlabel .tl_set:N = \l__datapie_outer_label_tl,
+  outer-label .tl_set:N = \l__datapie_outer_label_tl,
+  include-if .cs_set:Np = \__datapie_filter:T #1,
+  include-if-fn .code:n =
+   {
+     \cs_set_eq:NN \__datapie_filter:T #1
+   },
+  condition .code:n =
+   {
+     \PackageWarning{datapie}{Deprecated ~ option ~ `condition'. ~
+      Use ~ `include-if' ~ instead}
+     \cs_set:Nn = \__datapie_filter:T { #1 }
+   }
+}
+\keys_define:nn { datatool }
+{
+  pie .code:n = { \keys_set:nn { datatool/pie } { #1 } }
+}
+\cs_new:Nn \__datapie_filter:T { #1 }
+\cs_new:Nn \__datapie_filtered_map:nn
+{
+  \DTLmapdata
+  {
+    \DTLmapgetvalues { #1 }
+    \__datapie_filter:T { #2 }
+  }
+}
+\fp_new:N \l__datapie_x_fp
+\fp_new:N \l__datapie_total_fp
+\fp_new:N \l__datapie_start_fp
+\fp_new:N \l__datapie_end_fp
+\fp_new:N \l__datapie_extent_fp
+\fp_new:N \l__datapie_angle_fp
+\fp_new:N \l__datapie_mid_fp
+\fp_const:Nn \c_datapie_whole_circle_fp { 360 }
+\fp_const:Nn \c_datapie_half_circle_fp { 180 }
+\fp_const:Nn \c_datapie_minus_half_circle_fp { -180 }
+\fp_const:Nn \c_datapie_quarter_circle_fp { 90 }
+\fp_const:Nn \c_datapie_three_quarter_circle_fp { 270 }
+\fp_const:Nn \c_datapie_minus_quarter_circle_fp { -90 }
+\int_new:N \l__datapie_segment_int
+\tl_new:N \l__datapie_start_tl
+\tl_new:N \l__datapie_mid_tl
+\tl_new:N \l__datapie_end_tl
+\tl_new:N \l__datapie_extent_tl
+\tl_new:N \l__datapie_angle_tl
+\tl_new:N \l__datapie_cut_length_tl
+\tl_new:N \l__datapie_inner_node_opt_tl
+\tl_new:N \l__datapie_outer_node_opt_tl
+\cs_new:Nn \__datapie_compute_total:n
+ {
+   \fp_zero:N \l__datapie_total_fp
+   \__datapie_filtered_map:nn { #1 }
+    {
+      \datatool_set_fp:NV \l__datapie_x_fp \DTLpievariable
+      \fp_add:Nn \l__datapie_total_fp { \l__datapie_x_fp }
+    }
+ }
+\cs_new:Nn \__datapie_compute_angles:n
+ {
+   \datatool_set_fp:NV \l__datapie_start_fp \DTLstartangle
+   \tl_set:Nn \l__datapie_start_tl
+     { \fp_to_decimal:N \l__datapie_start_fp }
+   \int_zero:N \l__datapie_segment_int
+   \__datapie_filtered_map:nn { #1 }
+    {
+      \int_incr:N \l__datapie_segment_int
+      \datatool_set_fp:NV
+        \l__datapie_x_fp \DTLpievariable
+      \__datapie_compute_angles:nN
+        { \l__datapie_segment_int }
+        \l__datapie_x_fp
+      \fp_set:Nn \l__datapie_x_fp
+       {
+         round
+         (
+           ( 100 * \l__datapie_x_fp ) / \l__datapie_total_fp,
+           \c@DTLpieroundvar
+         )
+       }
+      \tl_set:cx
+       {
+         dtl@piepercent@
+         \romannumeral \l__datapie_segment_int
+       }
+       { \fp_to_decimal:N \l__datapie_x_fp }
+     \datatool_pad_trailing_zeros:cn
+       {
+         dtl@piepercent@
+         \romannumeral \l__datapie_segment_int
+       }
+       { \c@DTLpieroundvar }
+    }
+ }
+\cs_new:Nn \__datapie_compute_angles:nN
+ {
+   \fp_compare:nNnTF
+      { \l__datapie_start_fp } > { \c_datapie_half_circle_fp }
+    {
+      \fp_sub:Nn \l__datapie_start_fp
+        { \c_datapie_whole_circle_fp }
+    }
+    {
+      \fp_compare:nNnT
+        { \l__datapie_start_fp } < { \c_datapie_minus_half_circle_fp }
+      {
+        \fp_add:Nn \l__datapie_start_fp
+          { \c_datapie_whole_circle_fp }
+      }
+    }
+   \tl_set:cx
+     { dtl@sang@ \romannumeral #1 }
+     { \fp_to_decimal:N \l__datapie_start_fp }
+   \fp_set:Nn \l__datapie_tmpa_fp
+     { ( #2 * \c_datapie_whole_circle_fp ) / \l__datapie_total_fp }
+   \tl_set:cx
+     { dtl@angle@ \romannumeral #1 }
+     { \fp_to_decimal:N \l__datapie_tmpa_fp }
+   \fp_add:Nn \l__datapie_start_fp
+     { \l__datapie_tmpa_fp }
+   \tl_set:cx { dtl@cut@angle@ \romannumeral #1 } { 0 }
+   \tl_set:cx { dtl@cut@len@ \romannumeral #1 } { 0cm }
+   \tl_set:Nx \l__datapie_start_tl
+     { \fp_to_decimal:N \l__datapie_start_fp }
+ }
+\tl_new:N \l__datapie_content_tl
+\tl_new:N \l__datapie_hook_tl
+\cs_new:Nn \__datapie_draw:n
+{
+  \tl_set:Nx \l__datapie_start_tl { \DTLstartangle }
+  \int_zero:N \l__datapie_segment_int
+  \int_zero:N \l__datatool_row_idx_int
+  \begin{tikzpicture}
+  \DTLpieatbegintikz
+  \__datapie_filtered_map:nn { #1 }
+   {
+     \tl_clear:N \l__datapie_content_tl
+     \int_incr:N \l__datapie_segment_int
+     \tl_set:Nx \l__datapie_start_tl
+      {
+        \tl_use:c
+          {
+            dtl@sang@ \romannumeral \l__datapie_segment_int
+          }
+      }
+     \fp_set:Nn \l__datapie_start_fp
+       { \l__datapie_start_tl }
+     \tl_set:Nx \l__datapie_extent_tl
+       {
+         \tl_use:c
+           {
+             dtl@angle@
+             \romannumeral \l__datapie_segment_int
+           }
+       }
+     \fp_set:Nn \l__datapie_extent_fp
+       { \l__datapie_extent_tl }
+     \fp_set:Nn \l__datapie_end_fp
+      { \l__datapie_start_fp + \l__datapie_extent_fp }
+     \tl_set:Nx \l__datapie_end_tl
+       { \fp_to_decimal:N \l__datapie_end_fp }
+     \tl_set:Nx \l__datapie_angle_tl
+       {
+         \tl_use:c
+          {
+            dtl@cut@angle@
+            \romannumeral \l__datapie_segment_int
+          }
+       }
+     \fp_set:Nn \l__datapie_angle_fp
+       { \l__datapie_angle_tl }
+     \fp_compare:nNnT
+       { \l__datapie_angle_fp } > { \c_datapie_half_circle_fp }
+      {
+        \fp_sub:Nn \l__datapie_angle_fp
+          { \c_datapie_whole_circle_fp }
+        \tl_set:Nx \l__datapie_angle_tl
+          { \fp_to_decimal:N \l__datapie_angle_fp }
+      }
+     \tl_set:Nx \l__datapie_cut_length_tl
+      {
+        \tl_use:c
+         {
+           dtl@cut@len@
+           \romannumeral \l__datapie_segment_int
+         }
+      }
+     \tl_put_right:Nn \l__datapie_content_tl
+       { \begin { scope} }
+     \tl_set:Nx \l__datapie_hook_tl
+       { { \l__datapie_angle_tl } { \l__datapie_cut_length_tl } }
+     \tl_put_right:Nx \l__datapie_content_tl
+       {
+         [ shift =
+           {
+             (
+               \l__datapie_angle_tl \c_colon_str
+               \l__datapie_cut_length_tl
+             )
+           } ]
+       }
+     \fp_set:Nn \l__datapie_mid_fp
+       { 0.5 * \l__datapie_extent_fp + \l__datapie_start_fp }
+     \tl_set:Nx \l__datapie_mid_tl
+       { \fp_to_decimal:N \l__datapie_mid_fp }
+     \tl_put_right:Nn \l__datapie_content_tl { \fill }
+     \tl_put_right:Nx \l__datapie_content_tl
+     {
+       [color= \DTLgetpiesegmentcolor \l__datapie_segment_int ]
+        (0,0) ~ -- ~
+         ( \l__datapie_start_tl \c_colon_str \DTLradius) ~
+        arc
+         (
+           \l__datapie_start_tl \c_colon_str
+           \l__datapie_end_tl \c_colon_str
+           \DTLradius
+         ) ~
+        -- ~ cycle;
+     }
+     \dim_compare:nNnT
+       { \DTLpieoutlinewidth } > { \c_zero_dim }
+      {
+        \tl_put_right:Nn \l__datapie_content_tl { \draw }
+        \tl_put_right:Nx \l__datapie_content_tl
+        {
+          [color=\DTLpieoutlinecolor,
+              line ~ width=\DTLpieoutlinewidth]
+          (0,0) ~ -- ~
+            (
+              \l__datapie_start_tl \c_colon_str \DTLradius
+            ) ~
+          arc
+           (
+             \l__datapie_start_tl \c_colon_str
+             \l__datapie_end_tl \c_colon_str
+             \DTLradius
+           ) ~
+          -- ~ cycle;
+        }
+      }
+     \tl_put_left:Nx \l__datapie_hook_tl
+      {
+         \exp_not:N \DTLpieatsegment
+         { \int_use:N \l__datapie_segment_int }
+         { \fp_to_decimal:N \l__datapie_total_fp }
+         { \l__datapie_start_tl }
+         { \l__datapie_mid_tl }
+         { \l__datapie_end_tl }
+      }
+     \legacy_if:nTF { DTLrotateinner }
+      {
+       \fp_compare:nTF
+         {
+           \c_datapie_quarter_circle_fp
+           < \l__datapie_mid_fp
+           < \c_datapie_three_quarter_circle_fp
+         }
+        {
+          \cs_set_eq:NN \__datapie_next:nn \use_i:nn
+        }
+        {
+         \fp_compare:nNnTF
+           { \l__datapie_mid_fp }
+            < { \c_datapie_minus_quarter_circle_fp }
+          {
+            \cs_set_eq:NN \__datapie_next:nn \use_i:nn
+          }
+          {
+            \cs_set_eq:NN \__datapie_next:nn \use_ii:nn
+          }
+        }
+       \__datapie_next:nn
+        {
+         \tl_set:Nx \l__datapie_inner_node_opt_tl
+           {
+             anchor = east ,
+             rotate =
+              \fp_eval:n
+                { \l__datapie_mid_fp - \c_datapie_half_circle_fp }
+           }
+        }
+        {
+          \tl_set:Nx \l__datapie_inner_node_opt_tl
+           {
+             anchor = west ,
+             rotate = \l__datapie_mid_tl
+           }
+        }
+      }
+      {
+        \tl_set:Nn \l__datapie_inner_node_opt_tl
+          { anchor = center }
+      }
+     \legacy_if:nTF { DTLrotateouter }
+      {
+       \fp_compare:nTF
+        {
+          \c_datapie_quarter_circle_fp
+           < \l__datapie_mid_fp
+           < \c_datapie_three_quarter_circle_fp
+        }
+       {
+          \cs_set_eq:NN \__datapie_next:nn \use_i:nn
+       }
+       {
+         \fp_compare:nNnTF
+          { \l__datapie_mid_fp } < { \c_datapie_minus_quarter_circle_fp }
+          {
+            \cs_set_eq:NN \__datapie_next:nn \use_i:nn
+          }
+          {
+            \cs_set_eq:NN \__datapie_next:nn \use_ii:nn
+          }
+       }
+       \__datapie_next:nn
+       {
+          \tl_set:Nx \l__datapie_outer_node_opt_tl
+           {
+             anchor = east ,
+             rotate =
+              \fp_eval:n
+               { \l__datapie_mid_fp - \c_datapie_half_circle_fp }
+           }
+       }
+       {
+         \tl_set:Nx \l__datapie_outer_node_opt_tl
+          {
+            anchor = west ,
+            rotate = \l__datapie_mid_tl
+          }
+       }
+      }
+      {
+        \fp_compare:nNnTF
+          { \l__datapie_mid_fp } > { 315 }
+        {
+          \cs_set_eq:NN \__datapie_next:nn \use_i:nn
+        }
+        {
+          \fp_compare:nTF
+            { -45 < \l__datapie_mid_fp <= 45 }
+           {
+             \cs_set_eq:NN \__datapie_next:nn \use_i:nn
+           }
+           {
+             \cs_set_eq:NN \__datapie_next:nn \use_ii:nn
+           }
+        }
+       \__datapie_next:nn
+        {
+          \tl_set:Nn \l__datapie_outer_node_opt_tl
+           { anchor = west }
+        }
+        {
+          \fp_compare:nTF
+            { 45 < \l__datapie_mid_fp <= 135 }
+           {
+             \cs_set_eq:NN \__datapie_next:nn \use_i:nn
+           }
+           {
+             \cs_set_eq:NN \__datapie_next:nn \use_ii:nn
+           }
+          \__datapie_next:nn
+           {
+             \tl_set:Nn \l__datapie_outer_node_opt_tl
+               { anchor = south }
+           }
+           {
+            \fp_compare:nTF
+              { 135 <= \l__datapie_mid_fp <= 225 }
+             {
+               \cs_set_eq:NN \__datapie_next:nn \use_i:nn
+             }
+             {
+                \fp_compare:nNnTF
+                 { \l__datapie_mid_fp } > { -135 }
+                  {
+                    \cs_set_eq:NN \__datapie_next:nn \use_ii:nn
+                  }
+                  {
+                    \cs_set_eq:NN \__datapie_next:nn \use_i:nn
+                  }
+                }
+             }
+           \__datapie_next:nn
+           {
+             \tl_set:Nn \l__datapie_outer_node_opt_tl
+              { anchor = east }
+           }
+           {
+             \tl_set:Nn \l__datapie_outer_node_opt_tl
+              { anchor = north }
+           }
+        }
+      }
+     \tl_put_right:Nx \l__datapie_content_tl
+     {
+       \exp_not:N \draw
+       (
+         \l__datapie_mid_tl
+         \c_colon_str
+         \dim_use:N \l__datapie_inner_offset_dim
+       ) ~
+       node [ \l__datapie_inner_node_opt_tl ] ~
+       {
+         \exp_not:N \DTLdisplayinnerlabel
+          { \exp_not:V \l__datapie_inner_label_tl }
+       };
+     }
+     \tl_put_right:Nx \l__datapie_content_tl
+     {
+       \exp_not:N \draw
+       (
+         \l__datapie_mid_tl \c_colon_str
+         \dim_use:N \l__datapie_outer_offset_dim
+       ) ~
+       node [ \l__datapie_outer_node_opt_tl ] ~
+       {
+         \exp_not:N \DTLdisplayouterlabel
+          { \exp_not:V \l__datapie_outer_label_tl }
+       };
+     }
+     \tl_put_right:Nn \l__datapie_hook_tl
+      {
+        { \l__datapie_inner_offset_dim }
+        { \l__datapie_outer_offset_dim }
+      }
+     \tl_put_right:Nn \l__datapie_content_tl
+      {
+        \l__datapie_hook_tl
+        \end { scope }
+      }
+     \l__datapie_content_tl
+   }
+   \int_zero:N \l__datapie_segment_int
+   \int_zero:N \l__datatool_row_idx_int
+   \DTLpieatendtikz
+   \end{tikzpicture}
+}
+\NewDocumentCommand \DTLpiechart { o m m m }
+{
+  \group_begin:
+   \IfValueT { #1 }
+   {
+     \cs_set:Nn \__datapie_filter:T
+     {
+       \ifthenelse { #1 } { ##1 } { }
+     }
+   }
+   \tl_if_blank:nF { #3 }
+    {
+      \DTLsetup { default-name = { #3 } }
+    }
+   \keys_set:nn { datatool/pie } { #2 }
+   \tl_if_empty:NTF \DTLpievariable
+   {
+     \PackageError { datapie }
+     {
+       \token_to_str:N \DTLpiechart \c_space_tl ~ missing ~ variable
+     }
+     {
+       You ~ need ~ to ~ set ~ the ~ `variable' ~ key ~ in ~ the ~
+       first ~ mandatory ~ argument ~ of ~
+       \token_to_str:N \DTLpiechart \c_space_tl ~ to ~ the ~
+       applicable ~ placeholder ~ command ~ listed ~ in ~ the ~
+       final ~ argument
+     }
+   }
+   {
+     \__datapie_do_chart:n { #4 }
+   }
+  \group_end:
+}
+\cs_new:Nn \__datapie_do_chart:n
+{
+  \cs_set_eq:NN \DTLpiepercent \__datapie_percent:
+  \__datapie_compute_total:n { #1 }
+  \__datapie_compute_angles:n { #1 }
+  \clist_map_inline:Nn \l__datapie_cutaways_clist
+   {
+     \__datapie_set_offset:nw ##1 - \q_stop
+   }
+  \__datapie_draw:n { #1 }
+}
+\tl_new:N \l__datapie_action_variable_tl
+\cs_new:cn { __datatool_action_ pie ~ chart : }
+{
+ \group_begin:
+   \tl_if_empty:NF \l__datatool_action_name_tl
+    {
+      \tl_set_eq:NN
+        \l__datatool_default_dbname_tl
+        \l__datatool_action_name_tl
+    }
+   \cs_set_eq:NN \__datapie_do:n \use:n
+   \__datatool_optional_key_xor_column_get_key:nTF
+    {
+    }
+    {
+      \tl_set:Nn  \DTLpievariable
+        { \l__datapie_action_variable_tl }
+      \clist_put_right:Nx \l__datatool_action_assign_clist
+       {
+         \exp_not:N \l__datapie_action_variable_tl =
+          \l__datatool_action_key_tl
+       }
+    }
+    {
+      \cs_set_eq:NN \__datapie_do:n \cs_none:n
+    }
+   \__datapie_do:n
+    {
+     \clist_if_empty:NF \l__datatool_action_options_clist
+      {
+        \keys_set:nV { datatool/pie }
+          \l__datatool_action_options_clist
+      }
+     \tl_if_empty:NT \DTLpievariable
+      {
+        \cs_set_eq:NN \__datapie_do:n \use_none:n
+        \__datatool_action_error:nnn { datapie }
+         {
+           \token_to_str:N \DTLpiechart \c_space_tl ~ missing ~ variable
+         }
+         {
+           You ~ need ~ to ~ either ~ use ~ `key' ~ or ~ `column' ~
+           to ~ identify ~ the ~ variable ~ column ~ or ~ set ~
+           the ~ `variable' ~ key ~ to ~ the ~ placeholder ~
+           command ~ within ~ `options'
+         }
+       }
+      \__datapie_do:n
+       {
+         \exp_args:NV \__datapie_do_chart:n
+          \l__datatool_action_assign_clist
+       }
+     }
+ \group_end:
+}
+\cs_new:Npn \__datapie_set_offset:nw
+ #1 - #2 \q_stop
+{
+  \tl_if_empty:nTF { #2 }
+  {
+    \__datapie_set_offset:n { #1 }
+  }
+  {
+    \__datapie_set_offset_range:nw #1 - #2 \q_stop
+  }
+}
+\cs_new:Nn \__datapie_set_offset:n
+{
+  \tl_set:cx { dtl@cut@angle@ \romannumeral #1 }
+   {
+     \fp_eval:n
+      {
+        0.5 * \tl_use:c { dtl@angle@ \romannumeral #1 }
+        + \tl_use:c { dtl@sang@ \romannumeral #1 }
+      }
+   }
+  \tl_set:cx
+    { dtl@cut@len@ \romannumeral #1 }
+    { \dim_use:N \l__datapie_cutaway_offset_dim }
+}
+\cs_new:Npn \__datapie_set_offset_range:nw
+ #1 - #2 - \q_stop
+{
+ \int_compare:nNnTF { #1 } > { #2 }
+  {
+   \PackageError {datapie}
+   {
+     Segment ~ ranges ~ must ~ go ~ in ~ ascending ~ order
+   }
+   {
+     Try ~ #2 - #1 ~ instead of ~ #1 - #2
+   }
+  }
+  {
+    \fp_zero:N \l__datapie_angle_fp
+    \int_step_inline:nnn { #1 } { #2 }
+     {
+       \fp_add:Nn \l__datapie_angle_fp
+        {
+          \tl_use:c { dtl@angle@ \romannumeral ##1 }
+        }
+     }
+    \tl_set:Nx \l__datapie_angle_tl
+     {
+       \fp_eval:n
+        {
+          0.5 * \l__datapie_angle_fp
+          + \tl_use:c { dtl@sang@\romannumeral#1 }
+        }
+     }
+    \int_step_inline:nnn { #1 } { #2 }
+     {
+       \tl_set_eq:cN { dtl@cut@angle@\romannumeral ##1 }
+        \l__datapie_angle_tl
+       \tl_set:cx
+        { dtl@cut@len@\romannumeral ##1 }
+         { \dim_use:N \l__datapie_cutaway_offset_dim }
+     }
+  }
+}
+\ExplSyntaxOff
+\endinput
+%%
+%% End of file `datapie.sty'.

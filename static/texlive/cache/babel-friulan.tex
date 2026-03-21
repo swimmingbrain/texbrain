@@ -1,0 +1,20 @@
+% This file is part of babel. For further details see:
+% https://www.ctan.org/pkg/babel
+\ifx\BabelBeforeIni\undefined
+  \PackageError{babel}%
+    {This file is a component of babel and cannot\MessageBreak
+     be loaded directly. I'll stop immediately}%
+    {Just use babel as documented.}%
+  \stop
+\fi
+\BabelBeforeIni{fur}{%
+  \expandafter\def\csname bbl@preini@friulan\endcsname{%
+    \csname bbl@error\endcsname{invalid-ini-name}{friulan}{friulian}{}%
+    }%
+  \BabelDefinitionFile{0}{friulan}{%
+    \PackageInfo{babel}{%
+      Name 'friulan' is discouraged.\MessageBreak
+      Prefer 'friulian' instead.\MessageBreak
+      Reported}}%
+}
+\endinput

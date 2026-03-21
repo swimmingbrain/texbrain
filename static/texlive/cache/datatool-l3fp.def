@@ -1,0 +1,245 @@
+%%
+%% This is file `datatool-l3fp.def',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% datatool.dtx  (with options: `datatool-l3fp.def,package')
+%% 
+%%  datatool.dtx
+%%  Copyright 2025 Nicola Talbot
+%% 
+%%  This work may be distributed and/or modified under the
+%%  conditions of the LaTeX Project Public License, either version 1.3
+%%  of this license or (at your option) any later version.
+%%  The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%%  and version 1.3 or later is part of all distributions of LaTeX
+%%  version 2005/12/01 or later.
+%% 
+%%  This work has the LPPL maintenance status `maintained'.
+%% 
+%%  The Current Maintainer of this work is Nicola Talbot.
+%% 
+%%  This work consists of the files datatool.dtx and datatool.ins and the derived files datatool-base.sty, datatool-undetermined.ldf, datatool-latin1.ldf, datatool-utf8.ldf, datatool-l3fp.def, datatool-lua.def, datatool-fp.def, datatool-fp.sty, datatool-pgfmath.def, datatool-pgfmath.sty, datatool.sty, datagidx.sty, databib.sty, databar.sty, datapie.sty, dataplot.sty, person.sty, databib.bst, databar-2019-09-27.sty, databib-2019-09-27.sty, datagidx-2019-09-27.sty, datapie-2019-09-27.sty, dataplot-2019-09-27.sty, datatool-2019-09-27.sty, datatool-base-2019-09-27.sty, datatool-fp-2019-09-27.sty, datatool-pgfmath-2019-09-27.sty, person-2019-09-27.sty.
+%% 
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesFile{datatool-l3fp.def}[2025/12/04 v3.4.3 (NLCT)]
+\ExplSyntaxOn
+\newcommand*{\dtlifnumeq}[4]{%
+ \fp_compare:nNnTF { #1 } = { #2 } { #3 } { #4 }
+}
+\newcommand*{\dtlifnumlt}[4]{%
+ \fp_compare:nNnTF { #1 } < { #2 } { #3 } { #4 }
+}
+\newcommand*{\dtlifnumgt}[4]{%
+ \fp_compare:nNnTF { #1 } > { #2 } { #3 } { #4 }
+}
+\newcommand*{\dtlifnumopenbetween}[5]{%
+ \fp_compare:nTF { #2 < #1 < #3 }
+   { #4 } { #5 }
+}
+\newcommand*{\dtlifnumclosedbetween}[5]{%
+ \fp_compare:nTF { #2 <= #1 <= #3 }
+  { #4 } { #5 }
+}
+\NewDocumentCommand \dtladd { m m m }
+{
+  \fp_set:Nn \l__datatool_tmpa_fp { #2 + #3 }
+  \tl_set:Nx #1 { \fp_use:N \l__datatool_tmpa_fp }
+}
+\NewDocumentCommand \dtladdall { m m }
+{
+  \fp_zero:N \l__datatool_tmpa_fp
+  \exp_args:Nx \clist_map_inline:nn { #2 }
+   { \fp_add:Nn \l__datatool_tmpa_fp { ##1 } }
+  \tl_set:Nx #1 { \fp_use:N \l__datatool_tmpa_fp }
+}
+\NewDocumentCommand \dtlsub { m m m }
+{
+  \fp_set:Nn \l__datatool_tmpa_fp { #2 - #3 }
+  \tl_set:Nx #1 { \fp_use:N \l__datatool_tmpa_fp }
+}
+\NewDocumentCommand \dtlmul { m m m }
+{
+  \fp_set:Nn \l__datatool_tmpa_fp { #2 * #3 }
+  \tl_set:Nx #1 { \fp_use:N \l__datatool_tmpa_fp }
+}
+\NewDocumentCommand \dtldiv { m m m }
+{
+  \fp_set:Nn \l__datatool_tmpa_fp { #2 / #3 }
+  \tl_set:Nx #1 { \fp_use:N \l__datatool_tmpa_fp }
+}
+\NewDocumentCommand \dtlsqrt { m m }
+{
+  \fp_set:Nn \l__datatool_tmpa_fp { sqrt ( #2 ) }
+  \tl_set:Nx #1 { \fp_use:N \l__datatool_tmpa_fp }
+}
+\NewDocumentCommand \dtlroot { m m m }
+{
+  \exp_args:Nx \tl_if_eq:nnTF { #3 } { 2 }
+  {
+    \fp_set:Nn \l__datatool_tmpa_fp { sqrt ( #2 ) }
+    \tl_set:Nx #1 { \fp_use:N \l__datatool_tmpa_fp }
+  }
+  {
+    \fp_set:Nn \l__datatool_tmpa_fp { ( #2 ) ^ ( 1 / ( #3 ) ) }
+    \tl_set:Nx #1 { \fp_use:N \l__datatool_tmpa_fp }
+  }
+}
+\NewDocumentCommand \dtlround { m m m }
+{
+  \fp_set:Nn \l__datatool_tmpa_fp { round ( #2, #3 ) }
+  \tl_set:Nx #1 { \fp_to_decimal:N \l__datatool_tmpa_fp }
+  \datatool_pad_trailing_zeros:Nn #1 { #3 }
+}
+\NewDocumentCommand \dtltrunc { m m m }
+{
+  \fp_set:Nn \l__datatool_tmpa_fp { trunc ( #2, #3 ) }
+  \tl_set:Nx #1 { \fp_to_decimal:N \l__datatool_tmpa_fp }
+  \datatool_pad_trailing_zeros:Nn #1 { #3 }
+}
+\NewDocumentCommand \dtlclip { m m }
+{
+  \fp_set:Nn \l__datatool_tmpa_fp { #2 }
+  \tl_set:Nx #1 { \fp_to_decimal:N \l__datatool_tmpa_fp }
+}
+\NewDocumentCommand \dtlmin { m m m }
+{
+  \fp_set:Nn \l__datatool_tmpa_fp { min ( #2, #3 ) }
+  \tl_set:Nx #1 { \fp_use:N \l__datatool_tmpa_fp }
+}
+\NewDocumentCommand \dtlminall { m m }
+{
+  \fp_set:Nn \l__datatool_tmpa_fp { min ( #2 ) }
+  \tl_set:Nx #1 { \fp_use:N \l__datatool_tmpa_fp }
+}
+\NewDocumentCommand \dtlmax { m m m }
+{
+  \fp_set:Nn \l__datatool_tmpa_fp { max ( #2, #3 ) }
+  \tl_set:Nx #1 { \fp_use:N \l__datatool_tmpa_fp }
+}
+\NewDocumentCommand \dtlmaxall { m m }
+{
+  \fp_set:Nn \l__datatool_tmpa_fp { max ( #2 ) }
+  \tl_set:Nx #1 { \fp_use:N \l__datatool_tmpa_fp }
+}
+\NewDocumentCommand \dtlabs { m m }
+{
+  \fp_set:Nn \l__datatool_tmpa_fp { abs ( #2 ) }
+  \tl_set:Nx #1 { \fp_use:N \l__datatool_tmpa_fp }
+}
+\NewDocumentCommand \dtlneg {m m }
+{
+  \fp_set:Nn \l__datatool_tmpa_fp { - ( #2 ) }
+  \tl_set:Nx #1 { \fp_use:N \l__datatool_tmpa_fp }
+}
+\NewDocumentCommand \dtlmeanforall { m m }
+{
+  \fp_zero:N \l__datatool_total_fp
+  \int_zero:N \l__datatool_count_int
+  \exp_args:No \clist_map_inline:nn { #2 }
+    {
+      \int_incr:N \l__datatool_count_int
+      \fp_add:Nn \l__datatool_total_fp { ##1 }
+    }
+  \fp_set:Nn \l__datatool_mean_fp
+    { \l__datatool_total_fp / \l__datatool_count_int }
+  \tl_set:Nx #1 { \fp_use:N \l__datatool_mean_fp }
+}
+\NewDocumentCommand \dtlvarianceforall { o m m }
+{
+  \IfNoValueTF { #1 }
+  {
+    \fp_zero:N \l__datatool_total_fp
+    \int_zero:N \l__datatool_count_int
+    \exp_args:No \clist_map_inline:nn { #3 }
+      {
+        \int_incr:N \l__datatool_count_int
+        \fp_add:Nn \l__datatool_total_fp { ##1 }
+      }
+    \fp_set:Nn \l__datatool_mean_fp
+      { \l__datatool_total_fp / \l__datatool_count_int }
+    \fp_zero:N \l__datatool_total_fp
+    \exp_args:No \clist_map_inline:nn { #3 }
+      {
+        \fp_set:Nn \l__datatool_tmpa_fp
+          { ##1 - \l__datatool_mean_fp }
+        \fp_add:Nn \l__datatool_total_fp
+          { \l__datatool_tmpa_fp  * \l__datatool_tmpa_fp }
+      }
+  }
+  {
+    \fp_set:Nn { \l__datatool_mean_fp } { #1 }
+    \fp_zero:N \l__datatool_total_fp
+    \int_zero:N \l__datatool_count_int
+    \exp_args:No \clist_map_inline:nn { #3 }
+      {
+        \int_incr:N \l__datatool_count_int
+        \fp_set:Nn \l__datatool_tmpa_fp
+          { ##1 - \l__datatool_mean_fp }
+        \fp_add:Nn \l__datatool_total_fp
+          { \l__datatool_tmpa_fp  * \l__datatool_tmpa_fp }
+      }
+  }
+  \fp_set:Nn \l__datatool_tmpa_fp
+    { \l__datatool_total_fp / \l__datatool_count_int }
+  \tl_set:Nx #2 { \fp_use:N \l__datatool_tmpa_fp }
+}
+\NewDocumentCommand \dtlsdforall { o m m }
+{
+  \IfNoValueTF { #1 }
+  {
+    \fp_zero:N \l__datatool_total_fp
+    \int_zero:N \l__datatool_count_int
+    \exp_args:No \clist_map_inline:nn { #3 }
+      {
+        \int_incr:N \l__datatool_count_int
+        \fp_add:Nn \l__datatool_total_fp { ##1 }
+      }
+    \fp_set:Nn \l__datatool_mean_fp
+      { \l__datatool_total_fp / \l__datatool_count_int }
+    \fp_zero:N \l__datatool_total_fp
+    \exp_args:No \clist_map_inline:nn { #3 }
+      {
+        \fp_set:Nn \l__datatool_tmpa_fp
+          { ##1 - \l__datatool_mean_fp }
+        \fp_add:Nn \l__datatool_total_fp
+          { \l__datatool_tmpa_fp  * \l__datatool_tmpa_fp }
+      }
+  }
+  {
+    \fp_set:Nn \l__datatool_mean_fp { #1 }
+    \fp_zero:N \l__datatool_total_fp
+    \int_zero:N \l__datatool_count_int
+    \exp_args:No \clist_map_inline:nn { #3 }
+      {
+        \int_incr:N \l__datatool_count_int
+        \fp_set:Nn \l__datatool_tmpa_fp { ##1 - \l__datatool_mean_fp }
+        \fp_add:Nn \l__datatool_total_fp
+         { \l__datatool_tmpa_fp  * \l__datatool_tmpa_fp }
+      }
+  }
+  \fp_set:Nn \l__datatool_tmpa_fp
+    { sqrt ( \l__datatool_total_fp / \l__datatool_count_int ) }
+  \tl_set:Nx #2 { \fp_use:N \l__datatool_tmpa_fp }
+}
+\ExplSyntaxOff
+\endinput
+%%
+%% End of file `datatool-l3fp.def'.

@@ -1,0 +1,254 @@
+%%
+%% This is file `datatool-fp.def',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% datatool.dtx  (with options: `datatool-fp.def,package')
+%% 
+%%  datatool.dtx
+%%  Copyright 2025 Nicola Talbot
+%% 
+%%  This work may be distributed and/or modified under the
+%%  conditions of the LaTeX Project Public License, either version 1.3
+%%  of this license or (at your option) any later version.
+%%  The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%%  and version 1.3 or later is part of all distributions of LaTeX
+%%  version 2005/12/01 or later.
+%% 
+%%  This work has the LPPL maintenance status `maintained'.
+%% 
+%%  The Current Maintainer of this work is Nicola Talbot.
+%% 
+%%  This work consists of the files datatool.dtx and datatool.ins and the derived files datatool-base.sty, datatool-undetermined.ldf, datatool-latin1.ldf, datatool-utf8.ldf, datatool-l3fp.def, datatool-lua.def, datatool-fp.def, datatool-fp.sty, datatool-pgfmath.def, datatool-pgfmath.sty, datatool.sty, datagidx.sty, databib.sty, databar.sty, datapie.sty, dataplot.sty, person.sty, databib.bst, databar-2019-09-27.sty, databib-2019-09-27.sty, datagidx-2019-09-27.sty, datapie-2019-09-27.sty, dataplot-2019-09-27.sty, datatool-2019-09-27.sty, datatool-base-2019-09-27.sty, datatool-fp-2019-09-27.sty, datatool-pgfmath-2019-09-27.sty, person-2019-09-27.sty.
+%% 
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesFile{datatool-fp.def}[2025/12/04 v3.4.3 (NLCT)]
+\RequirePackage{fp}
+\ifFPmessages
+  \dtlverbosetrue
+\fi
+\newrobustcmd*{\dtlifnumeq}[4]{%
+  \FPifeq{#1}{#2}%
+    #3%
+  \else
+    #4%
+  \fi
+}
+\newrobustcmd*{\dtlifnumlt}[4]{%
+  \FPiflt{#1}{#2}%
+   #3%
+  \else
+   #4%
+  \fi
+}
+\newrobustcmd*{\dtlifnumgt}[4]{%
+  \FPifgt{#1}{#2}%
+   #3%
+  \else
+   #4%
+  \fi
+}
+\newrobustcmd*{\dtlifnumopenbetween}[5]{%
+  \let\@dtl@dovalue\relax
+  \dtlifnumgt{#1}{#2}%
+  {}%
+  {%
+    \def\@dtl@dovalue{#5}%
+  }%
+  \dtlifnumlt{#1}{#3}%
+  {%
+    \ifx\@dtl@dovalue\relax
+      \def\@dtl@dovalue{#4}%
+    \fi
+  }%
+  {%
+    \def\@dtl@dovalue{#5}%
+  }%
+  \@dtl@dovalue
+}
+\newrobustcmd*{\dtlifnumclosedbetween}[5]{%
+  \let\@dtl@dovalue\relax
+  \dtlifnumgt{#1}{#2}%
+  {}%
+  {%
+    \dtlifnumeq{#1}{#2}%
+    {%
+      \def\@dtl@dovalue{#4}%
+    }%
+    {%
+      \def\@dtl@dovalue{#5}%
+    }%
+  }%
+  \dtlifnumlt{#1}{#3}%
+  {%
+    \ifx\@dtl@dovalue\relax
+      \def\@dtl@dovalue{#4}%
+    \fi
+  }%
+  {%
+    \dtlifnumeq{#1}{#3}%
+    {%
+      \def\@dtl@dovalue{#4}%
+    }%
+    {%
+      \def\@dtl@dovalue{#5}%
+    }%
+  }%
+  \@dtl@dovalue
+}
+\NewDocumentCommand{\dtladd}{mmm}{%
+  \FPadd{#1}{#2}{#3}%
+}
+\NewDocumentCommand{\dtladdall}{mm}{%
+  \def#1{0}%
+  \@for\@dtl@tmp:=#2\do{%
+    \FPadd{#1}{#1}{\@dtl@tmp}%
+  }%
+}
+\NewDocumentCommand{\dtlsub}{mmm}{%
+  \FPsub{#1}{#2}{#3}%
+}
+\NewDocumentCommand{\dtlmul}{mmm}{%
+  \FPmul{#1}{#2}{#3}%
+}
+\NewDocumentCommand{\dtldiv}{mmm}{%
+  \FPdiv{#1}{#2}{#3}%
+}
+\NewDocumentCommand{\dtlsqrt}{mm}{%
+  \FProot{#1}{#2}{2}%
+}
+\NewDocumentCommand{\dtlroot}{mmm}{%
+  \FProot{#1}{#2}{#3}%
+}
+\NewDocumentCommand{\dtlround}{mmm}{%
+  \FPround{#1}{#2}{#3}%
+}
+\NewDocumentCommand{\dtltrunc}{mmm}{%
+  \FPtrunc{#1}{#2}{#3}%
+}
+\NewDocumentCommand{\dtlclip}{mm}{%
+  \FPclip{#1}{#2}%
+}
+\NewDocumentCommand{\dtlmin}{mmm}{%
+  \FPmin{#1}{#2}{#3}%
+}
+\NewDocumentCommand{\dtlminall}{mm}{%
+  \let#1\empty
+  \@for\@dtl@tmp:=#2\do{%
+    \ifx\empty
+     \let#1\@dtl@tmp
+    \else
+     \FPmin#1{#1}{\@dtl@tmp}%
+    \fi
+  }%
+}
+\NewDocumentCommand{\dtlmax}{mmm}{%
+  \FPmax{#1}{#2}{#3}%
+}
+\NewDocumentCommand{\dtlmaxall}{mm}{%
+  \let#1\empty
+  \@for\@dtl@tmp:=#2\do{%
+    \ifx\empty
+     \let#1\@dtl@tmp
+    \else
+     \FPmax#1{#1}{\@dtl@tmp}%
+    \fi
+  }%
+}
+\NewDocumentCommand{\dtlabs}{mm}{%
+  \FPabs{#1}{#2}%
+}
+\NewDocumentCommand{\dtlneg}{mm}{%
+  \FPneg{#1}{#2}%
+}
+\NewDocumentCommand{\dtlmeanforall}{mm}{%
+  \def#1{0}%
+  \count@=0\relax
+  \@for\@dtl@tmp:=#2\do{%
+    \advance\count@ by \@ne
+    \FPadd{#1}{#1}{\@dtl@tmp}%
+  }%
+  \FPdiv{#1}{#1}{\number\count@}%
+}
+\NewDocumentCommand{\dtlvarianceforall}{omm}{%
+  \IfNoValueTF{#1}%
+  {%
+    \def\@dtl@mean{0}%
+    \count@=0\relax
+    \@for\@dtl@tmp:=#3\do{%
+      \advance\count@ by \@ne
+      \FPadd{\@dtl@mean}{\@dtl@mean}{\@dtl@tmp}%
+    }%
+    \FPdiv{\@dtl@mean}{\@dtl@mean}{\number\count@}%
+    \def#2{0}%
+    \@for\@dtl@tmp:=#3\do{%
+      \FPsub{\@dtl@tmp}{\@dtl@tmp}{\@dtl@mean}%
+      \FPmul{\@dtl@tmp}{\@dtl@tmp}{\@dtl@tmp}%
+      \FPadd{#2}{#2}{\@dtl@tmp}%
+    }%
+    \FPdiv{#2}{#2}{\number\count@}%
+  }%
+  {%
+    \def\@dtl@mean{#1}%
+    \count@=0\relax
+    \def#2{0}%
+    \@for\@dtl@tmp:=#3\do{%
+      \advance\count@ by \@ne
+      \FPsub{\@dtl@tmp}{\@dtl@tmp}{\@dtl@mean}%
+      \FPmul{\@dtl@tmp}{\@dtl@tmp}{\@dtl@tmp}%
+      \FPadd{#2}{#2}{\@dtl@tmp}%
+    }%
+    \FPdiv{#2}{#2}{\number\count@}%
+  }%
+}
+\NewDocumentCommand{\dtlsdforall}{omm}{%
+  \IfNoValueTF{#1}%
+  {%
+    \def\@dtl@mean{0}%
+    \count@=0\relax
+    \@for\@dtl@tmp:=#3\do{%
+      \advance\count@ by \@ne
+      \FPadd{\@dtl@mean}{\@dtl@mean}{\@dtl@tmp}%
+    }%
+    \FPdiv{\@dtl@mean}{\@dtl@mean}{\number\count@}%
+    \def#2{0}%
+    \@for\@dtl@tmp:=#3\do{%
+      \FPsub{\@dtl@tmp}{\@dtl@tmp}{\@dtl@mean}%
+      \FPmul{\@dtl@tmp}{\@dtl@tmp}{\@dtl@tmp}%
+      \FPadd{#2}{#2}{\@dtl@tmp}%
+    }%
+  }%
+  {%
+    \def\@dtl@mean{#1}%
+    \count@=0\relax
+    \def#2{0}%
+    \@for\@dtl@tmp:=#3\do{%
+      \advance\count@ by \@ne
+      \FPsub{\@dtl@tmp}{\@dtl@tmp}{\@dtl@mean}%
+      \FPmul{\@dtl@tmp}{\@dtl@tmp}{\@dtl@tmp}%
+      \FPadd{#2}{#2}{\@dtl@tmp}%
+    }%
+  }%
+  \FPdiv{#2}{#2}{\number\count@}%
+  \FProot{#2}{#2}{2}%
+}
+\endinput
+%%
+%% End of file `datatool-fp.def'.

@@ -1,0 +1,66 @@
+%%
+%% This is file `listings-bash.prf',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% lstdrvrs.dtx  (with options: `bash-prf')
+%% 
+%% The listings package is copyright 1996--2004 Carsten Heinz, and
+%% continued maintenance on the package is copyright 2006--2007 Brooks
+%% Moses. From 2013 on the maintenance is done by Jobst Hoffmann.
+%% The drivers are copyright 1997/1998/1999/2000/2001/2002/2003/2004/2006/
+%% 2007/2013 any individual author listed in this file.
+%%
+%% This file is distributed under the terms of the LaTeX Project Public
+%% License from CTAN archives in directory  macros/latex/base/lppl.txt.
+%% Either version 1.3c or, at your option, any later version.
+%%
+%% This file is completely free and comes without any warranty.
+%%
+%% Send comments and ideas on the package, error reports and additional
+%% programming languages to Jobst Hoffmann at <j.hoffmann@fh-aachen.de>.
+%%
+\ProvidesFile{listings-bash.prf}
+    [2025/11/14 1.11b listings language file]
+\usepackage[rgb, x11names]{xcolor}
+
+\lstset{%
+  frame=tlb,%      the frame is open on the right side
+  resetmargins=false,%
+  rulesepcolor=\color{black},%
+  numbers=left,%                % left
+  numberstyle=\tiny,%
+  numbersep=5pt,%
+  firstnumber=1,%
+  stepnumber=5,%
+  columns=fixed,%               % to prevent inserting spaces
+  fontadjust=true,%
+  keepspaces=true,%
+  basewidth=0.5em,%
+  captionpos=t,%
+  abovecaptionskip=\smallskipamount,% same amount as default
+  belowcaptionskip=\smallskipamount,% in caption package
+}
+\lstdefinestyle{bash}{%
+  backgroundcolor=\color{yellow!10},%
+  basicstyle=\small\ttfamily,%
+  identifierstyle=\color{black},%
+  keywordstyle=\color{blue},%
+  keywordstyle={[2]\color{cyan}},%
+  keywordstyle={[3]\color{olive}},%
+  stringstyle=\color{teal},%
+  commentstyle=\itshape\color{orange},%
+}%
+\lstdefinestyle{bashbw}{%
+  backgroundcolor={},%
+  basicstyle=\small\ttfamily,%
+  identifierstyle={},%
+  keywordstyle=\bfseries,%
+  stringstyle=\itshape,%
+  commentstyle=\slshape,%
+  rulesepcolor=\color{black},%
+}%
+\endinput
+%%
+%% End of file `listings-bash.prf'.

@@ -1,0 +1,359 @@
+\ProvidesFile{blx-compat.def}
+[\abx@cptid]
+
+% LaTeX
+
+\AtBeginDocument{%
+  \renewrobustcmd*{\bibliography}[1]{%
+    \blx@error
+      {'\string\bibliography' invalid}
+      {Use '\string\addbibresource' instead.\MessageBreak
+       I'm ignoring this command}}}
+
+\renewrobustcmd*{\bibliographystyle}[1]{%
+  \blx@error
+    {'\string\bibliographystyle' invalid}
+    {Use the package option 'style' instead.\MessageBreak
+     I'm ignoring this command}}
+
+% standard classes
+
+\DeclareOption{openbib}{\ExecuteBibliographyOptions{block=par}}
+
+% biblatex <0.9b
+
+\DeclareBibliographyOption[boolean]{defernums}[true]{%
+  \ExecuteBibliographyOptions{defernumbers=#1}}
+
+\providecommand*{\lbx@fromlang}{%
+  \iffieldundef{origlanguage}
+    {\unspace}
+    {\bibstring{from\thefield{origlanguage}}}}
+
+% memoir
+
+\ifdef\ifnobibintoc
+  {\newcommand*{\ifmemoirbibintoc}{\notbool{nobibintoc}}}
+  {\newcommand{\ifmemoirbibintoc}[2]{#2}}
+
+% KOMA-Script
+
+\newcommand{\ifkomabibtotoc}[2]{#2}
+\newcommand{\ifkomabibtotocnumbered}[2]{#2}
+
+\ifdef\ds@bibtotoc
+  {% xkeyval breaks inheritance of key=value class options
+   \ifdef\XKV@classoptionslist
+     {\let\blx@classoptionslist\@classoptionslist
+      \let\@classoptionslist\XKV@classoptionslist
+      \AtEndOfPackage{\let\@classoptionslist\blx@classoptionslist}}
+     {}%
+   \DeclareOption{bibtotoc}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@secondoftwo}%
+   \DeclareOption{bibtotocnumbered}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@firstoftwo}%
+   \DeclareOption{bibliography=notoc}{%
+     \let\ifkomabibtotoc=\@secondoftwo
+     \let\ifkomabibtotocnumbered=\@secondoftwo}%
+   \DeclareOption{bibliography=nottotoc}{%
+     \let\ifkomabibtotoc=\@secondoftwo
+     \let\ifkomabibtotocnumbered=\@secondoftwo}%
+   \DeclareOption{bibliography=plainheading}{%
+     \let\ifkomabibtotoc=\@secondoftwo
+     \let\ifkomabibtotocnumbered=\@secondoftwo}%
+   \DeclareOption{bibliography=totoc}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@secondoftwo}%
+   \DeclareOption{bibliography=toc}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@secondoftwo}%
+   \DeclareOption{bibliography=notnumbered}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@secondoftwo}%
+   \DeclareOption{bibliography=numbered}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@firstoftwo}%
+   \DeclareOption{bibliography=totocnumbered}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@firstoftwo}%
+   \DeclareOption{bibliography=tocnumbered}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@firstoftwo}%
+   \DeclareOption{bibliography=numberedtotoc}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@firstoftwo}%
+   \DeclareOption{bibliography=numberedtoc}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@firstoftwo}%
+   \DeclareOption{bibliography=oldstyle}{%
+     \ExecuteBibliographyOptions{block=space}}%
+   \DeclareOption{bibliography=openstyle}{%
+     \ExecuteBibliographyOptions{block=par}}%
+   \DeclareOption{toc=bib}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@secondoftwo}%
+   \DeclareOption{toc=bibliography}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@secondoftwo}%
+   \DeclareOption{toc=nobib}{%
+     \let\ifkomabibtotoc=\@secondoftwo
+     \let\ifkomabibtotocnumbered=\@secondoftwo}%
+   \DeclareOption{toc=nobibliography}{%
+     \let\ifkomabibtotoc=\@secondoftwo
+     \let\ifkomabibtotocnumbered=\@secondoftwo}%
+   \DeclareOption{toc=bibnumbered}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@firstoftwo}%
+   \DeclareOption{toc=numberedbib}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@firstoftwo}%
+   \DeclareOption{toc=bibliographynumbered}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@firstoftwo}%
+   \DeclareOption{toc=numberedbibliography}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@firstoftwo}}
+  {}
+
+% biblatex <1.6
+
+\blx@kv@defkey{blx@bib}{maxnames}{\blx@warn@depropt{maxnames}}
+\blx@kv@defkey{blx@los}{maxnames}{\blx@warn@depropt{maxnames}}
+\blx@kv@defkey{blx@bbs}{maxnames}{\blx@warn@depropt{maxnames}}
+\blx@kv@defkey{blx@bbg}{maxnames}{\blx@warn@depropt{maxnames}}
+\blx@kv@defkey{blx@bbc}{maxnames}{\blx@warn@depropt{maxnames}}
+
+\blx@kv@defkey{blx@bib}{minnames}{\blx@warn@depropt{minnames}}
+\blx@kv@defkey{blx@los}{minnames}{\blx@warn@depropt{minnames}}
+\blx@kv@defkey{blx@bbs}{minnames}{\blx@warn@depropt{minnames}}
+\blx@kv@defkey{blx@bbg}{minnames}{\blx@warn@depropt{minnames}}
+\blx@kv@defkey{blx@bbc}{minnames}{\blx@warn@depropt{minnames}}
+
+\blx@kv@defkey{blx@bib}{maxitems}{\blx@warn@depropt{maxitems}}
+\blx@kv@defkey{blx@los}{maxitems}{\blx@warn@depropt{maxitems}}
+\blx@kv@defkey{blx@bbs}{maxitems}{\blx@warn@depropt{maxitems}}
+\blx@kv@defkey{blx@bbg}{maxitems}{\blx@warn@depropt{maxitems}}
+\blx@kv@defkey{blx@bbc}{maxitems}{\blx@warn@depropt{maxitems}}
+
+\blx@kv@defkey{blx@bib}{minitems}{\blx@warn@depropt{minitems}}
+\blx@kv@defkey{blx@los}{minitems}{\blx@warn@depropt{minitems}}
+\blx@kv@defkey{blx@bbs}{minitems}{\blx@warn@depropt{minitems}}
+\blx@kv@defkey{blx@bbg}{minitems}{\blx@warn@depropt{minitems}}
+\blx@kv@defkey{blx@bbc}{minitems}{\blx@warn@depropt{minitems}}
+
+% Legacy alias for \printshorthands
+\def\printshorthands{%
+  \@ifnextchar[%]
+    {\blx@printshorthands}
+    {\blx@printshorthands[]}}
+
+\def\blx@printshorthands[#1]{\printbiblist[{#1}]{shorthand}}
+
+% Legacy aliases
+\def\AtBeginShorthands{\AtBeginBiblist{shorthand}}
+\def\AtEveryLositem{\AtEveryBiblistitem{shorthand}}
+\@onlypreamble\AtBeginShorthands
+\@onlypreamble\AtEveryLositem
+
+\let\frangelen\rangelen % Legacy name for \rangelen
+
+\DeclareBibliographyOption[string]{sortlos}{%
+  \blx@warning@noline{%
+    'sortlos' option is deprecated.\MessageBreak
+    Please use 'sorting' option to '\string\printbiblist'}}
+
+\blx@kv@defkey{blx@bib1}{sorting}{%
+  \blx@warning@noline{%
+    'sorting' option to '\string\printbibliography' is no longer supported.\MessageBreak
+    Please use 'sorting' option to '\string\newrefcontext'}}
+
+\blx@kv@defkey{blx@biblist1}{sorting}{%
+  \blx@warning@noline{%
+    'sorting' option to '\string\printbiblist' is no longer supported.\MessageBreak
+    Please use 'sorting' option to '\string\newrefcontext'}}
+
+\blx@kv@defkey{blx@bib2}{prefixnumbers}{%
+  \blx@warning@noline{%
+    'prefixnumbers' option to '\string\printbibliography' is no longer supported.\MessageBreak
+    Please use 'labelprefix' option to '\string\newrefcontext'}}
+
+
+\DeclareBibliographyOption[string]{babel}{%
+  \blx@warning@noline{%
+    'babel' option is deprecated.\MessageBreak
+    Please use 'autolang' instead}%
+  \blx@autolang@i{#1}}
+
+\DeclareTypeOption[boolean]{skiplos}{%
+  \blx@warning@noline{%
+    skiplos option is deprecated.\MessageBreak
+    Please use 'skipbiblist' instead}%
+  \settoggle{blx@skipbiblist}{#1}}
+\DeclareEntryOption[boolean]{skiplos}{%
+  \blx@warning@noline{%
+    skiplos option is deprecated.\MessageBreak
+    Please use 'skipbiblist' instead}%
+  \settoggle{blx@skipbiblist}{#1}}
+
+% Legacy options moved to \namepart in \DeclareLabelalphaNameTemplate
+\blx@kv@defkey{blx@latem@field}{compound}{% deprecated
+  \blx@warning@noline{%
+    Ignored 'compound' option to '\string\field' in '\string\DeclareLabelalphaNameTemplate'\MessageBreak
+    This is now the 'compound' option of '\string\namepart\space' in\MessageBreak
+    '\string\DeclareLabelalphaNameTemplate'}}
+\blx@kv@defkey{blx@latem@field}{pcompound}{% deprecated
+  \blx@warning@noline{%
+    Ignored 'pcompound' option to '\string\field' in '\string\DeclareLabelalphaNameTemplate'\MessageBreak
+    This is now the 'compound' option of '\string\namepart' in\MessageBreak
+    '\string\DeclareLabelalphaNameTemplate'}}
+\blx@kv@defkey{blx@latem@field}{pstrwidth}{% deprecated
+  \blx@warning@noline{%
+    Ignored 'pstrwidth' option to '\string\field' in '\string\DeclareLabelalphaNameTemplate'\MessageBreak
+    This is now the 'strwidth' option of '\string\namepart' in\MessageBreak
+    '\string\DeclareLabelalphaNameTemplate'}}
+
+%LEGACY(<3.3) legacy name for \ifgiveninits which is autogenerated now
+\def\iffirstinits{
+  \blx@warning@noline{%
+    '\string\iffirstinits' is deprecated.\MessageBreak
+    Please use '\string\ifgiveninits'}%
+  \iftoggle{abx@bool@giveninits}}
+
+% Legacy for giveninits
+\DeclareBibliographyOption[boolean]{firstinits}[true]{%
+  \blx@warning@noline{%
+    'firstinits' option is deprecated.\MessageBreak
+    Please use 'giveninits' instead}%
+  \settoggle{abx@bool@giveninits}{#1}}
+
+% Legacy for sortfirstinits/sortgiveninits
+\DeclareBibliographyOption[boolean]{sortfirstinits}[true]{%
+  \blx@warning@noline{%
+    'sortfirstinits' option is deprecated.\MessageBreak
+    Please use 'inits' option to '\string\namepart\space'\MessageBreak
+    in '\string\DeclareSortingNamekeyTemplate'}}
+\DeclareBibliographyOption[boolean]{sortgiveninits}{%
+  \blx@warning@noline{%
+    'sortgiveninits' option is deprecated.\MessageBreak
+    Please use 'inits' option to '\string\namepart'\MessageBreak
+    in '\string\DeclareSortingNamekeyTemplate' instead}}
+
+\blx@kv@defkey{blx@refcontext}{prefixnumbers}{%LEGACY(<3.3)
+  \blx@warning@noline{%
+    prefixnumbers option to '\string\newrefcontext' has been renamed.\MessageBreak
+    Please use 'labelprefix' option instead}%
+  \blx@kv@setkeys{blx@refcontext}{labelprefix=#1}}
+
+% biblatex < 3.4
+\blx@kv@defkey{blx@bib1}{prefixnumbers}{}%LEGACY(<3.4) legacy name for labelprefix
+\DeprecateFieldWithReplacement{prefixnumber}{labelprefix}
+\DeclareFieldAlias{prefixnumber}{labelprefix}
+
+% biblatex < 3.5
+\DeclareBibliographyOption[string]{datelabel}{%
+  \blx@warning@noline{%
+    'datelabel' option is deprecated.\MessageBreak
+    Please use 'labeldate' instead}%
+  \blx@kv@setkeys{blx@opt@pre}{labeldate=#1}}
+
+\DeclareBibliographyOption[boolean]{labelyear}[true]{%
+  \blx@warning@noline{%
+    'labelyear' option is deprecated.\MessageBreak
+    Please use 'labeldateparts' instead}%
+  \settoggle{blx@labeldateparts}{#1}}
+\DeclareTypeOption[boolean]{labelyear}[true]{%
+  \blx@warning@noline{%
+    'labelyear' option is deprecated.\MessageBreak
+    Please use 'labeldateparts' instead}%
+  \settoggle{blx@labeldateparts}{#1}}
+
+\protected\def\mkdatezeros{%
+  \blx@warning@noline{%
+    '\string\mkdatezeros' is deprecated.\MessageBreak
+    Please use '\string\mkyearzeros', '\string\mkmonthzeros' or\MessageBreak
+    '\string\mkdayzeros' as appropriate. \MessageBreak
+    Falling back to '\string\mkmonthzeros'}%
+  \mkmonthzeros}
+
+\protected\def\printdatelabel{%
+  \blx@warning@noline{%
+    '\string\printdatelabel' is deprecated.\MessageBreak
+    Please use '\string\printlabeldate'}%
+  \blx@imc@printlabeldate}
+
+\protected\def\printdatelabelextra{%
+  \blx@warning@noline{%
+    '\string\printdatelabelextra' is deprecated.\MessageBreak
+    Please use '\string\printlabeldateextra'}%
+  \blx@imc@printlabeldateextra}
+
+\newrobustcmd*{\DeclareLabelyear}[2][]{%
+  \blx@warning@noline{%
+    'DeclareLabelyear' is deprecated.\MessageBreak
+    Please use 'DeclareLabeldate'}}
+
+\csdef{mkdaterangeiso8601}{%
+  \blx@warning@noline{%
+    '\string\mkdaterangeiso8601' is deprecated.\MessageBreak
+    Please use '\string\mkdaterangeiso'}%
+  \mkdaterangeiso}
+
+\csdef{mkdaterangeiso8601extra}{%
+  \blx@warning@noline{%
+    '\string\mkdaterangeiso8601extra' is deprecated.\MessageBreak
+    Please use '\string\mkdaterangeisoextra'}%
+  \mkdaterangeisoextra}
+
+% biblatex < 3.8
+\blx@kv@defkey{blx@refcontext}{sortingnamekeyscheme}{%
+  \blx@warning@noline{'sortingnamekeyscheme' is deprecated.\MessageBreak
+    Please use 'sortingnamekeytemplatename' instead}%
+  \gdef\blx@refcontext@sortingnamekeytemplatename{#1}}
+
+\blx@kv@defkey{blx@assignrefcontext}{sortingnamekeyscheme}{%
+  \blx@warning@noline{'sortingnamekeyscheme' is deprecated.\MessageBreak
+    Please use 'sortingnamekeytemplatename' instead}%
+  \def\blx@tempb{#1}}
+
+\def\DeclareSortingScheme{%
+  \blx@warning@noline{%
+    '\string\DeclareSortingScheme' is deprecated.\MessageBreak
+    Please use '\string\DeclareSortingTemplate'}%
+  \DeclareSortingTemplate}
+
+\def\DeclareSortingNamekeyScheme{%
+  \blx@warning@noline{%
+    '\string\DeclareSortingNamekeyScheme' is deprecated.\MessageBreak
+    Please use '\string\DeclareSortingNamekeyTemplate'}%
+  \DeclareSortingNamekeyTemplate}
+
+\def\ifsortnamekeyscheme#1{%
+  \blx@warning@noline{%
+    '\string\ifsortnamekeyscheme' is deprecated in sorting specifications.\MessageBreak
+    Please use '\string\ifsortingnamekeytemplate'}%
+  \expandafter\ifstrequal\expandafter{\blx@refcontext@sortingnamekeytemplatename}{#1}}
+
+\DeprecateFieldWithReplacement{extrayear}{extradate}
+\DeclareFieldAlias{extrayear}{extradate}
+
+% EDTF -> ISO
+\def\mkdaterangeedtf{%
+  \blx@warning@noline{%
+    '\string\mkdaterangeedtf' is deprecated.\MessageBreak
+    Please use '\string\mkdaterangeiso'}%
+  \mkdaterangeiso}
+
+\def\mkdaterangeedtfextra{%
+  \blx@warning@noline{%
+    '\string\mkdaterangeedtfextra' is deprecated.\MessageBreak
+    Please use '\string\mkdaterangeisoextra'}%
+  \mkdaterangeisoextra}
+
+% 3.16
+% deprecate \mainlang for \textmainlang
+% and \mkrelatedstring for \mkrelatedstringtext
+\newcommand{\mkrelatedstring}{\mainlang}
+
+\endinput

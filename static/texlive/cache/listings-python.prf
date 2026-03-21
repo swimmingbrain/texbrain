@@ -1,0 +1,52 @@
+%%
+%% This is file `listings-python.prf',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% lstdrvrs.dtx  (with options: `python-prf')
+%% 
+%% The listings package is copyright 1996--2004 Carsten Heinz, and
+%% continued maintenance on the package is copyright 2006--2007 Brooks
+%% Moses. From 2013 on the maintenance is done by Jobst Hoffmann.
+%% The drivers are copyright 1997/1998/1999/2000/2001/2002/2003/2004/2006/
+%% 2007/2013 any individual author listed in this file.
+%%
+%% This file is distributed under the terms of the LaTeX Project Public
+%% License from CTAN archives in directory  macros/latex/base/lppl.txt.
+%% Either version 1.3c or, at your option, any later version.
+%%
+%% This file is completely free and comes without any warranty.
+%%
+%% Send comments and ideas on the package, error reports and additional
+%% programming languages to Jobst Hoffmann at <j.hoffmann@fh-aachen.de>.
+%%
+\ProvidesFile{listings-python.prf}
+    [2025/11/14 1.11b listings language file]
+\usepackage{xcolor}
+\usepackage{textcomp}
+
+%% Actual colors from idlelib/config-highlight.def
+%%     --> corrected to ``web-safe''
+%% Unimplemented IDLE syntax: function/class names being
+%% defined should be blue
+%% strings  = #00aa00 / 0,170,0      (a darker green)
+%% builtins = #900090 / 144,0,144    (purple-ish)
+%% keywords = #FF7700 / 255,119,0    (quite close to plain `orange')
+%% Corrected to ``web-safe''
+\definecolor{purple2}{RGB}{153,0,153} % there's actually no standard purple
+\definecolor{green2}{RGB}{0,153,0} % a darker green
+
+\lstdefinestyle{python-idle-code}{%
+  language=Python,                   % the language
+  basicstyle=\normalsize\ttfamily,   % size of the fonts for the code
+  % Color settings to match IDLE style
+  keywordstyle=\color{orange},       % core keywords
+  keywordstyle={[2]\color{purple2}}, % built-ins
+  stringstyle=\color{green2},%
+  commentstyle=\color{red},%
+  upquote=true,                      % requires textcomp
+}
+\endinput
+%%
+%% End of file `listings-python.prf'.

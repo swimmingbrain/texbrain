@@ -1,0 +1,20 @@
+% This file is part of babel. For further details see:
+% https://www.ctan.org/pkg/babel
+\ifx\BabelBeforeIni\undefined
+  \PackageError{babel}%
+    {This file is a component of babel and cannot\MessageBreak
+     be loaded directly. I'll stop immediately}%
+    {Just use babel as documented.}%
+  \stop
+\fi
+\BabelBeforeIni{ru}{%
+  \expandafter\def\csname bbl@preini@russianb\endcsname{%
+    \csname bbl@error\endcsname{invalid-ini-name}{russianb}{russian}{}%
+    }%
+  \BabelDefinitionFile{0}{russian}{%
+    \PackageWarning{babel}{%
+      Name 'russianb' is deprecated.\MessageBreak
+      Use 'russian' instead.\MessageBreak
+      Reported}}%
+}
+\endinput

@@ -1,0 +1,1282 @@
+%%
+%% This is file `microtype-luatex.def',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% microtype.dtx  (with options: `luatex-def')
+%% 
+%% ------------------------------------------------------------------------
+%% 
+%%                       The `microtype' package
+%%         Subliminal refinements towards typographical perfection
+%%           Copyright (c) 2004--2021 R Schlicht <w.m.l@gmx.net>
+%% 
+%% This work may be distributed and/or modified under the conditions of the
+%% LaTeX Project Public License, either version 1.3c of this license or (at
+%% your option) any later version. The latest version of this license is in:
+%% http://www.latex-project.org/lppl.txt, and version 1.3c or later is part
+%% of all distributions of LaTeX version 2005/12/01 or later.
+%% 
+%% This work has the LPPL maintenance status `author-maintained'.
+%% 
+%% This work consists of the files microtype.dtx and microtype.ins and the
+%% derived files microtype.sty, microtype-pdftex.def, microtype-luatex.def,
+%% microtype-xetex.def, microtype.lua and letterspace.sty.
+%% 
+%% ------------------------------------------------------------------------
+%%   This file contains enginge-specific definitions.
+%% ------------------------------------------------------------------------ 
+%%
+\ProvidesFile
+  {microtype-luatex.def}
+  [2021/03/14 v2.8c
+   Definitions specific to
+   luatex
+   (RS)]
+\let\MT@lua\directlua
+\def\MT@luatex@no{6}
+\ifnum\luatexversion<110
+  \def\MT@luatex@no{5}
+  \ifnum\luatexversion<90
+    \def\MT@luatex@no{4}
+    \ifnum\luatexversion<85
+      \def\MT@luatex@no{3}
+      \ifnum\luatexversion<62
+        \def\MT@luatex@no{2}
+        \ifnum\luatexversion<36
+          \def\MT@lua{\directlua0}
+          \def\MT@luatex@no{1}
+        \fi
+      \fi
+    \fi
+  \fi
+\fi
+\def
+  \MT@requires@luatex%
+  #1{\ifnum
+  \MT@luatex@no
+    <#1 \expandafter\@secondoftwo\else\expandafter\@firstoftwo\fi}
+\@ifl@t@r\fmtversion{2016/01/01}\relax{\RequirePackage{luatexbase}}
+\@ifl@t@r\fmtversion{2017/01/01}\relax{\RequirePackage{luaotfload}}
+\MT@lua{require("microtype")}
+\MT@requires@luatex6{\let\MT@glet\glet}\relax
+\def\MT@ifint#1{\csname\MT@lua{microtype.if_int([[#1]])}\endcsname}
+\def\MT@ifdimen#1{\csname\MT@lua{microtype.if_dimen([[#1]])}\endcsname}
+\def\MT@ifstreq#1#2{\csname\MT@lua{microtype.if_str_eq([[#1]],[[#2]])}\endcsname}
+\def\MT@if@luaotf@font{\csname\MT@lua{%
+  microtype.if_luaotf_font()
+ }\endcsname
+}
+\def\MT@do@font#1{%
+  \MT@if@luaotf@font{%
+    \def\MT@dofont@function{#1}%
+    \MT@lua{microtype.do_font()}%
+  }{\MT@while@num\z@\@cclvi{#1}}%
+}
+  \def\MT@ledmac@setup{%
+    \ifMT@protrusion
+      \MT@ifdefined@c@TF\l@dunhbox@line{%
+        \MT@info@nl{Patching ((r)e)ledmac to enable character protrusion}%
+        \let\MT@led@unhbox@line\l@dunhbox@line
+        \renewcommand*{\l@dunhbox@line}[1]{%
+          \ifhbox##1%
+            \kern\leftmarginkern##1%
+            \expandafter\MT@led@unhbox@line\expandafter##1\expandafter
+            \kern\rightmarginkern##1%
+          \fi
+        }%
+      }{%
+        \MT@warning@nl{%
+          Character protrusion in paragraphs with line\MessageBreak
+          numbering will only work if you update ledmac,\MessageBreak
+          or use one of its successors, eledmac or reledmac}%
+      }%
+    \fi
+  }
+\def\MT@setupfont{%
+  \MT@font
+  \MT@setupfont@hook}
+\g@addto@macro\MT@setupfont\MT@copy@font
+\g@addto@macro\MT@setupfont{%
+  \MT@exp@two@c\MT@split@name\string\MT@font/\@nil
+  \MT@exp@one@n\MT@find@file\MT@family
+  \ifx\MT@familyalias\@empty \else
+    \MT@exp@one@n\MT@find@file\MT@familyalias\fi
+}
+\MT@requires@luatex3
+  {\g@addto@macro\MT@setupfont\MT@tracking}\relax
+\g@addto@macro\MT@setupfont{%
+  \MT@check@font
+  \ifMT@inlist@
+  \else
+    \MT@vinfo{Setting up font `\MT@@font'\on@line}%
+    \MT@info@notracking
+  \MT@protrusion
+  \MT@expansion
+}
+\g@addto@macro\MT@setupfont\MT@noligatures
+\g@addto@macro\MT@setupfont{%
+    \MT@register@font
+  \fi
+}
+\let\MT@copy@font\relax
+\def\MT@copy@font@{%
+  \xdef\MT@font@copy{\csname\MT@@font/\MT@pr@context/\MT@ex@context\endcsname}%
+  \expandafter\ifx\MT@font@copy\relax
+    \edef\MT@font@orig{\csname\expandafter\string\font@name @orig\endcsname}%
+    \expandafter\ifx\MT@font@orig\relax
+      \MT@exp@two@c\MT@glet\MT@font@orig\font@name
+    \else
+      \MT@exp@two@c\let\font@name\MT@font@orig
+    \fi
+    \MT@exp@two@c\MT@lua@copyfont\meaning\font@name\@nil
+    \MT@map@clist@c\MT@active@features{%
+      \MT@exp@cs\ifx{MT@\@nameuse{MT@abbr@##1}}\relax\else
+        \def\@tempa{##1}%
+        \MT@exp@cs\MT@map@tlist@c{MT@##1@doc@contexts}\MT@rem@from@list
+      \fi
+    }%
+  \fi
+  \MT@exp@two@c\let\MT@font\MT@font@copy
+  \let\font@name\MT@font@copy
+  \aftergroup\let\aftergroup\font@name\aftergroup\MT@font@copy
+}
+\def\MT@rem@from@list#1{%
+  \MT@exp@cs\ifx{MT@\@tempa @#1font@list}\relax\else
+    \expandafter\MT@exp@one@n\expandafter\MT@rem@from@clist\expandafter
+       \MT@font \csname MT@\@tempa @#1font@list\endcsname
+  \fi
+}
+\def\MT@lua@copyfont #1 #2 #3\@nil{%
+  \global\expandafter\font\MT@font@copy=#3\relax}
+\def\MT@fix@fontdimen@six{%
+  \ifnum\fontdimen6\MT@font=\z@
+    \fontdimen6\MT@font=%
+      \MT@requires@luatex4{\pdffeedback fontsize}{\pdffontsize}\MT@font
+    \MT@info{Fixing zero \string\fontdimen 6 for font `\MT@@font'\MessageBreak
+             (new value: \the\fontdimen6\MT@font)}%
+    \MT@glet@nc{\MT@@font-fake6}\@empty
+  \fi
+  \edef\MT@dimen@six{\number\fontdimen6\MT@font}%
+}
+\def\MT@protrusion{\MT@maybe@do{pr}}
+\def\MT@set@pr@codes{%
+  \MT@nofamilyfalse
+  \MT@if@list@exists{%
+    \ifMT@nofamily
+      \MT@ifdefined@n@TF{\MT@encoding-\MT@family-settings}\relax{%
+        \MT@info@nl{Loading generic protrusion settings for font family\MessageBreak
+                    `\MT@family' (encoding: \MT@encoding).\MessageBreak
+                    For optimal results, create family-specific settings.\MessageBreak
+                    See the microtype manual for details}%
+        \MT@glet@nc{\MT@encoding-\MT@family-settings}\@empty
+      }%
+    \fi
+    \MT@get@opt
+    \MT@reset@pr@codes
+    \MT@get@inh@list
+    \MT@set@inputenc{c}%
+    \MT@load@list\MT@pr@c@name
+    \MT@set@listname
+    \MT@let@cn\@tempc{MT@pr@c@\MT@pr@c@name}%
+    \expandafter\MT@set@codes\@tempc,\relax,%
+  }\MT@reset@pr@codes
+}
+\def\MT@set@all@pr#1#2{%
+  \let\MT@temp\@empty
+  \MT@ifempty{#1}\relax{\g@addto@macro\MT@temp{\lpcode\MT@font\@tempcnta=#1}}%
+  \MT@ifempty{#2}\relax{\g@addto@macro\MT@temp{\rpcode\MT@font\@tempcnta=#2}}%
+  \MT@do@font\MT@temp
+}
+\def\MT@reset@pr@codes@{\MT@set@all@pr\z@\z@}
+\let\MT@reset@pr@codes\relax
+\def\MT@the@pr@code{\@tempcntb}
+\MT@requires@luatex3
+  {\def\MT@the@pr@code@tr{%
+    \numexpr\@tempcntb+\MT@letterspace@/2\relax
+  }
+}\relax
+\def\MT@set@codes#1,{%
+  \ifx\relax#1\@empty\else
+    \MT@split@codes #1==\relax
+    \expandafter\MT@set@codes
+  \fi
+}
+\def\MT@split@codes#1=#2=#3\relax{%
+  \def\@tempa{#1}%
+  \ifx\@tempa\@empty \else
+    \MT@get@slot
+    \ifnum\MT@char > \m@ne
+      \MT@get@char@unit
+      \csname MT@\MT@feat @split@val\endcsname#2\relax
+    \fi
+  \fi
+}
+\def\MT@pr@split@val#1,#2\relax{%
+  \def\@tempb{#1}%
+  \MT@ifempty\@tempb\relax{%
+    \MT@scale@to@em
+    \lpcode\MT@font\MT@char=\MT@the@pr@code
+  }%
+  \def\@tempb{#2}%
+  \MT@ifempty\@tempb\relax{%
+    \MT@scale@to@em
+    \rpcode\MT@font\MT@char=\MT@the@pr@code
+  }%
+  \MT@ifdefined@c@T\MT@pr@inh@name{%
+    \MT@ifdefined@n@T{MT@inh@\MT@pr@inh@name @\MT@char @}{%
+      \MT@exp@cs\MT@map@tlist@c
+        {MT@inh@\MT@pr@inh@name @\MT@char @}%
+        \MT@set@pr@heirs
+    }%
+  }%
+}
+\def\MT@scale@to@em{%
+  \@tempcntb=\MT@count\relax
+  \MT@scale\@tempcntb \@tempb \MT@dimen@six
+  \ifnum\@tempcntb=\z@ \else
+    \MT@scale@factor
+  \fi
+}
+\def\MT@get@charwd{%
+  \MT@count=\fontcharwd\MT@font\MT@char\relax
+  \ifnum\MT@count=\z@ \MT@info@missing@char \fi
+}
+\def\MT@set@pr@heirs#1{%
+  \lpcode\MT@font #1=\lpcode\MT@font\MT@char\relax
+  \rpcode\MT@font #1=\rpcode\MT@font\MT@char\relax
+}
+\def\MT@preset@pr{%
+  \expandafter\expandafter\expandafter\MT@preset@pr@
+    \csname MT@pr@c@\MT@pr@c@name @preset\endcsname\@nil
+}
+\def\MT@preset@pr@#1,#2\@nil{%
+  \ifx\MT@pr@unit@\@empty
+    \MT@warn@preset@towidth{pr}%
+    \let\MT@preset@aux\MT@preset@aux@factor
+  \else
+    \def\MT@preset@aux{\MT@preset@aux@space2}%
+  \fi
+  \MT@ifempty{#1}{\let\@tempa\@empty}{\MT@preset@aux{#1}\@tempa}%
+  \MT@ifempty{#2}{\let\@tempb\@empty}{\MT@preset@aux{#2}\@tempb}%
+  \MT@set@all@pr\@tempa\@tempb
+}
+\def\MT@preset@aux@factor#1#2{%
+  \@tempcntb=#1\relax
+  \MT@scale@factor
+  \edef#2{\number\@tempcntb}%
+}
+\def\MT@preset@aux@space#1#2#3{%
+  \def\@tempb{#2}%
+  \MT@get@space@unit#1%
+  \MT@scale@to@em
+  \edef#3{\number\@tempcntb}%
+}
+\def\MT@warn@preset@towidth#1{%
+  \MT@warning@nl{%
+    Cannot preset characters relative to their widths\MessageBreak
+    for \@nameuse{MT@abbr@#1} list `\@nameuse{MT@#1@c@name}'. Presetting them%
+    \MessageBreak relative to 1em instead}%
+}
+\def\MT@expansion{\MT@maybe@do{ex}}
+\def\MT@set@ex@codes@s{%
+  \MT@if@list@exists{%
+    \MT@get@ex@opt
+    \let\MT@get@char@unit\relax
+    \MT@reset@ef@codes
+    \MT@get@inh@list
+    \MT@set@inputenc{c}%
+    \MT@load@list\MT@ex@c@name
+    \MT@set@listname
+    \MT@let@cn\@tempc{MT@ex@c@\MT@ex@c@name}%
+    \expandafter\MT@set@codes\@tempc,\relax,%
+    \MT@expandfont
+  }\relax
+}
+\def\MT@set@ex@codes@n{%
+  \MT@nonselectedtrue
+  \MT@if@list@exists
+    \MT@get@ex@opt
+  {%
+    \let\MT@stretch@  \MT@stretch
+    \let\MT@shrink@   \MT@shrink
+    \let\MT@step@     \MT@step
+    \let\MT@auto@     \MT@auto
+    \let\MT@ex@factor@\MT@ex@factor
+  }%
+  \MT@reset@ef@codes
+  \MT@expandfont
+  \MT@nonselectedfalse
+}
+\let\MT@set@ex@codes\MT@set@ex@codes@n
+\MT@requires@luatex3{
+\MT@requires@luatex4{\let\pdffontexpand\expandglyphsinfont}\relax
+\ifnum\luatexversion<79
+\def\MT@expandfont{%
+  \pdffontexpand\MT@font \MT@stretch@ \MT@shrink@ \MT@step@ autoexpand\relax
+}
+\else
+\def\MT@expandfont{%
+  \pdffontexpand\MT@font \MT@stretch@ \MT@shrink@ \MT@step@\relax
+}
+\fi
+}{
+\def\MT@expandfont{%
+  \pdffontexpand\MT@font \MT@stretch@ \MT@shrink@ \MT@step@ \MT@auto@\relax
+}
+}
+\def\MT@set@all@ex#1{%
+  \MT@do@font{\efcode\MT@font\@tempcnta=#1\relax}%
+}
+\def\MT@reset@ef@codes@{\MT@set@all@ex\MT@ex@factor@}
+\MT@requires@luatex5
+{
+  \def\MT@reset@ef@codes{%
+    \ifnum\MT@ex@factor@=\@m \else
+      \MT@reset@ef@codes@
+    \fi
+  }
+}{
+  \let\MT@reset@ef@codes\MT@reset@ef@codes@
+}
+\def\MT@ex@split@val#1\relax{%
+  \@tempcntb=#1\relax
+  \ifnum\MT@ex@factor@=\@m \else
+    \MT@scale\@tempcntb \MT@ex@factor@ \@m
+  \fi
+  \ifnum\@tempcntb > \MT@ex@max
+    \MT@warn@ex@too@large\MT@ex@max
+  \else
+    \ifnum\@tempcntb < \MT@ex@min
+      \MT@warn@ex@too@large\MT@ex@min
+    \fi
+  \fi
+  \efcode\MT@font\MT@char=\@tempcntb
+  \MT@ifdefined@c@T\MT@ex@inh@name{%
+    \MT@ifdefined@n@T{MT@inh@\MT@ex@inh@name @\MT@char @}{%
+      \MT@exp@cs\MT@map@tlist@c{MT@inh@\MT@ex@inh@name @\MT@char @}\MT@set@ex@heirs
+    }%
+  }%
+}
+\def\MT@warn@ex@too@large#1{%
+  \MT@warning@nl{Expansion factor \number\@tempcntb\space too large for
+    character\MessageBreak `\the\MT@toks' in \MT@curr@list@name.\MessageBreak
+    Setting it to the maximum of \number#1}%
+  \@tempcntb=#1\relax
+}
+\def\MT@get@ex@opt{%
+  \MT@set@listname
+  \MT@ifdefined@n@TF{MT@ex@c@\MT@ex@c@name @factor}{%
+    \MT@let@cn\MT@ex@factor@{MT@ex@c@\MT@ex@c@name @factor}%
+    \MT@vinfo{... : Multiplying expansion factors by \number\MT@ex@factor@/1000}%
+  }{%
+    \let\MT@ex@factor@\MT@ex@factor
+  }%
+  \MT@get@ex@opt@{stretch}{Setting stretch limit to \number\MT@stretch@}%
+  \MT@get@ex@opt@{shrink} {Setting shrink limit to \number\MT@shrink@}%
+  \MT@get@ex@opt@{step}   {Setting expansion step to \number\MT@step@}%
+  \MT@requires@luatex3\relax{%
+  \MT@get@ex@opt@{auto}{\MT@ifstreq{\MT@auto@}{autoexpand}{En}{Dis}abling automatic expansion}%
+  }%
+  \MT@ifdefined@n@T{MT@ex@c@\MT@ex@c@name @preset}{%
+    \MT@preset@ex
+    \let\MT@reset@ef@codes\relax
+  }%
+}
+\def\MT@get@ex@opt@#1#2{%
+  \MT@ifdefined@n@TF{MT@ex@c@\MT@ex@c@name @#1}{%
+    \MT@let@nn{MT@#1@}{MT@ex@c@\MT@ex@c@name @#1}%
+    \MT@vinfo{... : #2}%
+  }{%
+    \MT@let@nn{MT@#1@}{MT@#1}%
+  }%
+}
+\def\MT@set@ex@heirs#1{%
+  \efcode\MT@font#1=\efcode\MT@font\MT@char
+}
+\def\MT@preset@ex{%
+  \@tempcntb=\csname MT@ex@c@\MT@ex@c@name @preset\endcsname\relax
+  \MT@scale@factor
+  \MT@set@all@ex\@tempcntb
+}
+\MT@requires@luatex3
+{
+\let\MT@tr@font@list\@empty
+\def\MT@tracking@{%
+  \MT@exp@one@n\MT@in@clist\MT@font\MT@tr@font@list
+  \ifMT@inlist@\else
+    \MT@maybe@do{tr}%
+    \ifMT@do\else
+      \xdef\MT@tr@font@list{\MT@tr@font@list\MT@font,}%
+    \fi
+  \fi
+}
+\let\MT@tracking
+  \MT@tracking@
+\def\MT@set@tr@codes{%
+  \MT@vinfo{Tracking font `\MT@@font'\on@line}%
+  \MT@ifdefined@n@TF{\MT@@font-fake6}{%
+    \expandafter\ifx\csname\MT@@font-fake6\endcsname\@empty
+      \MT@warning@nl{%
+        Font `\MT@@font' does not specify its\MessageBreak
+        \@backslashchar fontdimen 6 (width of an `em')! Therefore,\MessageBreak
+        \@nameuse{MT@abbr@\MT@feat} will not work with this font}%
+      \MT@glet@nc{\MT@@font-fake6}\relax
+    \fi
+  }{%
+  \MT@if@list@exists
+    \MT@get@tr@opt
+    \relax
+  \MT@ifdefined@c@TF\MT@letterspace@\relax{\let\MT@letterspace@\MT@letterspace}%
+  \ifnum\MT@letterspace@=\z@
+    \MT@set@tr@zero
+  \else
+    \MT@vinfo{... Tracking by \number\MT@letterspace@}%
+    \MT@warn@tracking@DVI
+    \xdef\MT@lsfont{\csname\expandafter\string\font@name
+                           /\number\MT@letterspace@ ls\endcsname}%
+    \expandafter\ifx\MT@lsfont\relax
+      \MT@get@ls@basefont
+      \MT@if@luaotf@font{%
+        \ifnum\MT@letterspace@<\z@\def\MT@minus{-}\else\let\MT@minus\@empty\fi
+        \global\expandafter\font\MT@lsfont=%
+          \expandafter\MT@exp@two@c\expandafter\MT@ls@fontspec@font
+            \expandafter\fontname\expandafter\font@name\space \@nil
+      }{%
+      \global\expandafter\letterspacefont\MT@lsfont\font@name\MT@letterspace@
+      }%
+      \MT@ifdefined@c@TF\MT@tr@ispace
+        {\let\@tempa\MT@tr@ispace}%
+        {\edef\@tempa{\MT@letterspace@*,,}}%
+      \MT@ifdefined@c@TF\MT@tr@ospace
+        {\edef\@tempa{\@tempa,\MT@tr@ospace}}%
+        {\edef\@tempa{\@tempa,,,}}%
+      \expandafter\MT@tr@set@space\@tempa,%
+      \MT@ifdefined@c@TF\MT@tr@okern{\let\@tempa\MT@tr@okern}{\def\@tempa{*,*}}%
+      \expandafter\MT@tr@set@okern\@tempa,%
+      \MT@ifdefined@c@T\MT@tr@ligatures\MT@tr@noligatures
+      \MT@if@luaotf@font\relax{%
+      \MT@do@font{\lpcode\MT@lsfont\@tempcnta=\numexpr\MT@letterspace@/2\relax
+                  \rpcode\MT@lsfont\@tempcnta=\numexpr\MT@letterspace@/2\relax}%
+      \let\MT@the@pr@code\MT@the@pr@code@tr
+     }%
+    \fi
+    \aftergroup\MT@set@lsfont
+    \let\MT@font\MT@lsfont
+    \MT@if@luaotf@font\MT@font\relax
+    \xdef\MT@set@curr@ls{\def\noexpand\MT@curr@ls{\MT@letterspace@}}%
+    \aftergroup\MT@set@curr@ls
+    \MT@outer@space=\csname MT@outer@space\expandafter\string\font@name\endcsname\relax
+    \xdef\MT@set@curr@os{\MT@outer@space=\the\MT@outer@space\relax}%
+    \MT@tr@outer@l
+    \ifx\MT@ls@adjust\@empty
+      \MT@outer@kern=-\dimexpr\MT@letterspace@ sp * \fontdimen6\font@name/2000\relax
+      \MT@ls@outer@k
+    \else
+      \MT@outer@kern=\expandafter\expandafter\expandafter\@firstoftwo
+                      \csname MT@outer@kern\expandafter\string\font@name\endcsname\relax
+      \ifdim\MT@outer@kern=\z@\else \MT@ls@outer@k \fi
+      \MT@outer@kern=\expandafter\expandafter\expandafter\@secondoftwo
+                      \csname MT@outer@kern\expandafter\string\font@name\endcsname\relax
+    \fi
+    \xdef\MT@set@curr@ok{\MT@outer@kern=\the\MT@outer@kern\relax}%
+    \MT@afteraftergroup{%
+      \MT@set@curr@os
+      \MT@set@curr@ok
+      \noexpand\MT@tr@outer@r
+    }%
+  \fi
+  }%
+}
+\def\MT@afteraftergroup#1{%
+  \MT@maybe@gobble@with@tikz{%
+    \MT@ifdefined@n@TF{MT@aftergroup@\number\currentgrouplevel}\relax{%
+      \MT@exp@cs\xdef{MT@aftergroup@\number\currentgrouplevel}%
+        {\MT@exp@cs\MT@glet{MT@aftergroup@\number\currentgrouplevel}\noexpand\@undefined#1}%
+      \expandafter\aftergroup\expandafter\aftergroup\MT@exp@cs\aftergroup
+        {MT@aftergroup@\number\currentgrouplevel}%
+    }%
+  }%
+}
+\def\MT@ls@fontspec@colon#1:#2:#3:#4\@nil{\ifx\\#3\\#1:#2\else#1:#2:#3\fi}
+\def\MT@ls@fontspec@font#1 #2\@nil{%
+  "\MT@ls@fontspec@colon#1:::\relax\@nil
+    kernfactor=\MT@minus \ifnum\MT@letterspace@=1000 1\else 0.%
+         \ifnum\MT@minus\MT@letterspace@<100 0\fi
+         \ifnum\MT@minus\MT@letterspace@<10  0\fi
+        \number\MT@minus\MT@letterspace@ \fi;"
+  \ifx\\#2\\ at \f@size pt\else#2\fi\relax
+}
+\def\MT@get@tr@opt{%
+  \MT@set@listname
+  \let\MT@tr@factor@\@m
+  \MT@ifdefined@n@T{MT@tr@c@\MT@tr@c@name @unit}{%
+    \MT@let@cn\MT@tr@unit@{MT@tr@c@\MT@tr@c@name @unit}%
+    \ifdim\MT@tr@unit@=1em
+      \let\MT@tr@unit@\@undefined
+    \else
+      \MT@get@unit\MT@tr@unit@
+    \fi
+  }%
+  \MT@ifdefined@n@T{MT@tr@c@\MT@tr@c@name}{%
+    \MT@let@cn\MT@letterspace{MT@tr@c@\MT@tr@c@name}%
+    \MT@ifdefined@c@T\MT@tr@unit@{%
+      \let\@tempb\MT@letterspace
+      \MT@scale@to@em
+      \edef\MT@letterspace{\number\@tempcntb}%
+    }%
+  }%
+  \MT@get@tr@opt@{spacing}     {ispace}%
+  \MT@get@tr@opt@{outerspacing}{ospace}%
+  \MT@get@tr@opt@{outerkerning}{okern}%
+  \MT@get@tr@opt@{noligatures} {ligatures}%
+}
+\def\MT@get@tr@opt@#1#2{%
+  \MT@ifdefined@n@T{MT@tr@c@\MT@tr@c@name @#1}%
+    {\MT@let@nn{MT@tr@#2}{MT@tr@c@\MT@tr@c@name @#1}}%
+}
+\def\MT@set@lsfont{\MT@exp@two@c\let\font@name\MT@lsfont}
+\DeclareRobustCommand\lsstyle{%
+  \not@math@alphabet\lsstyle\textls
+  \let\glb@currsize\@empty
+  \MT@maybe@gobble@with@tikz{\aftergroup\glb@settings}%
+  \def\MT@feat{tr}%
+  \let\MT@tracking\MT@set@tr@codes
+  \selectfont
+}
+\DeclareRobustCommand\lslig[1]{%
+  {\MT@ifdefined@c@TF\MT@curr@ls{%
+     \escapechar\m@ne
+     \MT@get@ls@basefont
+     \MT@outer@kern=\dimexpr\MT@curr@ls sp * \fontdimen6\font@name/2000\relax
+     \kern\MT@outer@kern
+     \font@name #1%
+     \kern\MT@outer@kern
+  }{#1}}%
+}
+\def\MT@get@ls@basefont{%
+  \xdef\MT@ls@basefont{\csname\expandafter\string\font@name @base\endcsname}%
+  \expandafter\ifx\MT@ls@basefont\relax
+    \MT@exp@two@c\MT@glet\MT@ls@basefont\font@name
+  \else
+    \MT@exp@two@c\let\font@name\MT@ls@basefont
+  \fi
+}
+\def\MT@set@lsbasefont{\MT@exp@two@c\let\font@name\MT@ls@basefont}
+\def\MT@set@tr@zero{%
+  \xdef\MT@ls@basefont{\csname\expandafter\string\font@name @base\endcsname}%
+  \expandafter\ifx\MT@ls@basefont\relax \else
+    \aftergroup\MT@set@lsbasefont
+  \fi
+}
+  \def\MT@tr@noligatures{%
+    \ifx\MT@tr@ligatures\@empty
+      \MT@noligatures@\MT@lsfont\@undefined
+    \else
+      \MT@noligatures@\MT@lsfont\MT@tr@ligatures
+    \fi
+  }
+\newskip\MT@outer@space
+\def\MT@tr@set@space#1,#2,#3,#4,#5,#6,{%
+  \let\MT@temp\@empty
+  \MT@tr@set@space@{#1}{#4}{2}\@empty
+  \MT@tr@set@space@{#2}{#5}{3}\@plus
+  \MT@tr@set@space@{#3}{#6}{4}\@minus
+  \MT@glet@nc{MT@outer@space\expandafter\string\font@name}\MT@temp
+}
+\def\MT@tr@set@space@#1#2#3#4{%
+  \MT@ifempty{#2}{%
+    \MT@ifempty{#1}\relax{%
+      \MT@tr@set@space@@{#1}{#3}{1000}%
+      \fontdimen#3\MT@lsfont=\@tempdima
+    }%
+    \edef\MT@temp{\MT@temp#4\the\fontdimen#3\MT@lsfont}%
+  }{%
+    \MT@tr@set@space@@{#2}{#3}{2000}%
+    \edef\MT@temp{\MT@temp#4\the\@tempdima}%
+    \MT@ifempty{#1}\relax{%
+      \MT@tr@set@space@@{#1}{#3}{1000}%
+      \fontdimen#3\MT@lsfont=\@tempdima
+    }%
+  }%
+}
+\def\MT@tr@set@space@@#1#2#3{%
+  \MT@test@ast#1*\@nil{%
+    \MT@ifdefined@c@TF\MT@tr@unit@
+      {\edef\@tempb{#1}\MT@scale@to@em}
+      {\@tempcntb=#1\relax}%
+    \@tempdima=\dimexpr\@tempcntb sp*\MT@dimen@six/1000\relax
+    \ifnum#2=\tw@
+      \advance\@tempdima -\dimexpr\MT@letterspace@ sp*\MT@dimen@six/#3\relax
+    \fi
+  }{%
+    \MT@ifempty\@tempa{\let\@tempa\MT@letterspace@}\relax
+    \@tempdima=\dimexpr \numexpr1000+\@tempa sp *\fontdimen#2\MT@lsfont/1000\relax
+  }%
+}
+\def\MT@tr@outer@l{%
+  \ifhmode
+    \ifdim\lastskip>5sp
+      \edef\x{\the\lastskip minus 0pt}%
+      \setbox\z@\hbox{\MT@outer@space=\x}%
+      \ifdim\wd\z@>\z@
+        \unskip \hskip\MT@outer@space\relax
+        \let\MT@ls@outer@k\relax
+      \else
+        \ifdim\lastskip=%
+            \ifnum\spacefactor<2000
+              \spaceskip
+            \else
+              \ifdim\xspaceskip=\z@
+                \dimexpr\spaceskip+\fontdimen7\font@name\relax
+              \else
+                \xspaceskip
+              \fi
+            \fi
+          \unskip \hskip\MT@outer@space\relax
+          \let\MT@ls@outer@k\relax
+        \fi
+      \fi
+    \fi
+  \fi
+}
+\def\MT@tr@outer@r{%
+  \futurelet\MT@tr@outer@next\MT@tr@outer@r@
+}
+\def\MT@if@outer@next#1{%
+  \ifx\MT@tr@outer@next#1\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi
+}
+\def\MT@tr@outer@r@{%
+  \def\MT@temp*{}%
+  \ifmmode \else
+    \ifnum\currentgrouptype=10 \else
+      \def\MT@temp*##1{\ifhmode\hskip\MT@outer@space
+        \fi}%
+      \expandafter\ifcat\expandafter\noexpand\csname MT@tr@outer@next\endcsname\egroup
+        \ifhmode\unkern\fi\egroup
+        \MT@set@curr@ok \MT@set@curr@os
+        \def\MT@temp*{\afterassignment\MT@tr@outer@r\let\MT@temp=}%
+      \else
+        \MT@if@outer@next\maybe@ic{%
+          \MT@set@curr@ok \MT@set@curr@os
+          \def\MT@temp*{\afterassignment\MT@tr@outer@icr\let\MT@temp=}%
+        }{%
+          \MT@if@outer@next\check@icr{%
+            \def\MT@temp*{\aftergroup\MT@tr@outer@r\check@icr\let\MT@temp=}%
+          }{%
+            \MT@if@outer@next\@sptoken{%
+              \def\MT@temp* {\ifhmode\hskip\MT@outer@space
+                \fi}%
+            }{%
+              \MT@if@outer@next~{%
+                \def\MT@temp*~{\nobreak\hskip\MT@outer@space
+                  }%
+              }{%
+                \MT@if@outer@next\ \relax{%
+                  \MT@if@outer@next\space\relax{%
+                    \MT@if@outer@next\@xobeysp\relax{%
+                      \MT@if@outer@next\xspace{%
+                        \def\MT@temp*\xspace{\MT@xspace}%
+                      }{%
+                        \def\MT@temp*{\ifdim\MT@outer@kern=\z@\else\MT@ls@outer@k
+                          \fi}%
+                        \MT@let@nc{MT@tr@outer@next}\relax
+      }}}}}}}}\fi
+  \fi\fi
+  \MT@temp*%
+}
+\def\MT@tr@outer@icr{\afterassignment\MT@tr@outer@icr@\MT@tr@outer@r}
+\def\MT@tr@outer@icr@{%
+  \let\@let@token= \MT@tr@outer@next
+  \maybe@ic@
+}
+\def\MT@xspace{\futurelet\@let@token\MT@xspace@}
+\def\MT@xspace@{\@xspace@firsttrue\@xspace
+  \ifdim\lastskip>5sp
+    \unskip \hskip\MT@outer@space
+  \else
+    \ifdim\MT@outer@kern=\z@\else\MT@ls@outer@k \fi
+  \fi
+}
+}{
+  \DeclareRobustCommand\lsstyle{%
+    \MT@error{Letterspacing only works with \MT@engine tex version
+      0.62%
+      \MessageBreak or newer}
+      {Upgrade \MT@engine tex, or try the `soul' package instead.}%
+    \MT@glet\lsstyle\relax
+  }
+}
+\def\MT@tr@set@okern#1,#2,{%
+  \let\MT@temp\@empty
+  \MT@ifempty{#1}{\MT@tr@set@okern@{*}}{\MT@tr@set@okern@{#1}}%
+  \MT@ifempty{#2}{\MT@tr@set@okern@{*}}{\MT@tr@set@okern@{#2}}%
+  \MT@glet@nc{MT@outer@kern\expandafter\string\font@name}\MT@temp
+}
+\def\MT@tr@set@okern@#1{%
+  \MT@test@ast#1*\@nil{%
+    \MT@ifdefined@c@TF\MT@tr@unit@
+      {\edef\@tempb{#1}\MT@scale@to@em}
+      {\@tempcntb=#1\relax}%
+    \@tempdima=\dimexpr \@tempcntb sp * \MT@dimen@six/1000\relax
+  }{%
+    \MT@ifempty\@tempa{\let\@tempa\@m}\relax
+    \@tempdima=\dimexpr \numexpr\@tempa*\MT@letterspace@/1000\relax sp
+                      * \fontdimen6\MT@lsfont/2000\relax
+  }%
+  \advance\@tempdima -\dimexpr \MT@letterspace@ sp
+                             * \fontdimen6\MT@lsfont/2000\relax
+  \edef\MT@temp{\MT@temp{\the\@tempdima}}%
+}
+\def\MT@ls@outer@k{%
+  \ifhmode
+    \ifdim\lastkern=-3sp \unkern
+      \ifdim\lastkern=3sp \kern-3sp
+        \expandafter\expandafter\expandafter\@gobble
+      \else \unkern
+        \expandafter\expandafter\expandafter\@firstofone
+      \fi
+    \else
+      \expandafter\@firstofone
+    \fi
+    {\kern\MT@outer@kern\kern3sp\kern-3sp\relax}%
+  \fi
+}
+\def\MT@noligatures{%
+  \MT@dotrue
+  \let\@tempa\MT@nl@setname
+  \MT@map@clist@n{font,encoding,family,series,shape,size}{%
+    \MT@ifdefined@n@TF{MT@checklist@##1}%
+      {\csname MT@checklist@##1\endcsname}%
+      {\MT@checklist@{##1}}%
+    {nl}%
+  }%
+  \ifMT@do
+    \MT@noligatures@\MT@font\MT@nl@ligatures
+  \fi
+}
+\MT@requires@luatex4{\let\pdfnoligatures\ignoreligaturesinfont}\relax
+\def\MT@noligatures@#1#2{%
+  \MT@ifdefined@c@TF#2{%
+    \MT@ifdefined@c@TF\tagcode{%
+      \let\MT@warn@maybe@inputenc\@empty
+      \def\MT@curr@list@name{\@backslashchar DisableLigatures}%
+      \MT@map@clist@c#2{%
+        \KV@@sp@def\@tempa{##1}\MT@get@slot
+        \ifnum\MT@char>\m@ne
+          \tagcode#1\MT@char=\m@ne
+          \MT@if@luaotf@font
+             {\MT@lua{microtype.noligatures([[#1]],[[\MT@char]])}}\relax
+        \fi
+      }%
+      \MT@vinfo{... Disabling ligatures for characters: #2}%
+    }{%
+      \pdfnoligatures#1%
+      \MT@warning{Cannot disable selected ligatures (pdftex doesn't\MessageBreak
+          know \@backslashchar tagcode). Disabling all ligatures of\MessageBreak
+          the font instead}%
+    }%
+  }{%
+    \pdfnoligatures#1%
+    \MT@if@luaotf@font
+        {\MT@lua{microtype.noligatures([[#1]],"_all_")}}\relax
+    \MT@vinfo{... Disabling all ligatures}%
+  }%
+}
+\def\MT@get@slot@{%
+  \ifnum\MT@char > \m@ne
+    \ifnum\MT@char=47\relax
+      \ifMT@norest \else
+        \@tempcnta=\MT@lua{
+           local glyph = microtype.name_to_slot([[\expandafter\@gobble\@tempa]],true)
+           if glyph then tex.write(glyph)
+           else tex.write(-1)
+           end
+        }\relax
+        \ifnum\@tempcnta<\z@
+          \MT@warn@unknown
+          \let\MT@char\m@ne
+        \else
+          \edef\MT@char{\the\@tempcnta}%
+        \fi
+      \fi
+    \else
+    \ifMT@norest \else
+      \MT@warn@rest
+      \let\MT@char\m@ne
+    \fi
+    \fi
+  \else
+    \MT@warn@unknown
+  \fi
+}
+\def\MT@max@char
+  {1114111 }
+\def\MT@max@slot
+  {1114111 }
+\def\DisableLigatures{%
+  \MT@begin@catcodes
+  \MT@DisableLigatures
+}
+\newcommand*\MT@DisableLigatures[2][]{%
+  \MT@ifempty{#1}\relax{\gdef\MT@nl@ligatures{#1}}%
+  \xdef\MT@active@features{\MT@active@features,nl}%
+  \global\MT@noligaturestrue
+  \MT@declare@sets{nl}{no ligatures}{#2}%
+  \gdef\MT@nl@setname{no ligatures}%
+  \MT@end@catcodes
+}
+\def\SetProtrusion{%
+  \MT@begin@catcodes
+  \MT@SetProtrusion
+}
+\newcommand*\MT@SetProtrusion[3][]{%
+  \let\MT@extra@context\@empty
+  \MT@set@named@keys{MT@pr@c}{#1}%
+  \def\MT@permutelist{pr@c}%
+  \setkeys{MT@cfg}{#2}%
+  \MT@permute
+  \MT@gdef@n{MT@pr@c@\MT@pr@c@name}{#3}%
+  \MT@end@catcodes
+}
+\def\SetExpansion{%
+  \MT@begin@catcodes
+  \MT@SetExpansion
+}
+\newcommand*\MT@SetExpansion[3][]{%
+  \let\MT@extra@context\@empty
+  \MT@set@named@keys{MT@ex@c}{#1}%
+  \MT@ifdefined@n@T{MT@ex@c@\MT@ex@c@name @factor}{%
+    \ifnum\csname MT@ex@c@\MT@ex@c@name @factor\endcsname > \@m
+      \MT@warning@nl{Expansion factor \number\@nameuse{MT@ex@c@\MT@ex@c@name @factor}
+        too large in list\MessageBreak `\MT@ex@c@name'. Setting it to the
+        maximum of 1000}%
+      \MT@glet@nc{MT@ex@c@\MT@ex@c@name @factor}\@m
+    \fi
+  }%
+  \def\MT@permutelist{ex@c}%
+  \setkeys{MT@cfg}{#2}%
+  \MT@permute
+  \MT@gdef@n{MT@ex@c@\MT@ex@c@name}{#3}%
+  \MT@end@catcodes
+}
+\def\SetTracking{%
+  \MT@begin@catcodes
+  \MT@SetTracking
+}
+\newcommand*\MT@SetTracking[3][]{%
+  \let\MT@extra@context\@empty
+  \MT@set@named@keys{MT@tr@c}{#1}%
+  \def\MT@permutelist{tr@c}%
+  \setkeys{MT@cfg}{#2}%
+  \MT@permute
+  \KV@@sp@def\@tempa{#3}%
+  \MT@ifempty\@tempa\relax{%
+    \MT@ifint\@tempa
+      {\MT@xdef@n{MT@tr@c@\MT@tr@c@name}{\@tempa}}%
+      {\MT@warning{Value `\@tempa' is not a number in\MessageBreak
+                   tracking set `\MT@curr@set@name'}}}%
+  \MT@end@catcodes
+}
+  \define@key{MT@ex@c}{context}[]{%
+    \MT@ifempty{#1}\relax{%
+      \MT@glet\MT@copy@font\MT@copy@font@
+      \def\MT@extra@context{#1}%
+    }%
+  }
+  \MT@addto@setup{%
+    \define@key{MT@ex@c}{context}[]{%
+      \ifx\MT@copy@font\MT@copy@font@
+        \MT@ifempty{#1}\relax{\def\MT@extra@context{#1}}%
+      \else
+        \MT@error{\MT@MT\space isn't set up for expansion contexts.\MessageBreak
+           Ignoring `context' key\on@line}%
+          {Either move the settings inside the preamble,\MessageBreak
+           or load the package with the `copyfonts' option.}%
+      \fi
+    }%
+  }
+  \define@key{MT@pr@c}{context}[]{%
+    \MT@ifempty{#1}\relax{%
+      \MT@glet\MT@copy@font\MT@copy@font@
+      \def\MT@extra@context{#1}%
+    }%
+  }
+  \MT@addto@setup{%
+    \define@key{MT@pr@c}{context}[]{%
+      \MT@ifempty{#1}\relax{\def\MT@extra@context{#1}}%
+      \ifx\MT@copy@font\MT@copy@font@\else
+        \MT@warning@nl{If protrusion contexts don't work as expected,
+          \MessageBreak load the package with the `copyfonts' option}%
+      \fi
+    }%
+  }
+\define@key{MT@pr@c}{unit}[character]{%
+  \MT@glet@nc{MT@pr@c@\MT@curr@set@name @unit}\@empty
+  \def\@tempa{#1}%
+  \MT@ifstreq\@tempa{character}\relax{%
+    \MT@ifdimen\@tempa
+      {\MT@glet@nc{MT@pr@c@\MT@curr@set@name @unit}\@tempa}%
+      {\MT@warn@nodim{character widths}}%
+  }%
+}
+\define@key{MT@tr@c}{unit}[1em]{%
+  \MT@glet@nc{MT@tr@c@\MT@curr@set@name @unit}\@empty
+  \def\@tempa{#1}%
+  \MT@ifdimen\@tempa
+    {\MT@glet@nc{MT@tr@c@\MT@curr@set@name @unit}\@tempa}%
+    {\MT@warn@nodim{1em}%
+     \MT@gdef@n{MT@tr@c@\MT@curr@set@name @unit}{1em}}%
+}
+\MT@map@clist@n{stretch,shrink,step}{%
+  \define@key{MT@ex@c}{#1}[]{%
+    \MT@ifempty{##1}\relax{%
+      \MT@ifint{##1}{%
+        \MT@gdef@n{MT@ex@c@\MT@curr@set@name @#1}{##1 }%
+      }{%
+        \MT@warning{%
+          Value `##1' for option `#1' is not a number.\MessageBreak
+          Ignoring it}%
+      }%
+    }%
+  }%
+}
+\define@key{MT@ex@c}{auto}[true]{%
+  \def\@tempa{#1}%
+  \csname if\@tempa\endcsname
+    \MT@requires@luatex3\relax
+      {\MT@gdef@n{MT@ex@c@\MT@curr@set@name @auto}{autoexpand}}%
+  \else
+    \MT@requires@luatex3{%
+      \MT@warning{Non-automatic font expansion doesn't work with\MessageBreak
+                  luatex}}%
+      {\MT@glet@nc{MT@ex@c@\MT@curr@set@name @auto}\@empty}%
+  \fi
+}
+\MT@define@opt@key{tr}{spacing}
+\MT@define@opt@key{tr}{outerspacing}
+\MT@define@opt@key{tr}{outerkerning}
+\define@key{MT@tr@c}{noligatures}[]%
+  {\MT@xdef@n{MT@tr@c@\MT@curr@set@name @noligatures}{#1}}
+\define@key{MT@tr@c}{outer spacing}[]{\setkeys{MT@tr@c}{outerspacing={#1}}}
+\define@key{MT@tr@c}{outer kerning}[]{\setkeys{MT@tr@c}{outerkerning={#1}}}
+\define@key{MT@tr@c}{no ligatures}[]{\setkeys{MT@tr@c}{noligatures={#1}}}
+\def\MT@inh@split#1=#2=#3\relax{%
+  \def\@tempa{#1}%
+  \ifx\@tempa\@empty \else
+    \MT@get@slot
+    \ifnum\MT@char > \m@ne
+      \let\MT@val\MT@char
+      \MT@map@clist@n{#2}{%
+        \def\@tempa{##1}%
+        \ifx\@tempa\@empty \else
+          \MT@get@slot
+          \ifnum\MT@char > \m@ne
+            \MT@exp@cs\MT@xadd{MT@inh@\MT@listname @\MT@val @}{{\MT@char}}%
+          \fi
+        \fi
+      }%
+    \fi
+  \fi
+}
+\MT@requires@luatex4{\let\pdfoutput\outputmode}\relax
+\MT@def@bool@opt{DVIoutput}{%
+  \csname if\@tempa\endcsname
+    \ifnum\pdfoutput>\z@ \MT@opt@DVItrue \fi
+    \pdfoutput\z@
+  \else
+    \ifnum\pdfoutput<\@ne \MT@opt@DVItrue \fi
+    \pdfoutput\@ne
+  \fi
+}
+  \MT@def@bool@opt{copyfonts}{%
+    \csname if\@tempa\endcsname
+      \MT@glet\MT@copy@font\MT@copy@font@
+    \else
+      \MT@glet\MT@copy@font\relax
+    \fi
+  }
+\ifnum\pdfoutput<\@ne \else
+    \MT@expansiontrue
+\fi
+\MT@autotrue
+\def\MT@define@optionX#1#2{%
+  \define@key{MTX}{#1}[true]{%
+    \edef\@tempb{\csname MT@rbba@#1\endcsname}%
+    \MT@map@clist@n{##1}{%
+      \KV@@sp@def\MT@val{####1}%
+      \MT@ifempty\MT@val\relax{%
+        \@tempcnta=\m@ne
+        \MT@ifstreq\MT@val{true}{%
+          \MT@checksetup{#1}{%
+            \@tempcnta=\csname MT@\@tempb @level\endcsname
+            \MT@vinfo{Enabling #1
+                    (level \number\csname MT@\@tempb @level\endcsname)\on@line}%
+          }%
+        }{%
+          \MT@ifstreq\MT@val{false}{%
+            \@tempcnta=\z@
+            \MT@vinfo{Disabling #1\on@line}%
+          }{%
+            \MT@ifstreq\MT@val{compatibility}{%
+              \MT@checksetup{#1}{%
+                \@tempcnta=\@ne
+                \MT@let@nc{MT@\@tempb @level}\@ne
+                \MT@vinfo{Setting #1 to level 1\on@line}%
+              }%
+            }{%
+              \MT@ifstreq\MT@val{nocompatibility}{%
+                \MT@checksetup{#1}{%
+                  \@tempcnta=\tw@
+                  \MT@let@nc{MT@\@tempb @level}\tw@
+                  \MT@vinfo{Setting #1 to level 2\on@line}%
+                }%
+              }{\MT@error{Value `\MT@val' for key `#1' not recognised}
+                         {Use any of `true', `false', `compatibility' or
+                          `nocompatibility'.}%
+              }%
+            }%
+          }%
+        }%
+        \ifnum\@tempcnta>\m@ne
+          #2\@tempcnta\relax
+        \fi
+      }%
+    }%
+  }%
+}
+\def\MT@checksetup#1{%
+  \csname ifMT@#1\endcsname
+    \expandafter\@firstofone
+  \else
+    \MT@error{You cannot enable #1 if it was disabled\MessageBreak
+              in the package options}{Load microtype with #1 enabled.}%
+    \expandafter\@gobble
+  \fi
+}
+\MT@define@optionX{protrusion}\MT@protrudechars
+\MT@define@optionX{expansion}\MT@adjustspacing
+\MT@requires@luatex4{
+  \let\pdfprotrudechars\protrudechars
+  \let\pdfadjustspacing\adjustspacing
+}\relax
+\let\MT@protrudechars\pdfprotrudechars
+\let\MT@adjustspacing\pdfadjustspacing
+\MT@requires@luatex3{
+  \def\MT@define@optionX@#1#2{%
+    \define@key{MTX}{#1}[true]{%
+      \MT@map@clist@n{##1}{%
+        \KV@@sp@def\MT@val{####1}%
+        \MT@ifempty\MT@val\relax{%
+          \@tempcnta=\m@ne
+          \MT@ifstreq\MT@val{true}{%
+            \MT@checksetup{#1}{%
+              \@tempcnta=\@ne
+              \MT@vinfo{Enabling #1\on@line}%
+            }%
+          }{%
+            \MT@ifstreq\MT@val{false}{%
+              \@tempcnta=\z@
+              \MT@vinfo{Disabling #1\on@line}%
+            }{\MT@error{Value `\MT@val' for key `#1' not recognised}
+                       {Use either `true' or `false'}%
+            }%
+          }%
+          \ifnum\@tempcnta>\m@ne
+            #2\relax
+          \fi
+        }%
+      }%
+    }%
+  }
+  \MT@define@optionX@{tracking}{\ifnum\@tempcnta=\z@ \let\MT@tracking\MT@set@tr@zero
+                                \else \let\MT@tracking\MT@tracking@ \fi}
+}{
+\define@key{MTX}{tracking}[true]{\MT@warning{Ignoring tracking setup}}
+}
+\define@key{MTX}{kerning}[true]{\MT@warning{Ignoring kerning setup}}
+\define@key{MTX}{spacing}[true]{\MT@warning{Ignoring spacing setup}}
+\define@key{MTX}{activate}[true]{%
+  \setkeys{MTX}{protrusion={#1}}%
+  \setkeys{MTX}{expansion={#1}}%
+}
+\def\MT@setup@PDF{%
+  \MT@info@nl{Generating \ifnum\pdfoutput<\@ne DVI \else PDF \fi output%
+              \ifMT@opt@DVI\space (changed by \MT@MT)\fi}%
+}
+\def\MT@setup@copies{%
+  \ifx\MT@copy@font\relax\else \MT@info@nl{Using font copies for contexts}\fi
+}
+\def\MT@setup@protrusion{%
+  \ifMT@protrusion
+    \edef\MT@active@features{\MT@active@features,pr}%
+    \MT@protrudechars\MT@pr@level
+    \MT@info@nl{Character protrusion enabled (level \number\MT@pr@level)%
+      \ifnum\MT@pr@factor=\MT@factor@default \else,\MessageBreak
+        factor: \number\MT@pr@factor\fi
+      \ifx\MT@pr@unit\@empty \else,\MessageBreak unit: \MT@pr@unit\fi}%
+    \MT@check@active@set{pr}%
+  \else
+    \let\MT@protrusion\relax
+    \MT@info@nl{No character protrusion}%
+  \fi
+}
+\def\MT@setup@expansion{%
+  \ifnum\pdfoutput<\@ne
+    \ifMT@opt@expansion
+      \ifMT@expansion
+        \MT@requires@luatex3{%
+          \MT@warning@nl{Font expansion doesn't work properly with luatex in\MessageBreak
+             DVI mode: the glyphs won't be actually transformed,\MessageBreak
+             but will only be shifted. You might want to use\MessageBreak
+             pdflatex instead. I'll continue anyway ..}%
+          %\MT@expansionfalse
+        }\relax
+      \fi
+    \else
+      \MT@expansionfalse
+    \fi
+  \fi
+  \ifMT@expansion
+    \ifnum\MT@stretch=\m@ne
+      \let\MT@stretch\MT@stretch@default
+    \fi
+    \ifnum\MT@shrink=\m@ne
+      \let\MT@shrink\MT@stretch
+    \fi
+    \ifnum\MT@step=\m@ne
+      \def\MT@step{1 }%
+    \fi
+    \ifnum\MT@step=\z@
+      \MT@warning@nl{The expansion step cannot be set to zero.\MessageBreak
+          Setting it to one}%
+      \def\MT@step{1 }%
+    \fi
+    \let\MT@auto\@empty
+    \ifMT@auto
+      \MT@requires@luatex3\relax{\def\MT@auto{autoexpand}}%
+    \else
+      \MT@requires@luatex3{%
+        \ifMT@opt@auto
+          \MT@error{Non-automatic font expansion does not work with\MessageBreak
+                    luatex}{Remove `auto=false' from the package options, or use pdftex.}%
+          \MT@autotrue
+        \fi
+      }\relax
+    \fi
+    \ifMT@selected
+      \let\MT@set@ex@codes\MT@set@ex@codes@s
+    \else
+      \let\MT@set@ex@codes\MT@set@ex@codes@n
+    \fi
+    \ifnum\MT@stretch=\z@
+      \ifnum\MT@shrink=\z@
+        \MT@warning@nl{%
+          Both the stretch and shrink limit are set to zero.\MessageBreak
+          Disabling font expansion}%
+        \MT@expansionfalse
+      \fi
+    \fi
+  \fi
+  \ifMT@expansion
+    \edef\MT@active@features{\MT@active@features,ex}%
+    \MT@adjustspacing\MT@ex@level
+    \MT@info@nl{\ifMT@auto A\else Non-a\fi utomatic font expansion enabled
+                (level \number\MT@ex@level),\MessageBreak
+                stretch: \number\MT@stretch, shrink: \number\MT@shrink,
+                step: \number\MT@step, \ifMT@selected\else non-\fi selected}%
+    \def\MT@check@step##1{%
+      \@tempcnta=\csname MT@##1\endcsname
+      \divide\@tempcnta \MT@step
+      \multiply\@tempcnta \MT@step
+      \ifnum\@tempcnta=\csname MT@##1\endcsname\else
+        \MT@warning@nl{The ##1 amount is not a multiple of step.\MessageBreak
+                       The effective maximum ##1 is \the\@tempcnta\space
+                       (step \number\MT@step)}%
+      \fi
+    }%
+    \MT@check@step{stretch}%
+    \MT@check@step{shrink}%
+    \MT@check@active@set{ex}%
+    \MT@ifdefined@n@TF{showhyphens }{%
+      \def\MT@temp##1##2{%
+        \expandafter\CheckCommand\csname showhyphens \endcsname[1]{##1}%
+        \DeclareRobustCommand\showhyphens[1]{##2}}%
+    }{%
+      \def\MT@temp##1##2{%
+        \CheckCommand*\showhyphens[1]{##1}%
+        \gdef\showhyphens####1{##2}}%
+    }%
+    \MT@temp
+       {\setbox0\vbox{\color@begingroup
+        \everypar{}\parfillskip\z@skip
+        \hsize\maxdimen\normalfont\pretolerance\m@ne\tolerance\m@ne
+        \hbadness\z@\showboxdepth\z@\ ##1\color@endgroup}}
+       {\setbox0\vbox{\color@begingroup\pdfadjustspacing\z@
+        \everypar{}\parfillskip\z@skip
+        \hsize\maxdimen\normalfont\pretolerance\m@ne\tolerance\m@ne
+        \hbadness\z@\showboxdepth\z@\ ##1\color@endgroup}}%
+  \else
+    \let\MT@expansion\relax
+    \MT@info@nl{No font expansion}%
+  \fi
+}
+\MT@requires@luatex3{%
+  \def\MT@setup@tracking{%
+    \ifMT@tracking
+      \edef\MT@active@features{\MT@active@features,tr}%
+      \MT@info@nl{Tracking enabled}%
+      \MT@check@active@set{tr}%
+      \ifMT@protrusion\else\MT@protrudechars\@ne\fi
+    \else
+      \let\MT@tracking\relax
+      \MT@info@nl{No adjustment of tracking}%
+    \fi
+  }
+}{
+  \def\MT@setup@tracking{%
+    \ifMT@tracking
+      \MT@error{The tracking feature only works with luatex 0.62\MessageBreak
+        or newer. Switching it off}{Upgrade luatex.}%
+      \MT@trackingfalse
+      \MT@let@nc{MT@tracking}\relax
+    \else
+      \MT@info@nl{No adjustment of tracking (luatex too old)}%
+    \fi
+  }
+}
+  \def\MT@error@doesnt@work#1{%
+    \csname ifMT@#1\endcsname
+      \MT@error{The #1 feature only works with pdftex 1.40\MessageBreak
+        or newer. Switching it off}
+        {Use pdftex instead.}%
+      \csname MT@#1false\endcsname
+      \MT@let@nc{MT@#1}\relax
+    \else
+      \MT@info@nl{No adjustment of #1%
+      }%
+    \fi
+  }
+  \def\MT@setup@kerning {\MT@error@doesnt@work{kerning}}
+  \def\MT@setup@spacing {\MT@error@doesnt@work{spacing}}
+\def\MT@setup@warntracking
+{%
+    \def\MT@warn@tracking@DVI{%
+      \ifnum\pdfprotrudechars<\@ne \global\pdfprotrudechars\@ne \fi
+      \MT@glet\MT@warn@tracking@DVI\relax
+    }%
+  \ifnum\MT@letterspace=\m@ne
+    \let\MT@letterspace\MT@letterspace@default
+  \else
+    \MT@ls@too@large\MT@letterspace
+  \fi
+}
+\def\MT@setup@noligatures{%
+    \ifMT@noligatures \else
+      \let\MT@noligatures\relax
+    \fi
+}
+\endinput
+%%
+%% End of file `microtype-luatex.def'.

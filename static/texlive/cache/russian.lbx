@@ -1,0 +1,606 @@
+\ProvidesFile{russian.lbx}
+[\abx@lbxid]
+
+\DeclareRedundantLanguages{russian}{russian}
+
+% This file requires UTF-8 support!
+
+\lbx@ifutfinput
+  {}
+  {\PackageError{biblatex}
+     {Russian requires UTF-8 support}
+     {The file 'russian.lbx' requires UTF-8 encoding but you
+      seem\MessageBreak to be using a different encoding.
+      This is a fatal error. I will\MessageBreak abort loading
+      russian.lbx now.}%
+   \endinput}
+
+\NewBibliographyString{% Used only Russian for month checks
+  datejanuary,
+  datefebruary,
+  datemarch,
+  dateapril,
+  datemay,
+  datejune,
+  datejuly,
+  dateaugust,
+  dateseptember,
+  dateoctober,
+  datenovember,
+  datedecember%
+}
+
+\DeclareBibliographyExtras{%
+  \protected\def\bibrangedash{%
+    \textemdash\penalty\hyphenpenalty}% breakable dash
+  \let\finalandcomma=\empty
+  \let\finalandsemicolon=\empty
+  \protected\def\mkbibordinal#1{\mkbibmascord}%
+  \protected\def\mkbibmascord#1{#1-й}%
+  \protected\def\mkbibfemord#1{#1-я}%
+  \protected\def\mkbibneutord#1{#1-е}%
+  \protected\def\mkbibdatelong#1#2#3{%
+    \iffieldundef{#3}
+      {}
+      {\stripzeros{\thefield{#3}}%
+       \iffieldundef{#2}{}{\nobreakspace}}%
+    \iffieldundef{#2}
+      {}
+      {\iffieldundef{#3}
+         {\mkbibmonth{\thefield{#2}}}
+         {\lbx@ru@mkbibdatemonth{\thefield{#2}}}%
+       \iffieldundef{#1}{}{\space}}%
+    \iffieldbibstring{#1}
+      {\bibstring{\thefield{#1}}}
+      {\dateeraprintpre{#1}\stripzeros{\thefield{#1}}}}%
+  \protected\def\mkbibdateshort#1#2#3{%
+    \iffieldundef{#3}
+      {}
+      {\mkdayzeros{\thefield{#3}}%
+       \iffieldundef{#2}{}{\adddot}}%
+    \iffieldundef{#2}
+      {}
+      {\mkmonthzeros{\thefield{#2}}%
+       \iffieldundef{#1}{}{\adddot}}%
+    \iffieldbibstring{#1}
+      {\bibstring{\thefield{#1}}}
+      {\dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}}%
+  \savecommand\mkbibordedition
+  \savecommand\mkbibordseries
+  \def\mkbibordedition{\mkbibneutord}%
+  \def\mkbibordseries{\mkbibfemord}%
+  \expandafter\protected\expandafter\def\csname mkbibtime24h\endcsname#1#2#3#4{%
+      \iffieldundef{#1}
+        {}
+        {\mktimezeros{\thefield{#1}}%
+         \iffieldundef{#2}{}{\bibtimesep}}%
+      \iffieldundef{#2}
+        {}
+        {\mktimezeros{\thefield{#2}}%
+         \iffieldundef{#3}{}{\bibtimesep}}%
+      \iffieldundef{#3}
+        {}
+        {\mktimezeros{\thefield{#3}}}%
+      \iffieldundef{#4}{}
+        {\bibtimezonesep
+         \mkbibtimezone{\thefield{#4}}}}%
+  \expandafter\protected\expandafter\def\csname mkbibtime12h\endcsname#1#2#3#4{%
+      \stripzeros{\mktimehh{\thefield{#1}}}\bibtimesep
+      \forcezerosmdt{\thefield{#2}}%
+      \iffieldundef{#3}{}
+        {\bibtimesep
+         \forcezerosmdt{\thefield{#3}}}%
+       \space
+       \ifnumless{\thefield{#1}}{12}
+         {\bibstring{am}}
+         {\bibstring{pm}}%
+      \iffieldundef{#4}{}
+       {\space\bibtimezonesep
+        \parentext{\mkbibtimezone{\thefield{#4}}}}}%
+  \protected\def\mkbibseasondateshort#1#2{%
+    \mkbibseason{\thefield{#2}}%
+    \iffieldundef{#1}{}{\space}%
+    \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}%
+  \protected\def\mkbibseasondatelong#1#2{%
+    \mkbibseason{\thefield{#2}}%
+    \iffieldundef{#1}{}{\space}%
+    \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}%
+}
+
+\UndeclareBibliographyExtras{%
+  \restorecommand\mkbibordedition
+  \restorecommand\mkbibordseries
+}
+
+\DeclareBibliographyStrings{%
+  bibliography     = {{Список литературы}{Список литературы}},%book-like (chapter)
+  references       = {{Список литературы}{Список литературы}},%article-like (section)
+  shorthands       = {{Список сокращений}{Сокращения}},
+  editor           = {{редактор}{ред\adddot}},
+  editors          = {{редакторы}{ред\adddot}},
+  compiler         = {{составитель}{сост\adddot}},
+  compilers        = {{составители}{сост\adddot}},
+  redactor         = {{редактор}{ред\adddot}},% FIXME: unsure
+  redactors        = {{редакторы}{ред\adddot}},% FIXME: unsure
+  reviser          = {{ревизионный корректор}{ревиз\adddotspace кор\adddot}},
+  revisers         = {{ревизионные корректоры}{ревиз\adddotspace кор\adddot}},
+  founder          = {{основатель}{осн\adddot}},
+  founders         = {{основатели}{осн\adddot}},
+  continuator      = {{продолжатель}{прод\adddot}},% FIXME: unsure
+  continuators     = {{продолжатели}{прод\adddot}},% FIXME: unsure
+  collaborator     = {{участник}{участ\adddot}},% FIXME: unsure
+  collaborators    = {{участники}{участ\adddot}},% FIXME: unsure
+  translator       = {{переводчик}{пер\adddot}},
+  translators      = {{переводчики}{пер\adddot}},
+  commentator      = {{комментатор}{коммент\adddot}},
+  commentators     = {{комментаторы}{коммент\adddot}},
+  annotator        = {{примечания}{примеч\adddot}},
+  annotators       = {{примечания}{примеч\adddot}},
+  commentary       = {{комментарий}{коммент\adddot}},
+  annotations      = {{примечания}{примеч\adddot}},
+  introduction     = {{вступительная статья}{вступ\adddotspace ст\adddot}},
+  foreword         = {{предисловие}{предисл\adddot}},
+  afterword        = {{послесловие}{послесл\adddot}},
+  editortr         = {{редактор и переводчик}%
+                      {ред\adddotspace и пер\adddot}},
+  editorstr        = {{редакторы и переводчики}%
+                      {ред\adddotspace и пер\adddot}},
+  editorco         = {{редактор и комментатор}%
+                      {ред\adddotspace и коммент\adddot}},
+  editorsco        = {{редакторы и комментаторы}%
+                      {ред\adddotspace и коммент\adddot}},
+  editoran         = {{редактор и составитель примечаний}%
+                      {ред\adddotspace и сост\adddotspace примеч\adddot}},
+  editorsan        = {{редакторы и составители примечаний}%
+                      {ред\adddotspace и сост\adddotspace примеч\adddot}},
+  editorin         = {{редактор и автор вступительной статьи}%
+                      {ред\adddotspace и авт\adddotspace вступ\adddotspace ст\adddot}},
+  editorsin        = {{редакторы и авторы вступительной статьи}%
+                      {ред\adddotspace и авт\adddotspace вступ\adddotspace ст\adddot}},
+  editorfo         = {{редактор и автор предисловия}%
+                      {ред\adddotspace и авт\adddotspace предисл\adddot}},
+  editorsfo        = {{редакторы и авторы предисловия}%
+                      {ред\adddotspace и авт\adddotspace предисл\adddot}},
+  editoraf         = {{редактор и автор послесловия}%
+                      {ред\adddotspace и авт\adddotspace послесл\adddot}},
+  editorsaf        = {{редакторы и авторы послесловия}%
+                      {ред\adddotspace и авт\adddotspace послесл\adddot}},
+  editortrco       = {{редактор, переводчик и автор комментариев}%
+                      {ред.,\addabbrvspace пер\adddotspace и авт\adddotspace коммент\adddot}},
+  editorstrco      = {{редакторы, переводчики и авторы комментариев}%
+                      {ред.,\addabbrvspace пер\adddotspace и авт\adddotspace коммент\adddot}},
+  editortran       = {{редактор, переводчик и составитель примечаний}%
+                      {ред.,\addabbrvspace пер\adddotspace и сост\adddotspace примеч\adddot}},
+  editorstran      = {{редакторы, переводчики и составители примечаний}%
+                      {ред.,\addabbrvspace пер\adddotspace и сост\adddotspace примеч\adddot}},
+  editortrin       = {{редактор, переводчик и автор вступительной статьи}%
+                      {ред.,\addabbrvspace пер\adddotspace и авт\adddotspace вступ\adddotspace ст\adddot}},
+  editorstrin      = {{редакторы, переводчики и авторы вступительной статьи}%
+                      {ред.,\addabbrvspace пер\adddotspace и авт\adddotspace вступ\adddotspace ст\adddot}},
+  editortrfo       = {{редактор, переводчик и автор предисловия}%
+                      {ред.,\addabbrvspace пер\adddotspace и авт\adddotspace предисл\adddot}},
+  editorstrfo      = {{редакторы, переводчики и авторы предисловия}%
+                      {ред.,\addabbrvspace пер\adddotspace и авт\adddotspace предисл\adddot}},
+  editortraf       = {{редактор, переводчик и автор послесловия}%
+                      {ред.,\addabbrvspace пер\adddotspace и авт\adddotspace послесловия\adddot}},
+  editorstraf      = {{редакторы, переводчики и авторы послесловия}%
+                      {ред.,\addabbrvspace пер\adddotspace и авт\adddotspace послесл\adddot}},
+  editorcoin       = {{редактор, автор комментариев и вступительной статьи}%
+                      {ред.,\addabbrvspace авт\adddotspace коммент\adddotspace и вступ\adddotspace ст\adddot}},
+  editorscoin      = {{редакторы, авторы комментариев и вступительной статьи}%
+                      {ред.,\addabbrvspace авт\adddotspace коммент\adddotspace и вступ\adddotspace ст\adddot}},
+  editorcofo       = {{редактор, автор комментариев и предисловия}%
+                      {ред.,\addabbrvspace авт\adddotspace коммент\adddotspace и предисл\adddot}},
+  editorscofo      = {{редакторы, авторы комментариев и предисловия}%
+                      {ред.,\addabbrvspace авт\adddotspace коммент\adddotspace и предисл\adddot}},
+  editorcoaf       = {{редактор, автор комментариев и послесловия}%
+                      {ред.,\addabbrvspace авт\adddotspace коммент\adddotspace и послесл\adddot}},
+  editorscoaf      = {{редакторы, авторы комментариев и послесловия}%
+                      {ред.,\addabbrvspace авт\adddotspace коммент\adddotspace и послесл\adddot}},
+  editoranin       = {{редактор, составитель примечаний и автор вступительной статьи}%
+                      {ред.,\addabbrvspace сост\adddotspace примеч\adddotspace и авт\adddotspace вступ\adddotspace ст\adddot}},
+  editorsanin      = {{редакторы, составители примечаний и авторы вступительной статьи}%
+                      {ред.,\addabbrvspace сост\adddotspace примеч\adddotspace и авт\adddotspace вступ\adddotspace ст\adddot}},
+  editoranfo       = {{редактор, составитель примечаний и автор предисловия}%
+                      {ред.,\addabbrvspace сост\adddotspace примеч\adddotspace и авт\adddotspace предисл\adddot}},
+  editorsanfo      = {{редакторы, составители примечаний и авторы предисловия}%
+                      {ред.,\addabbrvspace сост\adddotspace примеч\adddotspace и авт\adddotspace предисл\adddot}},
+  editoranaf       = {{редактор, составитель примечаний и автор послесловия}%
+                      {ред.,\addabbrvspace сост\adddotspace примеч\adddotspace и авт\adddotspace послесл\adddot}},
+  editorsanaf      = {{редакторы, составители примечаний и авторы послесловия}%
+                      {ред.,\addabbrvspace сост\adddotspace примеч\adddotspace и авт\adddotspace послесл\adddot}},
+  editortrcoin     = {{редактор, переводчик, автор комментариев и вступительной статьи}%
+                      {ред.,\addabbrvspace пер.,\addabbrvspace авт\adddotspace коммент\adddotspace и вступ\adddotspace ст\adddot}},
+  editorstrcoin    = {{редакторы, переводчики, авторы комментариев и вступительной статьи}%
+                      {ред.,\addabbrvspace пер.,\addabbrvspace авт\adddotspace коммент\adddotspace и вступ\adddotspace ст\adddot}},
+  editortrcofo     = {{редактор, переводчик, автор комментариев и предисловия}%
+                      {ред.,\addabbrvspace пер.,\addabbrvspace авт\adddotspace коммент\adddotspace и предисл\adddot}},
+  editorstrcofo    = {{редакторы, переводчики, авторы комментариев и предисловия}%
+                      {ред.,\addabbrvspace пер.,\addabbrvspace авт\adddotspace коммент\adddotspace и предисл\adddot}},
+  editortrcoaf     = {{редактор, переводчик, автор комментариев и послесловия}%
+                      {ред.,\addabbrvspace пер.,\addabbrvspace авт\adddotspace коммент\adddotspace и послесл\adddot}},
+  editorstrcoaf    = {{редакторы, переводчики, авторы комментариев и послесловия}%
+                      {ред.,\addabbrvspace пер.,\addabbrvspace авт\adddotspace коммент\adddotspace и послесл\adddot}},
+  editortranin     = {{редактор, переводчик, составитель примечаний и автор вступительной статьи}%
+                      {ред.,\addabbrvspace пер.,\addabbrvspace сост\adddotspace примеч\adddotspace и авт\adddotspace вступ\adddotspace ст\adddot}},
+  editorstranin    = {{редакторы, переводчики, составители примечаний и авторы вступительной статьи}%
+                      {ред.,\addabbrvspace пер.,\addabbrvspace сост\adddotspace примеч\adddotspace и авт\adddotspace вступ\adddotspace ст\adddot}},
+  editortranfo     = {{редактор, переводчик, составитель примечаний и автор предисловия}%
+                      {ред.,\addabbrvspace пер.,\addabbrvspace сост\adddotspace примеч\adddotspace и авт\adddotspace предисл\adddot}},
+  editorstranfo    = {{редакторы, переводчики, составители примечаний и авторы предисловия}%
+                      {ред.,\addabbrvspace пер.,\addabbrvspace сост\adddotspace примеч\adddotspace и авт\adddotspace предисл\adddot}},
+  editortranaf     = {{редактор, переводчик, составитель примечаний и автор послесловия}%
+                      {ред.,\addabbrvspace пер.,\addabbrvspace сост\adddotspace примеч\adddotspace и авт\adddotspace послесл\adddot}},
+  editorstranaf    = {{редакторы, переводчики, составители примечаний и авторы послесловия}%
+                      {ред.,\addabbrvspace пер.,\addabbrvspace сост\adddotspace примеч\adddotspace и авт\adddotspace послесл\adddot}},
+  translatorco     = {{переводчик и автор комментариев}%
+                      {пер\adddotspace и авт\adddotspace коммент\adddot}},
+  translatorsco    = {{переводчики и авторы комментариев}%
+                      {пер\adddotspace и авт\adddotspace коммент\adddot}},
+  translatoran     = {{переводчик и автор примечаний}%
+                      {пер\adddotspace и сост\adddotspace примеч\adddot}},
+  translatorsan    = {{переводчики и составители примечаний}%
+                      {пер\adddotspace и сост\adddotspace примеч\adddot}},
+  translatorin     = {{переводчик и автор вступительной статьи}%
+                      {пер\adddotspace и авт\adddotspace вступ\adddotspace ст\adddot}},
+  translatorsin    = {{переводчики и авторы вступительной статьи}%
+                      {пер\adddotspace и авт\adddotspace вступ\adddotspace ст\adddot}},
+  translatorfo     = {{переводчик и автор предисловия}%
+                      {пер\adddotspace и авт\adddotspace предисл\adddot}},
+  translatorsfo    = {{переводчики и авторы предисловия}%
+                      {пер\adddotspace и авт\adddotspace предисл\adddot}},
+  translatoraf     = {{переводчик и автор послесловия}%
+                      {пер\adddotspace и авт\adddotspace послесл\adddot}},
+  translatorsaf    = {{переводчики и авторы послесловия}%
+                      {пер\adddotspace и авт\adddotspace послесл\adddot}},
+  translatorcoin   = {{переводчик, автор комментариев и вступительной статьи}%
+                      {пер.,\addabbrvspace авт\adddotspace коммент\adddotspace и вступ\adddotspace ст\adddot}},
+  translatorscoin  = {{переводчики, авторы комментариев и вступительной статьи}%
+                      {пер.,\addabbrvspace авт\adddotspace коммент\adddotspace и вступ\adddotspace ст\adddot}},
+  translatorcofo   = {{переводчик, автор комментариев и предисловия}%
+                      {пер.,\addabbrvspace авт\adddotspace коммент\adddotspace и предисл\adddot}},
+  translatorscofo  = {{переводчики, авторы комментариев и предисловия}%
+                      {пер.,\addabbrvspace авт\adddotspace коммент\adddotspace и предисл\adddot}},
+  translatorcoaf   = {{переводчик, автор комментариев и послесловия}%
+                      {пер.,\addabbrvspace авт\adddotspace коммент\adddotspace и послесл\adddot}},
+  translatorscoaf  = {{переводчики, авторы комментариев и послесловия}%
+                      {пер.,\addabbrvspace авт\adddotspace коммент\adddotspace и послесл\adddot}},
+  translatoranin   = {{переводчик, автор комментариев и вступительной статьим}%
+                      {пер.,\addabbrvspace авт\adddotspace коммент\adddotspace и вступ\adddotspace ст\adddot}},
+  translatorsanin  = {{переводчики, авторы комментариев и вступительной статьи}%
+                      {пер.,\addabbrvspace авт\adddotspace коммент\adddotspace и вступ\adddotspace ст\adddot}},
+  translatoranfo   = {{переводчик, автор комментариев и предисловия}%
+                      {пер.,\addabbrvspace авт\adddotspace коммент\adddotspace и предисл\adddot}},
+  translatorsanfo  = {{переводчики, авторы комментариев и предисловия}%
+                      {пер.,\addabbrvspace авт\adddotspace коммент\adddotspace и предисл\adddot}},
+  translatoranaf   = {{переводчик, автор комментариев и послесловия}%
+                      {пер.,\addabbrvspace авт\adddotspace коммент\adddotspace и послесл\adddot}},
+  translatorsanaf  = {{переводчики, авторы комментариев и послесловия}%
+                      {пер.,\addabbrvspace авт\adddotspace коммент\adddotspace и послесл\adddot}},
+  organizer        = {{организатор}{орг\adddot}},
+  organizers       = {{организаторы}{орг\adddot}},
+  byorganizer      = {{организатор}{орг\adddot}},% FIXME: unsure
+  byauthor         = {{}{}},
+  byeditor         = {{под редакцией}{под\addabbrvspace ред\adddot}},
+  bycompiler       = {{составитель}{сост\adddot}},
+  byredactor       = {{под редакцией}{под\addabbrvspace ред\adddot}},
+  byreviser        = {{исправлено}{испр\adddot}},
+  byreviewer       = {{рецензия}{рец\adddot}},
+  byfounder        = {{учредитель}{учр\adddot}},% FIXME: unsure
+  bycontinuator    = {{продолжение}{продолж\adddot}},% FIXME: unsure
+  bycollaborator   = {{при участии}{при\addabbrvspace уч\adddot}},
+  bytranslator     = {{перевод \lbx@lfromlang}{пер\adddot\ \lbx@sfromlang}},
+  bycommentator    = {{комментарии}{коммент\adddot}},
+  byannotator      = {{примечания}{примеч\adddot}},
+  withcommentator  = {{комментарии}{коммент\adddot}},
+  withannotator    = {{примечания}{примеч\adddot}},
+  withintroduction = {{вступительная статья}{вступ\adddotspace ст\adddot}},
+  withforeword     = {{предисловие}{предисл\adddot}},
+  withafterword    = {{послесловие}{послесл\adddot}},
+  byeditortr       = {{перевод \lbx@lfromlang, под редакцией}%
+                      {пер\adddot\ \lbx@sfromlang, под\addabbrvspace ред\adddot}},
+  byeditorco       = {{под редакцией, комментарии}%
+                      {под ред.,\addabbrvspace коммент\adddot}},
+  byeditoran       = {{под редакцией, примечания}%
+                      {под ред.,\addabbrvspace примеч\adddot}},
+  byeditorin       = {{под редакцией, вступительная статья}%
+                      {под ред.,\addabbrvspace вступ\adddotspace ст\adddot}},
+  byeditorfo       = {{под редакцией, предисловие}%
+                      {под ред.,\addabbrvspace предисл\adddot}},
+  byeditoraf       = {{под редакцией, послесловие}%
+                      {под ред.,\addabbrvspace послесл\adddot}},
+  byeditortrco     = {{под редакцией, перевод \lbx@lfromlang\ и комментарии}%
+                      {под ред.,\addabbrvspace пер\adddot\ \lbx@sfromlang\ и коммент\adddot}},
+  byeditortran     = {{под редакцией, перевод \lbx@lfromlang\ и примечания}%
+                      {под ред.,\addabbrvspace пер\adddot\ \lbx@sfromlang\ и примеч\adddot}},
+  byeditortrin     = {{под редакцией, перевод \lbx@lfromlang, вступительная статья}%
+                      {под ред.,\addabbrvspace пер\adddot\ \lbx@sfromlang, вступ\adddotspace ст\adddot}},
+  byeditortrfo     = {{под редакцией, перевод \lbx@lfromlang, предисловие}%
+                      {под ред.,\addabbrvspace пер\adddot\ \lbx@sfromlang, предисл\adddot}},
+  byeditortraf     = {{под редакцией, перевод \lbx@lfromlang, послесловие}%
+                      {под ред\adddotspace и пер\adddot\ \lbx@sfromlang, послесл\adddot}},
+  byeditorcoin     = {{под редакцией, комментарии и вступительная статья}%
+                      {под ред.,\addabbrvspace коммент\adddotspace и вступ\adddotspace ст\adddot}},
+  byeditorcofo     = {{под редакцией, комментарии и предисловие}%
+                      {под ред.,\addabbrvspace коммент\adddotspace и предисл\adddot}},
+  byeditorcoaf     = {{под редакцией, комментарии и послесловие}%
+                      {под ред.,\addabbrvspace коммент\adddotspace и послесл\adddot}},
+  byeditoranin     = {{под редакцией, примечания и вступительная статья}%
+                      {под ред.,\addabbrvspace примеч\adddotspace и вступ\adddotspace ст\adddot}},
+  byeditoranfo     = {{под редакцией, примечания и предисловие}%
+                      {под ред.,\addabbrvspace примеч\adddotspace и предисл\adddot}},
+  byeditoranaf     = {{под редакцией, примечания и послесловие}%
+                      {под ред.,\addabbrvspace примеч\adddotspace и послесл\adddot}},
+  byeditortrcoin   = {{под редакцией, перевод \lbx@lfromlang, комментарии и вступительная статья}%
+                      {под ред.,\addabbrvspace пер\adddot\ \lbx@sfromlang, коммент\adddotspace и вступ\adddotspace ст\adddot}},
+  byeditortrcofo   = {{под редакцией, перевод \lbx@lfromlang, комментарии и предисловие}%
+                      {под ред.,\addabbrvspace пер\adddot\ \lbx@sfromlang, коммент\adddotspace и предисл\adddot}},
+  byeditortrcoaf   = {{под редакцией, перевод \lbx@lfromlang, комментарии и послесловие}%
+                      {под ред.,\addabbrvspace пер\adddot\ \lbx@sfromlang, коммент\adddotspace и послесл\adddot}},
+  byeditortranin   = {{под редакцией, перевод \lbx@lfromlang, примечания и вступительная статья}%
+                      {под ред.,\addabbrvspace пер\adddot\ \lbx@sfromlang, примеч\adddotspace и вступ\adddotspace ст\adddot}},
+  byeditortranfo   = {{под редакцией, перевод \lbx@lfromlang, примечания и предисловие}%
+                      {под ред.,\addabbrvspace пер\adddot\ \lbx@sfromlang, примеч\adddotspace и предисл\adddot}},
+  byeditortranaf   = {{под редакцией, перевод \lbx@lfromlang, примечания и послесловие}%
+                      {под ред.,\addabbrvspace пер\adddot\ \lbx@sfromlang, примеч\adddotspace и послесл\adddot}},
+  bytranslatorco   = {{перевод \lbx@lfromlang\ и комментарии}%
+                      {пер\adddot\ \lbx@sfromlang\ и коммент\adddot}},
+  bytranslatoran   = {{перевод \lbx@lfromlang\ и примечания}%
+                      {пер\adddot\ \lbx@sfromlang\ и примеч\adddot}},
+  bytranslatorin   = {{перевод \lbx@lfromlang\ и вступительная статья}%
+                      {пер\adddot\ \lbx@sfromlang\ и вступ\adddotspace ст\adddot}},
+  bytranslatorfo   = {{перевод \lbx@lfromlang\ и предисловие}%
+                      {пер\adddot\ \lbx@sfromlang\ и предисл\adddot}},
+  bytranslatoraf   = {{перевод \lbx@lfromlang\ и послесловие}%
+                      {пер\adddot\ \lbx@sfromlang\ и и послесл\adddot}},
+  bytranslatorcoin = {{перевод \lbx@lfromlang, комментарии и вступительная статья}%
+                      {пер\adddot\ \lbx@sfromlang, коммент\adddotspace и вступ\adddotspace ст\adddot}},
+  bytranslatorcofo = {{перевод \lbx@lfromlang, комментарии и предисловие}%
+                      {пер\adddot\ \lbx@sfromlang, коммент\adddotspace и предисл\adddot}},
+  bytranslatorcoaf = {{перевод \lbx@lfromlang, комментарии и послесловие}%
+                      {пер\adddot\ \lbx@sfromlang, коммент\adddotspace и послесл\adddot}},
+  bytranslatoranin = {{перевод \lbx@lfromlang, примечания и вступительная статья}%
+                      {пер\adddot\ \lbx@sfromlang, примеч\adddotspace и вступ\adddotspace ст\adddot}},
+  bytranslatoranfo = {{перевод \lbx@lfromlang, примечания и предисловие}%
+                      {пер\adddot\ \lbx@sfromlang, примеч\adddotspace и предисл\adddot}},
+  bytranslatoranaf = {{перевод \lbx@lfromlang, примечания и послесловие}%
+                      {пер\adddot\ \lbx@sfromlang, примеч\adddotspace и послесл\adddot}},
+  and              = {{и}{и}},
+  andothers        = {{и\addabbrvspace др\adddot}{и\addabbrvspace др\adddot}},
+  andmore          = {{и\addabbrvspace др\adddot}{и\addabbrvspace др\adddot}},
+  volume           = {{том}{т\adddot}},
+  volumes          = {{томах}{т\adddot}},
+  involumes        = {{в}{в}},
+  jourvol          = {{том}{т\adddot}},
+  jourser          = {{серия}{сер\adddot}},
+  book             = {{книга}{кн\adddot}},
+  part             = {{часть}{ч\adddot}},
+  issue            = {{выпуск}{вып\adddot}},
+  newseries        = {{новая серия}{нов\adddotspace сер\adddot}},
+  oldseries        = {{старая серия}{стар\adddotspace сер\adddot}},
+  edition          = {{издание}{изд\adddot}},
+  reprint          = {{переиздание}{переизд\adddot}},
+  reprintof        = {{переиздание}{переизд\adddot}},
+  reprintas        = {{переиздано как}{переизд\adddotspace как}},
+  reprintfrom      = {{переиздано с}{переизд\adddotspace с}},
+  translationof    = {{перевод по изданию\addcolon}{пер\adddotspace по изд\adddot\addcolon}},
+  translationas    = {{перевод\addcolon}{пер\adddot\addcolon}},
+  translationfrom  = {{перевод с}{пер\adddotspace с}},
+  reviewof         = {{рецензия на\addcolon}{рец\adddotspace на\addcolon}},% FIXME: unsure
+  origpubas        = {{первая публикация\addcolon}%
+                      {перв\adddotspace публ\adddot\addcolon}},
+  origpubin        = {{первая публикация в}%
+                      {перв\adddotspace публ\adddotspace в}},
+  astitle          = {{\addcolon}{\addcolon}},% FIXME: unsure
+  bypublisher      = {{\addcomma}{\addcomma}},% FIXME: unsure
+  nodate           = {{б\adddot г\adddot}{б\adddot г\adddot}},
+  page             = {{страница}{с\adddot}},
+  pages            = {{страницы}{с\adddot}},
+  column           = {{колонка}{кол\adddot}},
+  columns          = {{колонки}{кол\adddot}},
+  line             = {{строка}{строка}},
+  lines            = {{строки}{строка}},
+  verse            = {{стих}{стих}},
+  verses           = {{стихи}{стихи}},
+  section          = {{параграф}{\S}},
+  sections         = {{параграфы}{\S\S}},
+  paragraph        = {{абзац}{абз\adddot}},
+  paragraphs       = {{абзацы}{абз\adddot}},
+  pagetotal        = {{страница}{с\adddot}},
+  pagetotals       = {{страницы}{с\adddot}},
+  columntotal      = {{колонка}{кол\adddot}},
+  columntotals     = {{колонки}{кол\adddot}},
+  linetotal        = {{строка}{строка}},
+  linetotals       = {{строки}{строка}},
+  versetotal       = {{стих}{стих}},
+  versetotals      = {{стихи}{стихи}},
+  sectiontotal     = {{параграф}{\S}},
+  sectiontotals    = {{параграфы}{\S\S}},
+  paragraphtotal   = {{абзац}{абз\adddot}},
+  paragraphtotals  = {{абзацы}{абз\adddot}},
+  in               = {{в}{в}},
+  inseries         = {{в}{в}},
+  ofseries         = {{из}{из}},
+  number           = {{номер}{№}},
+  chapter          = {{глава}{гл\adddot}},
+% bathesis         = {{}{}},% FIXME: missing
+  mathesis         = {{дис\adddotspace\textellipsis\ маг\adddot}
+                      {дис\adddotspace\textellipsis\ маг\adddot}},
+  phdthesis        = {{дис\adddotspace\textellipsis\ док\adddot}
+                      {дис\adddotspace\textellipsis\ док\adddot}},
+  candthesis       = {{дис\adddotspace\textellipsis\ канд\adddot}
+                      {дис\adddotspace\textellipsis\ канд\adddot}},
+  resreport        = {{научный отчёт}{науч\adddotspace отч\adddot}},
+  techreport       = {{технический отчёт}{тех\adddotspace отч\adddot}},
+  software         = {{программное обеспечение}{прогр\adddotspace обесп\adddot}},
+  datacd           = {{CD-ROM}{CD-ROM}},
+  audiocd          = {{audio CD}{audio CD}},
+  version          = {{версия}{вер\adddot}},
+  url              = {{url}{url}},
+  urlfrom          = {{режим доступа}{режим доступа}},
+  urlseen          = {{дата обращения}{дата\addabbrvspace обр\adddot}},
+  inpreparation    = {{в\addabbrvspace подготовке}{в подг\adddot}},
+  submitted        = {{представлено}{предст\adddot}},
+  forthcoming      = {{в печати}{в печ\adddot}},
+  inpress          = {{в\addabbrvspace печати}{в печ\adddot}},
+  prepublished     = {{предварительная публикация}{пред\adddotspace пуб\adddot}},% FIXME: unsure
+  citedas          = {{далее цитируется как}{далее цит\addabbrvspace как}},
+  thiscite         = {{здесь}{здесь}},
+  seenote          = {{смотри сноску}{см\adddotspace сн\adddot}},
+  quotedin         = {{цитируется по}{цит\adddotspace по}},
+  idem             = {{он\addabbrvspace же}{он\addabbrvspace же}},
+  idemsm           = {{он\addabbrvspace же}{он\addabbrvspace же}},
+  idemsf           = {{она\addabbrvspace же}{она\addabbrvspace же}},
+  idemsn           = {{он\addabbrvspace же}{он\addabbrvspace же}},
+  idempm           = {{они\addabbrvspace же}{они\addabbrvspace же}},
+  idempf           = {{они\addabbrvspace же}{они\addabbrvspace же}},
+  idempn           = {{они\addabbrvspace же}{они\addabbrvspace же}},
+  idempp           = {{они\addabbrvspace же}{они\addabbrvspace же}},
+  ibidem           = {{там\addabbrvspace же}{там\addabbrvspace же}},
+  opcit            = {{указ\adddotspace соч\adddot}{указ\adddotspace соч\adddot}},
+  loccit           = {{указ\adddotspace место}{указ\adddotspace место}},
+  confer           = {{сравни}{ср\adddot}},
+  sequens          = {{и следующая}{и\addabbrvspace сл\adddot}},
+  sequentes        = {{и следующие}{и\addabbrvspace сл\adddot}},
+  passim           = {{всюду}{всюду}},
+  see              = {{смотри}{см\adddot}},
+  seealso          = {{смотри также}{см\adddotspace также}},
+  backrefpage      = {{цитируется на странице}{цит\adddotspace на\addabbrvspace с\adddot}},
+  backrefpages     = {{цитируется на страницах}{цит\adddotspace на\addabbrvspace с\adddot}},
+  january          = {{январь}{янв\adddot}},
+  february         = {{февраль}{февр\adddot}},
+  march            = {{март}{март}},
+  april            = {{апрель}{апр\adddot}},
+  may              = {{май}{май}},
+  june             = {{июнь}{июнь}},
+  july             = {{июль}{июль}},
+  august           = {{август}{авг\adddot}},
+  september        = {{сентябрь}{сент\adddot}},
+  october          = {{октябрь}{окт\adddot}},
+  november         = {{ноябрь}{нояб\adddot}},
+  december         = {{декабрь}{дек\adddot}},
+  datejanuary      = {{января}{янв\adddot}},
+  datefebruary     = {{февраля}{февр\adddot}},
+  datemarch        = {{марта}{марта}},
+  dateapril        = {{апреля}{апр\adddot}},
+  datemay          = {{мая}{мая}},
+  datejune         = {{июня}{июня}},
+  datejuly         = {{июля}{июля}},
+  dateaugust       = {{августа}{авг\adddot}},
+  dateseptember    = {{сентября}{сент\adddot}},
+  dateoctober      = {{октября}{окт\adddot}},
+  datenovember     = {{ноября}{нояб\adddot}},
+  datedecember     = {{декабря}{дек\adddot}},
+  langamerican     = {{американский}{амер\adddot}},
+  langbrazilian    = {{бразильский}{браз\adddot}},
+  langbulgarian    = {{болгарский}{болг\adddot}},
+  langcatalan      = {{каталонский}{катал\adddot}},
+  langcroatian     = {{хорватский}{хорв\adddot}},
+  langczech        = {{чешский}{чеш\adddot}},
+  langdanish       = {{датский}{дат\adddot}},
+  langdutch        = {{нидерландский}{нидерл\adddot}},
+  langenglish      = {{английский}{англ\adddot}},
+  langestonian     = {{эстонский}{эст\adddot}},
+  langfinnish      = {{финский}{фин\adddot}},
+  langfrench       = {{французский}{фр\adddot}},
+  langgalician     = {{галисийский}{гал\adddot}},
+  langgerman       = {{немецкий}{нем\adddot}},
+  langgreek        = {{греческий}{греч\adddot}},
+  langhungarian    = {{венгерский}{венг\adddot}},
+  langitalian      = {{итальянский}{итал\adddot}},
+  langjapanese     = {{японский}{яп\adddot}},
+  langlatin        = {{латинский}{лат\adddot}},
+% langlatvian      = {{}{}},% FIXME: missing
+  langnorwegian    = {{норвежский}{норв\adddot}},
+  langpolish       = {{польский}{пол\adddot}},
+  langportuguese   = {{португальский}{порт\adddot}},
+  langrussian      = {{русский}{рус\adddot}},
+% langslovak       = {{}{}},% FIXME: missing
+  langslovene      = {{словенский}{слов\adddot}},
+  langspanish      = {{испанский}{исп\adddot}},
+  langswedish      = {{шведский}{швед\adddot}},
+  langukrainian    = {{украинский}{укр\adddot}},
+  fromamerican     = {{с американского}{с\addabbrvspace амер\adddot}},
+  frombrazilian    = {{с бразильского}{с\addabbrvspace браз\adddot}},
+  frombulgarian    = {{с болгарского}{с\addabbrvspace болг\adddot}},
+  fromcatalan      = {{с каталонского}{с\addabbrvspace катал\adddot}},
+  fromcroatian     = {{с хорватского}{с\addabbrvspace хорв\adddot}},
+  fromczech        = {{с чешского}{с\addabbrvspace чеш\adddot}},
+  fromdanish       = {{с датского}{с\addabbrvspace дат\adddot}},
+  fromdutch        = {{с нидерландского}{с\addabbrvspace нидерл\adddot}},
+  fromenglish      = {{с английского}{с\addabbrvspace англ\adddot}},
+  fromestonian     = {{с эстонского}{с\addabbrvspace эст\adddot}},
+  fromfinnish      = {{с финского}{с\addabbrvspace фин\adddot}},
+  fromfrench       = {{с французского}{с\addabbrvspace фр\adddot}},
+  fromgalician     = {{c галисийского}{c\addabbrvspace гал\adddot}},
+  fromgerman       = {{с немецкого}{с\addabbrvspace нем\adddot}},
+  fromgreek        = {{с греческого}{с\addabbrvspace греч\adddot}},
+  fromhungarian    = {{с венгерского}{с\addabbrvspace венг\adddot}},
+  fromitalian      = {{с итальянского}{с\addabbrvspace итал\adddot}},
+  fromjapanese     = {{с японского}{с\addabbrvspace яп\adddot}},
+  fromlatin        = {{с латинского}{с\addabbrvspace лат\adddot}},
+% fromlatvian      = {{}{}},% FIXME: missing
+  fromnorwegian    = {{с норвежского}{с\addabbrvspace норв\adddot}},
+  frompolish       = {{с польского}{с пол\adddot}},
+  fromportuguese   = {{с португальского}{с\addabbrvspace порт\adddot}},
+  fromrussian      = {{с русского}{с\addabbrvspace рус\adddot}},
+% fromslovak       = {{}{}},% FIXME: missing
+  fromslovene      = {{со словенского}{со\addabbrvspace слов\adddot}},
+  fromspanish      = {{с испанского}{с\addabbrvspace исп\adddot}},
+  fromswedish      = {{со шведского}{со\addabbrvspace швед\adddot}},
+  fromukrainian    = {{с украинского}{с\addabbrvspace укр\adddot}},
+  countryde        = {{Германия}{Германия}},
+  countryeu        = {{Европейский Союз}{ЕС}},
+  countryep        = {{Европейский Союз}{ЕС}},
+  countryfr        = {{Франция}{Франция}},
+  countryuk        = {{Великобритания}{Великобритания}},
+  countryus        = {{Соединённые Штаты Америки}{США}},
+  patent           = {{патент}{пат\adddot}},
+  patentde         = {{патент Германии}{пат\adddotspace Германии}},
+  patenteu         = {{патент Европы}{пат\adddotspace Европы}},
+  patentfr         = {{патент Франции}{пат\adddotspace Франции}},
+  patentuk         = {{патент Великобритании}{пат\adddotspace Великобритании}},
+  patentus         = {{патент США}{пат\adddotspace США}},
+  patreq           = {{заявка}{заявка}},
+  patreqde         = {{заявка на патент Германии}{заявка на пат\adddotspace Германии}},
+  patreqeu         = {{заявка на патент Европы}{заявка на пат\adddotspace Европы}},
+  patreqfr         = {{заявка на патент Франции}{заявка на пат\adddotspace Франции}},
+  patrequk         = {{заявка на патент Великобритании}{заявка на пат\adddotspace Великобритании}},
+  patrequs         = {{заявка на патент США}{заявка на пат\adddotspace США}},
+  file             = {{файл}{файл}},
+  library          = {{библиотека}{б-ка}},
+  abstract         = {{резюме}{рез\adddot}},
+  annotation       = {{аннотация}{аннот\adddot}},
+  commonera        = {{нашей эры}{н\adddotspace э\adddot}},
+  beforecommonera  = {{до нашей эры}{до н\adddotspace э\adddot}},
+  annodomini       = {{от Рождества Христова}{от Р\adddotspace Х\adddot}},
+  beforechrist     = {{до Рождества Христова}{до Р\adddotspace Х\adddot}},
+  circa            = {{около}{ок\adddot}},
+  spring           = {{весна}{весна}},
+  summer           = {{лето}{лето}},
+  autumn           = {{осень}{осень}},
+  winter           = {{зима}{зима}},
+  am               = {{ДП}{ДП}},
+  pm               = {{ПП}{ПП}},
+}
+
+\protected\gdef\lbx@ru@mkbibdatemonth#1{%
+  \ifcase0#1\relax
+    #1\BibliographyWarning{Month out of range}%
+  \or\abx@bibmonth{datejanuary}%
+  \or\abx@bibmonth{datefebruary}%
+  \or\abx@bibmonth{datemarch}%
+  \or\abx@bibmonth{dateapril}%
+  \or\abx@bibmonth{datemay}%
+  \or\abx@bibmonth{datejune}%
+  \or\abx@bibmonth{datejuly}%
+  \or\abx@bibmonth{dateaugust}%
+  \or\abx@bibmonth{dateseptember}%
+  \or\abx@bibmonth{dateoctober}%
+  \or\abx@bibmonth{datenovember}%
+  \or\abx@bibmonth{datedecember}%
+  \else
+    #1\BibliographyWarning{Month out of range}%
+  \fi}%
+
+\endinput

@@ -1,0 +1,1037 @@
+%%
+%% This is file `babel-german.def',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% babel-german.dtx  (with options: `gbdef')
+%% This is a generated file.
+%% 
+%% Copyright 1989--2026
+%%     Johannes L. Braams
+%%     Bernd Raichle
+%%     Walter Schmidt
+%%     Juergen Spitzmueller
+%% All rights reserved.
+%% 
+%% This file is part of the babel-german bundle,
+%% an extension to the Babel system.
+%% ----------------------------------------------
+%% 
+%% It may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License, either version 1.3
+%% of this license or (at your option) any later version.
+%% The latest version of this license is in
+%%   http://www.latex-project.org/lppl.txt
+%% and version 1.3 or later is part of all distributions of LaTeX
+%% version 2003/12/01 or later.
+%% 
+%% This work has the LPPL maintenance status "maintained".
+%% 
+%% The Current Maintainer of this work is Juergen Spitzmueller.
+%% 
+%% Please report errors to: Juergen Spitzmueller
+%%                     via: https://codeberg.org/jspitz/babel-german
+%% 
+\def\bbl@opt@german{german}
+\def\bbl@opt@swissgerman{swissgerman}
+\def\bbl@opt@ngerman{ngerman}
+\def\bbl@german@region@at{AT}
+\def\bbl@german@region@ch{CH}
+\def\bbl@german@region@de{DE}
+\def\bbl@german@legacy@patterns{legacy}
+\newif\ifbbl@german@newterms
+\bbl@german@newtermsfalse
+\newif\ifbbl@german@maybe@newterms
+\bbl@german@maybe@newtermstrue
+\newif\iftoss
+\tossfalse
+\newif\ifcapsz
+\capszfalse
+\newif\if@bbl@german@at@capsz
+\@bbl@german@at@capszfalse
+\newif\if@bbl@german@ge@capsz
+\@bbl@german@ge@capszfalse
+\providecommand*\bbl@german@patterns@oldterms{legacy}
+\providecommand*\bbl@german@patterns@newterms{latest}
+\def\mkgender{*}
+\AtBeginDocument{%
+   \ifx\mkngender\@undefined\else
+       \let\mkgender\mkngender
+   \fi
+}
+\ExplSyntaxOn
+\DeclareKeys[bblgerman]
+  {
+    % glottonyms=<legacy|contemporary|auto>
+    glottonyms.choice:,
+    % a. legacy
+    glottonyms / legacy.code:n =
+        { \bbl@german@newtermsfalse
+          \bbl@german@maybe@newtermsfalse },
+    % b. contemporary
+    glottonyms / contemporary.code:n =
+        { \bbl@german@newtermstrue
+          \bbl@german@maybe@newtermsfalse },
+    % c. auto
+    glottonyms / auto.code:n =
+        { \bbl@german@newtermsfalse
+          \bbl@german@maybe@newtermstrue },
+    glottonyms.default:n = { auto },
+    % toss={true|false}
+    toss.legacy_if_set:n = toss,
+    % capsz={true|false}
+    capsz.code:n =
+        {
+         \str_if_eq:nnTF { #1 } { true }
+         {
+            \capsztrue
+            \@bbl@german@at@capsztrue
+            \@bbl@german@ge@capsztrue
+         }{
+            \capszfalse
+            \@bbl@german@at@capszfalse
+            \@bbl@german@ge@capszfalse
+         }
+       },
+    capsz.default:n = { true },
+    % hyphenrules={version}
+    hyphenrules.code:n =
+     {
+       \def\bbl@german@patterns@oldterms{#1}
+       \def\bbl@german@patterns@newterms{#1}
+       \def\bbl@german@xptl@patterns{}
+     },
+    gendermark.store = \mkgender,
+}
+\ExplSyntaxOff
+\providecommand*{\germansetup}[1]{%
+  \SetKeys[bblgerman]{#1}%
+}
+\@onlypreamble\germansetup
+\ifx\l@tgerman\@undefined
+   \ifx\l@german\@undefined\else
+        \let\l@tgerman\l@german
+   \fi
+\fi
+\ifx\CurrentOption\bbl@opt@german
+  \AddToHook{begindocument/before}{%
+    \ifbbl@german@maybe@newterms
+       \@ifundefined{bbl@german@force@legacy}{%
+          \bbl@german@newtermstrue
+          \PackageInfo{babel-german}{Using legacy glottonyms\MessageBreak
+                       `german' denotes pre-1996 spelling.}%
+       }{%
+          \PackageInfo{babel-german}{Using contemporary glottonyms\MessageBreak
+                       `german' denotes post-1996 spelling.}%
+       }%
+    \fi
+    \ifbbl@german@newterms
+      \ifx\l@ngerman\@undefined
+          \@nopatterns{German (current orthography),
+                       falling back to 1901 orthography!}%
+      \else
+        \babelprovide[identification/tag.bcp47=de-DE,
+                      identification/region.local=Deutschland,
+                      identification/region.english=Germany,
+                      identification/region.tag.bcp47=DE]{german}
+          \ifx\bbl@german@patterns@newterms\bbl@german@legacy@patterns
+              \adddialect\l@german\l@ngerman
+          \else
+              \expandafter\adddialect\csname l@german\expandafter
+                \endcsname\csname l@ngerman-x-\bbl@german@patterns@newterms\endcsname
+          \fi
+          \addto\extrasgerman{\bbl@german@tradspellingfalse}%
+      \fi
+    \else
+       \ifx\bbl@german@patterns@oldterms\bbl@german@legacy@patterns\else
+           \expandafter\adddialect\csname l@german\expandafter
+               \endcsname\csname l@german-x-\bbl@german@patterns@oldterms\endcsname
+       \fi
+    \fi
+  }
+\fi
+\edef\bbl@german@save@hyphen@catcode{\the\catcode`\-}
+\catcode`\-=11
+\ifx\bbl@german@region\bbl@german@region@de
+  \ifbbl@german@tradspelling
+      \ifx\l@tgerman\@undefined
+        \@nopatterns{German (1901 orthography)}
+        \adddialect\l@german0
+        \adddialect\l@tgerman0
+      \fi
+    \ifx\CurrentOption\bbl@opt@german\else
+       \expandafter\adddialect\csname l@\CurrentOption\endcsname\l@tgerman
+    \fi
+  \else% 1996 spelling
+    \ifx\l@ngerman\@undefined
+      \@nopatterns{German (current orthography)}
+      \adddialect\l@ngerman0
+    \fi
+    \ifx\CurrentOption\bbl@opt@ngerman\else
+       \expandafter\adddialect\csname l@\CurrentOption\endcsname\l@ngerman
+    \fi
+  \fi
+\fi
+\ifx\bbl@german@region\bbl@german@region@at
+  \ifbbl@german@tradspelling
+      \ifx\l@tgerman\@undefined
+        \@nopatterns{German (1901 orthography), needed by Austrian (1901 orthography)}
+        \expandafter\adddialect\csname l@\CurrentOption\endcsname0
+      \else
+        \expandafter\adddialect\csname l@\CurrentOption\endcsname\l@tgerman
+     \fi
+  \else% 1996 spelling
+    \ifx\l@ngerman\@undefined
+      \@nopatterns{German (current orthography), needed by Austrian (current orthography)}
+        \expandafter\adddialect\csname l@\CurrentOption\endcsname0
+    \else
+       \expandafter\adddialect\csname l@\CurrentOption\endcsname\l@ngerman
+    \fi
+  \fi
+\fi
+\ifx\bbl@german@region\bbl@german@region@ch
+  \ifbbl@german@tradspelling
+     \ifx\l@swissgerman\@undefined
+        \ifx\l@tgerman\@undefined
+          \@nopatterns{Swiss Standard German (1901 orthography) and German (1901 orthography)}
+          \expandafter\adddialect\csname l@\CurrentOption\endcsname0
+        \else
+          \@nopatterns{Swiss Standard German (1901 orthography),
+                       falling back to German (1901 orthography)}
+          \expandafter\adddialect\csname l@\CurrentOption\endcsname\l@tgerman
+        \fi
+     \else
+       \ifx\CurrentOption\bbl@opt@swissgerman\else
+         \expandafter\adddialect\csname l@\CurrentOption\endcsname\l@swissgerman
+       \fi
+     \fi
+  \else% 1996 spelling
+    \ifx\l@ngerman\@undefined
+      \@nopatterns{German (current orthography),
+                   needed by Swiss Standard German (current orthography)}
+        \expandafter\adddialect\csname l@\CurrentOption\endcsname0
+    \else
+       \expandafter\adddialect\csname l@\CurrentOption\endcsname\l@ngerman
+    \fi
+  \fi
+\fi
+\catcode`\-=\bbl@german@save@hyphen@catcode
+\providecommand*\addtocs[2]{\expandafter\addto\csname #1\endcsname{#2}}
+\providecommand\bbl@german@patternshook{}
+\ifbbl@german@tradspelling
+    \ifx\bbl@german@region\bbl@german@region@ch\else
+       \def\bbl@tmpa{austrian}
+       \ifx\CurrentOption\bbl@tmpa
+           \addto\bbl@german@patternshook{%
+             \ifx\bbl@german@patterns@oldterms\bbl@german@legacy@patterns\else
+               \expandafter\adddialect\csname l@austrian\expandafter
+               \endcsname\csname l@german-x-\bbl@german@patterns@oldterms\endcsname\fi}
+       \fi
+       \def\bbl@tmpa{german-at-1901}
+       \ifx\CurrentOption\bbl@tmpa
+           \addto\bbl@german@patternshook{%
+             \ifx\bbl@german@patterns@newterms\bbl@german@legacy@patterns\else
+               \expandafter\adddialect\csname l@german-at-1901\expandafter
+               \endcsname\csname l@german-x-\bbl@german@patterns@newterms\endcsname\fi}
+       \fi
+       \def\bbl@tmpa{german-austria-1901}
+       \ifx\CurrentOption\bbl@tmpa
+           \addto\bbl@german@patternshook{%
+             \ifx\bbl@german@patterns@newterms\bbl@german@legacy@patterns\else
+               \expandafter\adddialect\csname l@german-austria-1901\expandafter
+               \endcsname\csname l@german-x-\bbl@german@patterns@newterms\endcsname\fi}
+       \fi
+       \def\bbl@tmpa{german-de-1901}
+       \ifx\CurrentOption\bbl@tmpa
+           \addto\bbl@german@patternshook{%
+             \ifx\bbl@german@patterns@newterms\bbl@german@legacy@patterns\else
+               \expandafter\adddialect\csname l@german-de-1901\expandafter
+               \endcsname\csname l@german-x-\bbl@german@patterns@newterms\endcsname\fi}
+       \fi
+       \def\bbl@tmpa{german-germany-1901}
+       \ifx\CurrentOption\bbl@tmpa
+           \addto\bbl@german@patternshook{%
+             \ifx\bbl@german@patterns@newterms\bbl@german@legacy@patterns\else
+               \expandafter\adddialect\csname l@german-germany-1901\expandafter
+               \endcsname\csname l@german-x-\bbl@german@patterns@newterms\endcsname\fi}
+       \fi
+    \fi
+\else
+   \ifx\CurrentOption\bbl@opt@ngerman
+       \addto\bbl@german@patternshook{%
+         \ifx\bbl@german@patterns@oldterms\bbl@german@legacy@patterns\else
+           \expandafter\adddialect\csname l@ngerman\expandafter
+           \endcsname\csname l@ngerman-x-\bbl@german@patterns@oldterms\endcsname\fi}
+   \fi
+   \def\bbl@tmpa{german-at}
+   \ifx\CurrentOption\bbl@tmpa
+       \addto\bbl@german@patternshook{%
+         \ifx\bbl@german@patterns@newterms\bbl@german@legacy@patterns\else
+           \expandafter\adddialect\csname l@german-at\expandafter
+           \endcsname\csname l@ngerman-x-\bbl@german@patterns@newterms\endcsname\fi}
+   \fi
+   \def\bbl@tmpa{naustrian}
+   \ifx\CurrentOption\bbl@tmpa
+       \addto\bbl@german@patternshook{%
+         \ifx\bbl@german@patterns@oldterms\bbl@german@legacy@patterns\else
+           \expandafter\adddialect\csname l@naustrian\expandafter
+           \endcsname\csname l@ngerman-x-\bbl@german@patterns@oldterms\endcsname\fi}
+   \fi
+   \def\bbl@tmpa{german-austria}
+   \ifx\CurrentOption\bbl@tmpa
+       \addto\bbl@german@patternshook{%
+         \ifx\bbl@german@patterns@newterms\bbl@german@legacy@patterns\else
+           \expandafter\adddialect\csname l@german-austria\expandafter
+           \endcsname\csname l@ngerman-x-\bbl@german@patterns@newterms\endcsname\fi}
+   \fi
+   \def\bbl@tmpa{german-ch}
+   \ifx\CurrentOption\bbl@tmpa
+       \addto\bbl@german@patternshook{%
+         \ifx\bbl@german@patterns@newterms\bbl@german@legacy@patterns\else
+           \expandafter\adddialect\csname l@german-ch\expandafter
+           \endcsname\csname l@ngerman-x-\bbl@german@patterns@newterms\endcsname\fi}
+   \fi
+   \def\bbl@tmpa{german-switzerland}
+   \ifx\CurrentOption\bbl@tmpa
+       \addto\bbl@german@patternshook{%
+         \ifx\bbl@german@patterns@newterms\bbl@german@legacy@patterns\else
+           \expandafter\adddialect\csname l@german-switzerland\expandafter
+           \endcsname\csname l@ngerman-x-\bbl@german@patterns@newterms\endcsname\fi}
+   \fi
+   \def\bbl@tmpa{german-de}
+   \ifx\CurrentOption\bbl@tmpa
+       \addto\bbl@german@patternshook{%
+         \ifx\bbl@german@patterns@newterms\bbl@german@legacy@patterns\else
+           \expandafter\adddialect\csname l@german-de\expandafter
+           \endcsname\csname l@ngerman-x-\bbl@german@patterns@newterms\endcsname\fi}
+   \fi
+   \def\bbl@tmpa{german-germany}
+   \ifx\CurrentOption\bbl@tmpa
+       \addto\bbl@german@patternshook{%
+         \ifx\bbl@german@patterns@newterms\bbl@german@legacy@patterns\else
+           \expandafter\adddialect\csname l@german-germany\expandafter
+           \endcsname\csname l@ngerman-x-\bbl@german@patterns@newterms\endcsname\fi}
+   \fi
+   \def\bbl@tmpa{nswissgerman}
+   \ifx\CurrentOption\bbl@tmpa
+       \addto\bbl@german@patternshook{%
+         \ifx\bbl@german@patterns@oldterms\bbl@german@legacy@patterns\else
+           \expandafter\adddialect\csname l@nswissgerman\expandafter
+           \endcsname\csname l@ngerman-x-\bbl@german@patterns@oldterms\endcsname\fi}
+   \fi
+\fi
+\AddToHook{begindocument/before}[babel-german-patterns]{}
+\RemoveFromHook{begindocument/before}[babel-german-patterns]
+\AddToHook{begindocument/before}[babel-german-patterns]{%
+   \ifdefined\bbl@german@xptl@patterns
+     \bbl@german@patternshook
+   \fi
+}
+\@namedef{@captionsgerman}{%
+  \def\prefacename{Vorwort}%
+  \def\refname{Literatur}%
+  \def\abstractname{Zusammenfassung}%
+  \def\bibname{Literaturverzeichnis}%
+  \def\chaptername{Kapitel}%
+  \def\appendixname{Anhang}%
+  \def\contentsname{Inhaltsverzeichnis}%
+  \def\listfigurename{Abbildungsverzeichnis}%
+  \def\listtablename{Tabellenverzeichnis}%
+  \def\indexname{Index}%
+  \def\figurename{Abbildung}%
+  \def\tablename{Tabelle}%
+  \def\partname{Teil}%
+  \def\enclname{Anlage(n)}%
+  \def\ccname{Verteiler}%
+  \def\headtoname{An}%
+  \def\pagename{Seite}%
+  \def\seename{siehe}%
+  \def\alsoname{siehe auch}%
+  \def\proofname{Beweis}%
+  \def\glossaryname{Glossar}%
+}
+\@namedef{captionsallgerman}{%
+    \@nameuse{@captionsgerman}%
+}
+\@namedef{captionsallatgerman}{%
+    \@nameuse{captionsallgerman}%
+    \def\enclname{Beilage(n)}%
+}
+\@namedef{captionsallchgerman}{%
+    \@nameuse{captionsallgerman}%
+    \def\enclname{Beilage(n)}%
+}
+\ifx\CurrentOption\bbl@opt@german
+  \@namedef{captionsgerman}{%
+    \@nameuse{captionsallgerman}%
+}
+\else
+  \ifx\bbl@german@region\bbl@german@region@de
+    \ifbbl@german@tradspelling
+       \@namedef{captionsgerman}{%
+          \@nameuse{captionsallgerman}%
+       }
+       \@namedef{captions\CurrentOption}{%
+          \@nameuse{captionsgerman}%
+       }
+    \fi
+  \fi
+\fi
+\ifx\CurrentOption\bbl@opt@ngerman
+  \@namedef{captionsngerman}{%
+      \@nameuse{captionsallgerman}%
+}
+\else
+  \ifx\bbl@german@region\bbl@german@region@de
+     \ifbbl@german@tradspelling\else
+        \@namedef{captionsngerman}{%
+           \@nameuse{captionsallgerman}%
+        }
+        \@namedef{captions\CurrentOption}{%
+           \@nameuse{captionsngerman}%
+        }
+     \fi
+  \fi
+\fi
+\ifx\bbl@german@region\bbl@german@region@at
+ \ifbbl@german@tradspelling
+    \def\bbl@tmpa{austrian}
+    \ifx\CurrentOption\bbl@tmpa
+       \@namedef{captions\CurrentOption}{%
+         \@nameuse{captionsallatgerman}%
+       }
+     \else
+       \@namedef{captionsaustrian}{%
+         \@nameuse{captionsallatgerman}%
+       }
+       \@namedef{captions\CurrentOption}{%
+         \@nameuse{captionsaustrian}%
+       }
+     \fi
+  \else
+    \def\bbl@tmpa{naustrian}
+    \ifx\CurrentOption\bbl@tmpa
+      \@namedef{captions\CurrentOption}{%
+        \@nameuse{captionsallatgerman}%
+      }
+     \else
+       \@namedef{captionsnaustrian}{%
+         \@nameuse{captionsallatgerman}%
+       }
+       \@namedef{captions\CurrentOption}{%
+         \@nameuse{captionsnaustrian}%
+       }
+     \fi
+  \fi
+\fi
+\ifx\bbl@german@region\bbl@german@region@ch
+ \ifbbl@german@tradspelling
+    \ifx\CurrentOption\bbl@opt@swissgeman
+       \@namedef{captions\CurrentOption}{%
+         \@nameuse{captionsallchgerman}%
+       }
+     \else
+       \@namedef{captionsswissgeman}{%
+         \@nameuse{captionsallchgerman}%
+       }
+       \@namedef{captions\CurrentOption}{%
+         \@nameuse{captionsswissgeman}%
+       }
+     \fi
+  \else
+    \def\bbl@tmpa{nswissgeman}
+    \ifx\CurrentOption\bbl@tmpa
+      \@namedef{captions\CurrentOption}{%
+        \@nameuse{captionsallchgerman}%
+      }
+     \else
+       \@namedef{captionsnswissgeman}{%
+         \@nameuse{captionsallchgerman}%
+       }
+       \@namedef{captions\CurrentOption}{%
+         \@nameuse{captionsnswissgeman}%
+       }
+     \fi
+  \fi
+\fi
+\def\month@german{\ifcase\month\or
+  Januar\or Februar\or M\"arz\or April\or Mai\or Juni\or
+  Juli\or August\or September\or Oktober\or November\or Dezember\fi}
+\@namedef{date@german@at}{\def\today{\number\day.~\ifnum1=\month
+    J\"anner\else \month@german\fi \space\number\year}}
+\@namedef{date@german@ch}{\def\today{\number\day.~\month@german
+      \space\number\year}}
+\@namedef{date@german@de}{\def\today{\number\day.~\month@german
+      \space\number\year}}
+\ifx\bbl@german@region\bbl@german@region@at
+   \@namedef{date\CurrentOption}{\@nameuse{date@german@at}}
+\else
+    \ifx\bbl@german@region\bbl@german@region@ch
+      \@namedef{date\CurrentOption}{\@nameuse{date@german@ch}}
+    \else
+      \@namedef{date\CurrentOption}{\@nameuse{date@german@de}}
+    \fi
+\fi
+\initiate@active@char{"}
+\@namedef{@extrasgerman}{%
+   \languageshorthands{german}%
+   \bbl@activate{"}%
+   \babel@savevariable{\lccode25}%
+   \lccode25=25%
+   \babel@save\"\umlautlow
+   \bbl@frenchspacing
+}
+\ifx\CurrentOption\bbl@opt@german
+  \@namedef{extrasgerman}{%
+      \@nameuse{@extrasgerman}%
+  }
+\else
+  \ifx\CurrentOption\bbl@opt@ngerman
+    \@namedef{extrasngerman}{%
+        \@nameuse{@extrasgerman}%
+    }
+  \else
+    \ifx\bbl@german@region\bbl@german@region@de
+       \ifbbl@german@tradspelling
+          \@namedef{extrasgerman}{%
+             \@nameuse{@extrasgerman}%
+          }
+          \@namedef{extras\CurrentOption}{%
+             \@nameuse{extrasgerman}%
+          }
+       \else
+         \@namedef{extrasngerman}{%
+            \@nameuse{@extrasgerman}%
+         }
+         \@namedef{extras\CurrentOption}{%
+            \@nameuse{extrasngerman}%
+         }
+       \fi
+    \fi
+  \fi
+\fi
+\def\bbl@tmpa{austrian}
+\def\bbl@tmpb{naustrian}
+\ifx\CurrentOption\bbl@tmpa
+  \@namedef{extrasaustrian}{%
+      \@nameuse{@extrasgerman}%
+  }
+\else
+  \ifx\CurrentOption\bbl@tmpb
+    \@namedef{extrasnaustrian}{%
+      \@nameuse{@extrasgerman}%
+    }
+  \else
+     \ifx\bbl@german@region\bbl@german@region@at
+        \ifbbl@german@tradspelling
+           \@namedef{extrasaustrian}{%
+              \@nameuse{@extrasgerman}%
+           }
+           \@namedef{extras\CurrentOption}{%
+              \@nameuse{extrasaustrian}%
+           }
+        \else
+           \@namedef{extrasnaustrian}{%
+              \@nameuse{@extrasgerman}%
+           }
+           \@namedef{extras\CurrentOption}{%
+              \@nameuse{extrasnaustrian}%
+           }
+        \fi
+     \fi
+  \fi
+\fi
+\ifx\CurrentOption\bbl@opt@swissgerman
+  \@namedef{extrasswissgerman}{%
+      \@nameuse{@extrasgerman}%
+  }
+\else
+  \def\bbl@tmpa{nswissgerman}
+  \ifx\CurrentOption\bbl@tmpa
+    \@namedef{extrasnswissgerman}{%
+       \@nameuse{@extrasgerman}%
+    }
+  \else
+     \ifx\bbl@german@region\bbl@german@region@ch
+        \ifbbl@german@tradspelling
+           \@namedef{extrasswissgerman}{%
+              \@nameuse{@extrasgerman}%
+           }
+           \@namedef{extras\CurrentOption}{%
+              \@nameuse{extrasswissgerman}%
+           }
+        \else
+           \@namedef{extrasnswissgerman}{%
+              \@nameuse{@extrasgerman}%
+           }
+           \@namedef{extras\CurrentOption}{%
+              \@nameuse{extrasnswissgerman}%
+           }
+        \fi
+     \fi
+  \fi
+\fi
+\ifbbl@german@tradspelling
+    \expandafter\addto\csname extras\CurrentOption\endcsname{%
+        \bbl@german@tradspellingtrue}
+\else
+    \expandafter\addto\csname extras\CurrentOption\endcsname{%
+        \bbl@german@tradspellingfalse}
+\fi
+\newif\ifbbl@toss\bbl@tossfalse
+\def\bbl@tmpa{german-ch-1901}
+\ifx\CurrentOption\bbl@tmpa
+  \expandafter\let\expandafter\bbl@mod@swissgerman\csname bbl@mod@\bbl@tmpa\endcsname
+\fi
+\def\bbl@tmpa{german-switzerland-1901}
+\ifx\CurrentOption\bbl@tmpa
+  \expandafter\let\expandafter\bbl@mod@swissgerman\csname bbl@mod@\bbl@tmpa\endcsname
+\fi
+\ifx\bbl@mod@swissgerman\@undefined\else
+  \@expandtwoargs\in@{,toss,}{,\bbl@mod@swissgerman,}
+  \ifin@
+    \tosstrue
+  \fi
+\fi
+\newif\ifntoss\ntossfalse
+\newif\ifbbl@ntoss\bbl@ntossfalse
+\def\bbl@tmpa{german-ch}
+\ifx\CurrentOption\bbl@tmpa
+  \expandafter\let\expandafter\bbl@mod@nswissgerman\csname bbl@mod@\bbl@tmpa\endcsname
+\fi
+\def\bbl@tmpa{german-switzerland}
+\ifx\CurrentOption\bbl@tmpa
+  \expandafter\let\expandafter\bbl@mod@nswissgerman\csname bbl@mod@\bbl@tmpa\endcsname
+\fi
+\ifx\bbl@mod@nswissgerman\@undefined\else
+  \@expandtwoargs\in@{,toss,}{,\bbl@mod@nswissgerman,}
+  \ifin@
+    \tosstrue
+  \fi
+\fi
+\AtBeginDocument{%
+   \edef\bbl@tmpa{\localeinfo*{language.tag.bcp47}}%
+   \edef\bbl@tmpb{de}%
+   \ifx\bbl@tmpa\bbl@tmpb
+       \edef\bbl@tmpa{\localeinfo*{region.tag.bcp47}}%
+       \ifx\bbl@tmpa\bbl@german@region@ch
+          \ifntoss
+             \bbl@tosstrue
+          \else
+             \iftoss
+                 \bbl@tosstrue
+             \else
+                 \bbl@tossfalse
+             \fi
+          \fi
+       \fi
+   \fi
+  \ifdefined\extrasswissgerman
+    \addto\extrasswissgerman{%
+      \iftoss\bbl@tosstrue\else\bbl@tossfalse\fi}%
+  \fi
+  \ifdefined\extrasnswissgerman
+      \addto\extrasnswissgerman{%
+          \ifntoss
+             \bbl@tosstrue
+          \else
+              \iftoss
+                 \bbl@tosstrue
+             \else
+                 \bbl@tossfalse
+             \fi
+           \fi
+      }%
+   \fi
+}
+\newif\ifnocapsz\nocapszfalse
+\newif\ifbbl@capsz\bbl@capszfalse
+\ifdefined\casing@german
+  \let\save@casing@german\casing@german
+\else
+  \xdef\save@casing@german{de}
+\fi
+\ifdefined\casing@ngerman
+  \let\save@casing@ngerman\casing@ngerman
+\else
+  \xdef\save@casing@ngerman{de}
+\fi
+\ifdefined\casing@naustrian
+  \let\save@casing@naustrian\casing@naustrian
+\else
+  \xdef\save@casing@naustrian{de}
+\fi
+\def\bbl@tmpa{german-de}
+\ifx\CurrentOption\bbl@tmpa
+  \expandafter\let\expandafter\bbl@mod@ngerman\csname bbl@mod@\bbl@tmpa\endcsname
+\fi
+\def\bbl@tmpa{german-germany}
+\ifx\CurrentOption\bbl@tmpa
+  \expandafter\let\expandafter\bbl@mod@ngerman\csname bbl@mod@\bbl@tmpa\endcsname
+\fi
+\ifx\bbl@mod@ngerman\@undefined\else
+  \@expandtwoargs\in@{,capsz,}{,\bbl@mod@ngerman,}
+  \ifin@
+    \capsztrue
+  \fi
+  \@expandtwoargs\in@{,nocapsz,}{,\bbl@mod@ngerman,}
+  \ifin@
+    \nocapsztrue
+  \fi
+\fi
+\newif\if@bbl@german@naustrian
+\@bbl@german@naustrianfalse
+\def\bbl@tmpa{german-at}
+\ifx\CurrentOption\bbl@tmpa
+  \@bbl@german@naustriantrue
+  \expandafter\let\expandafter\bbl@mod@naustrian\csname bbl@mod@\bbl@tmpa\endcsname
+\fi
+\def\bbl@tmpa{german-austria}
+\ifx\CurrentOption\bbl@tmpa
+  \@bbl@german@naustriantrue
+  \expandafter\let\expandafter\bbl@mod@naustrian\csname bbl@mod@\bbl@tmpa\endcsname
+\fi
+\ifx\bbl@mod@naustrian\@undefined\else
+  \@expandtwoargs\in@{,capsz,}{,\bbl@mod@naustrian,}
+  \ifin@
+    \@bbl@german@at@capsztrue
+  \fi
+  \@expandtwoargs\in@{,nocapsz,}{,\bbl@mod@naustrian,}
+  \ifin@
+    \nocapsztrue
+  \fi
+\fi
+\ifx\bbl@mod@german\@undefined\else
+  \@expandtwoargs\in@{,capsz,}{,\bbl@mod@german,}
+  \ifin@
+    \@bbl@german@ge@capsztrue
+  \fi
+  \@expandtwoargs\in@{,nocapsz,}{,\bbl@mod@german,}
+  \ifin@
+    \nocapsztrue
+  \fi
+\fi
+\AtBeginDocument{%
+   \iflanguage{ngerman}{%
+       \edef\bbl@tmpa{\localeinfo*{region.tag.bcp47}}%
+       \ifx\bbl@tmpa\bbl@german@region@ch\else
+          \ifcapsz\bbl@capsztrue\bbl@csarg\xdef{casing@\languagename}{de-x-eszett}\fi
+       \fi
+   }{%
+      \ifbbl@german@newterms
+        \edef\bbl@tmpa{\localename}%
+        \ifx\bbl@tmpa\bbl@opt@german
+          \ifcapsz\bbl@capsztrue\bbl@csarg\xdef{casing@\languagename}{de-x-eszett}\fi
+        \fi
+      \fi
+   }%
+   \ifdefined\extrasngerman
+     \addto\extrasngerman{%
+        \ifcapsz\bbl@capsztrue\bbl@csarg\xdef{casing@ngerman}{de-x-eszett}%
+         \else\ifnocapsz\bbl@csarg\xdef{casing@ngerman}{de}\fi\bbl@capszfalse\fi}%
+   \fi
+   \ifbbl@german@newterms
+      \ifdefined\extrasgerman
+          \addto\extrasgerman{%
+            \if@bbl@german@ge@capsz\bbl@capsztrue\bbl@csarg\xdef{casing@german}{de-x-eszett}%
+             \else\ifnocapsz\bbl@csarg\xdef{casing@german}{de}\fi\bbl@capszfalse\fi}%
+        \fi
+   \fi
+}
+\if@bbl@german@naustrian
+  \AtBeginDocument{%
+     \addto\extrasnaustrian{%
+         \if@bbl@german@at@capsz\bbl@capsztrue\bbl@csarg\xdef{casing@naustrian}{de-x-eszett}%
+         \else\ifnocapsz\bbl@csarg\xdef{casing@naustrian}{de}\fi\bbl@capszfalse\fi}%
+  }
+\fi
+\@namedef{@noextrasgerman}{%
+   \bbl@deactivate{"}%
+   \umlauthigh
+   \bbl@nonfrenchspacing
+}
+\ifx\CurrentOption\bbl@opt@german
+  \@namedef{noextrasgerman}{%
+      \@nameuse{@noextrasgerman}%
+  }
+\else
+  \ifx\CurrentOption\bbl@opt@ngerman
+    \@namedef{noextrasngerman}{%
+        \@nameuse{@noextrasgerman}%
+    }
+  \else
+    \ifx\bbl@german@region\bbl@german@region@de
+       \ifbbl@german@tradspelling
+          \@namedef{noextrasgerman}{%
+             \@nameuse{@noextrasgerman}%
+          }
+          \@namedef{noextras\CurrentOption}{%
+             \@nameuse{noextrasgerman}%
+          }
+       \else
+         \@namedef{noextrasngerman}{%
+            \@nameuse{@noextrasgerman}%
+         }
+         \@namedef{noextras\CurrentOption}{%
+            \@nameuse{noextrasngerman}%
+         }
+       \fi
+    \fi
+  \fi
+\fi
+\ifdefined\noextrasgerman
+  \if@bbl@german@ge@capsz
+    \addto\noextrasgerman{%
+        \bbl@capszfalse\bbl@csarg\xdef{casing@german}{\save@casing@german}}
+  \fi
+\fi
+\ifdefined\noextrasngerman
+  \ifbbl@capsz
+    \addto\noextrasngerman{%
+        \bbl@capszfalse\bbl@csarg\xdef{casing@ngerman}{\save@casing@ngerman}}
+  \fi
+\fi
+\def\bbl@tmpa{austrian}
+\def\bbl@tmpb{naustrian}
+\ifx\CurrentOption\bbl@tmpa
+  \@namedef{noextrasaustrian}{%
+      \@nameuse{@noextrasgerman}%
+  }
+\else
+  \ifx\CurrentOption\bbl@tmpb
+    \@namedef{noextrasnaustrian}{%
+      \@nameuse{@noextrasgerman}%
+    }
+  \else
+     \ifx\bbl@german@region\bbl@german@region@at
+        \ifbbl@german@tradspelling
+           \@namedef{noextrasaustrian}{%
+              \@nameuse{@noextrasgerman}%
+           }
+           \@namedef{noextras\CurrentOption}{%
+              \@nameuse{noextrasaustrian}%
+           }
+        \else
+           \@namedef{noextrasnaustrian}{%
+              \@nameuse{@noextrasgerman}%
+           }
+           \@namedef{noextras\CurrentOption}{%
+              \@nameuse{noextrasnaustrian}%
+           }
+        \fi
+     \fi
+  \fi
+\fi
+\if@bbl@german@naustrian
+  \if@bbl@german@at@capsz
+     \addto\noextrasnaustrian{%
+         \bbl@capszfalse\bbl@csarg\xdef{casing@naustrian}{\save@casing@naustrian}}
+  \fi
+\fi
+\ifx\CurrentOption\bbl@opt@swissgerman
+  \@namedef{noextrasswissgerman}{%
+      \@nameuse{@noextrasgerman}%
+  }
+\else
+  \def\bbl@tmpa{nswissgerman}
+  \ifx\CurrentOption\bbl@tmpa
+    \@namedef{noextrasnswissgerman}{%
+       \@nameuse{@noextrasgerman}%
+    }
+  \else
+     \ifx\bbl@german@region\bbl@german@region@ch
+        \ifbbl@german@tradspelling
+           \@namedef{noextrasswissgerman}{%
+              \@nameuse{@noextrasgerman}%
+           }
+           \@namedef{noextras\CurrentOption}{%
+              \@nameuse{noextrasswissgerman}%
+           }
+        \else
+           \@namedef{noextrasnswissgerman}{%
+              \@nameuse{@noextrasgerman}%
+           }
+           \@namedef{noextras\CurrentOption}{%
+              \@nameuse{noextrasnswissgerman}%
+           }
+        \fi
+     \fi
+  \fi
+\fi
+\ifx\bbl@german@region\bbl@german@region@ch
+  \expandafter\addto\csname noextras\CurrentOption\endcsname{%
+    \bbl@tossfalse}
+\fi
+\providehyphenmins{\CurrentOption}{\tw@\tw@}
+\begingroup \catcode`\"12
+\def\x{\endgroup
+  \def\dq{"}
+  \def\@SS{\mathchar"7019 }
+  \def\bbl@ss{\ifbbl@toss ss\else\textormath{\ss}{\@SS{}}\fi}
+  \def\bbl@SS{{\ifbbl@capsz\MakeUppercase{\ss}\else SS\fi}}
+  \def\bbl@sz{\ifbbl@toss sz\else\textormath{\ss}{\@SS{}}\fi}
+  \def\bbl@SZ{SZ}
+}
+\x
+\providecommand\texorpdfstring[2]{#1}
+\def\bbl@german@allowhyphenationbefore{\ifvmode\else\nobreak\fi}
+\def\bbl@german@allowhyphenationafter{\nobreak\hskip\z@skip}
+\declare@shorthand{german}{"a}{\textormath{\"{a}}{\ddot a}}
+\declare@shorthand{german}{"o}{\textormath{\"{o}}{\ddot o}}
+\declare@shorthand{german}{"u}{\textormath{\"{u}}{\ddot u}}
+\declare@shorthand{german}{"A}{\textormath{\"{A}}{\ddot A}}
+\declare@shorthand{german}{"O}{\textormath{\"{O}}{\ddot O}}
+\declare@shorthand{german}{"U}{\textormath{\"{U}}{\ddot U}}
+\declare@shorthand{german}{"e}{\textormath{\"{e}}{\ddot e}}
+\declare@shorthand{german}{"E}{\textormath{\"{E}}{\ddot E}}
+\declare@shorthand{german}{"i}{\textormath{\"{\i}}%
+                              {\ddot\imath}}
+\declare@shorthand{german}{"I}{\textormath{\"{I}}{\ddot I}}
+\declare@shorthand{german}{"s}{\bbl@ss}
+\declare@shorthand{german}{"S}{\bbl@SS}
+\declare@shorthand{german}{"z}{\bbl@sz}
+\declare@shorthand{german}{"Z}{\bbl@SZ}
+\declare@shorthand{german}{"`}{\glqq}
+\declare@shorthand{german}{"'}{\grqq}
+\declare@shorthand{german}{"<}{\flqq}
+\declare@shorthand{german}{">}{\frqq}
+\def\bbl@german@disc#1#2#3{%
+  \ifbbl@german@tradspelling
+    \textormath{%
+      \bbl@german@allowhyphenationbefore\discretionary{#2-}{}{#1}%
+      \bbl@german@allowhyphenationafter
+    }{#1}% math
+  \else
+    #3%
+  \fi
+}
+\declare@shorthand{german}{"c}{\bbl@german@disc{c}{k}{c}}
+\declare@shorthand{german}{"C}{\bbl@german@disc{C}{K}{C}}
+\declare@shorthand{german}{"f}{\bbl@german@disc{f}{ff}{ff}}
+\declare@shorthand{german}{"F}{\bbl@german@disc{F}{FF}{FF}}
+\declare@shorthand{german}{"l}{\bbl@german@disc{l}{ll}{ll}}
+\declare@shorthand{german}{"L}{\bbl@german@disc{L}{LL}{LL}}
+\declare@shorthand{german}{"m}{\bbl@german@disc{m}{mm}{mm}}
+\declare@shorthand{german}{"M}{\bbl@german@disc{M}{MM}{MM}}
+\declare@shorthand{german}{"n}{\bbl@german@disc{n}{nn}{nn}}
+\declare@shorthand{german}{"N}{\bbl@german@disc{N}{NN}{NN}}
+\declare@shorthand{german}{"p}{\bbl@german@disc{p}{pp}{pp}}
+\declare@shorthand{german}{"P}{\bbl@german@disc{P}{PP}{PP}}
+\declare@shorthand{german}{"r}{\bbl@german@disc{r}{rr}{rr}}
+\declare@shorthand{german}{"R}{\bbl@german@disc{R}{RR}{RR}}
+\declare@shorthand{german}{"t}{\bbl@german@disc{t}{tt}{tt}}
+\declare@shorthand{german}{"T}{\bbl@german@disc{T}{TT}{TT}}
+\declare@shorthand{german}{"-}{%
+    \bbl@german@allowhyphenationbefore\-\bbl@german@allowhyphenationafter
+}
+\declare@shorthand{german}{"|}{%
+  \texorpdfstring{%
+    \textormath{% text
+      \bbl@german@allowhyphenationbefore\discretionary{-}{}{\kern.03em}%
+      \bbl@german@allowhyphenationafter
+    }{}% math
+  }{}% PDF string
+}
+\declare@shorthand{german}{""}{%
+  \bbl@german@allowhyphenationbefore\discretionary{}{}{}%
+  \bbl@german@allowhyphenationafter
+}
+\declare@shorthand{german}{"~}{%
+  \textormath{% text
+    \bbl@german@allowhyphenationbefore\mbox{-}%
+    \bbl@german@allowhyphenationafter
+  }{-}% math
+}
+\declare@shorthand{german}{"=}{%
+   \bbl@german@allowhyphenationbefore-\bbl@german@allowhyphenationafter
+}
+\declare@shorthand{german}{"/}{%
+  \bbl@german@allowhyphenationbefore/\discretionary{}{}{}%
+  \bbl@german@allowhyphenationafter
+}
+\declare@shorthand{german}{":}{%
+  \bbl@german@allowhyphenationbefore:\bbl@german@allowhyphenationafter
+}
+\declare@shorthand{german}{"*}{%
+  \bbl@german@allowhyphenationbefore*\bbl@german@allowhyphenationafter
+}
+\declare@shorthand{german}{"_}{%
+  \bbl@german@allowhyphenationbefore\_\bbl@german@allowhyphenationafter
+}
+\declare@shorthand{german}{"x}{%
+  \bbl@german@allowhyphenationbefore\mkgender\bbl@german@allowhyphenationafter
+}
+\def\mdqon{\shorthandon{"}}
+\def\mdqoff{\shorthandoff{"}}
+\def\ck{%
+  \ifbbl@german@tradspelling
+    \bbl@german@allowhyphenationbefore\discretionary{k-}{k}{ck}%
+    \bbl@german@allowhyphenationafter
+  \else
+    ck%
+  \fi
+}
+\def\bbl@mk@class@alias#1{%
+  \def\bbl@class@alias{#1}%
+  \def\bbl@tmp@classoptionslist{}%
+  \bbl@foreach\@raw@classoptionslist{%
+    \def\bbl@tmpa{##1}%
+    \ifx\bbl@tmp@classoptionslist\@empty\else
+       \edef\bbl@tmp@classoptionslist{%
+         \bbl@tmp@classoptionslist,}%
+    \fi
+    \ifx\CurrentOption\bbl@tmpa
+      \edef\bbl@tmp@classoptionslist{%
+        \bbl@tmp@classoptionslist\zap@space\bbl@class@alias,##1 \@empty}%
+    \else
+      \edef\bbl@tmp@classoptionslist{%
+        \bbl@tmp@classoptionslist\zap@space##1 \@empty}%
+    \fi
+  }%
+  \let\@raw@classoptionslist\bbl@tmp@classoptionslist
+  \def\bbl@tmp@classoptionslist{}%
+  \bbl@foreach\@classoptionslist{%
+     \def\bbl@tmpa{##1}%
+     \ifx\bbl@tmp@classoptionslist\@empty\else
+       \edef\bbl@tmp@classoptionslist{%
+         \bbl@tmp@classoptionslist,}%
+     \fi
+     \ifx\CurrentOption\bbl@tmpa
+        \edef\bbl@tmp@classoptionslist{%
+          \bbl@tmp@classoptionslist\zap@space\bbl@class@alias,##1 \@empty}%
+     \else
+        \edef\bbl@tmp@classoptionslist{%
+          \bbl@tmp@classoptionslist\zap@space##1 \@empty}%
+     \fi
+  }%
+  \let\@classoptionslist\bbl@tmp@classoptionslist
+  \AddToHook{package/biblatex/after}{%
+    \let\bbl@german@mkautolangbabel\blx@mkautolangbabel
+    \def\blx@mkautolangbabel{%
+      \let\bbl@main@language\bbl@class@alias
+      \bbl@german@mkautolangbabel
+    }%
+  }%
+}
+\ldf@finish\CurrentOption
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput
+%%
+%% End of file `babel-german.def'.

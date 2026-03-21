@@ -1,0 +1,90 @@
+\ProvidesFile{authortitle-tcomp.cbx}
+[\abx@cbxid]
+
+\RequireCitationStyle{authortitle-comp}
+\ExecuteBibliographyOptions{singletitle,uniquename,uniquelist,autocite=inline}
+
+\renewcommand*{\iffinalcitedelim}{%
+  \ifnumequal{\value{textcitecount}}{\value{textcitetotal}-1}}
+
+\renewbibmacro*{cite}{%
+  \iffieldundef{shorthand}
+    {\iffieldequals{namehash}{\cbx@lasthash}
+       {\setunit{\compcitedelim}%
+        \usebibmacro{cite:title}}
+       {\ifnameundef{labelname}
+          {\usebibmacro{cite:title}}
+          {\ifsingletitle
+             {\printtext[bibhyperref]{\printnames{labelname}}}
+             {\printnames{labelname}%
+              \setunit{\printdelim{nametitledelim}}%
+              \usebibmacro{cite:title}}}%
+        \savefield{namehash}{\cbx@lasthash}}}
+    {\usebibmacro{cite:shorthand}%
+     \usebibmacro{cite:reinit}}%
+  \setunit{\multicitedelim}}
+
+\renewbibmacro*{citetitle}{%
+  \iffieldundef{shorthand}
+    {\iffieldequals{namehash}{\cbx@lasthash}
+       {\setunit{\compcitedelim}}
+       {\savefield{namehash}{\cbx@lasthash}}%
+     \usebibmacro{cite:title}}
+    {\usebibmacro{cite:shorthand}%
+     \usebibmacro{cite:reinit}}%
+  \setunit{\multicitedelim}}
+
+\renewbibmacro*{textcite}{%
+  \iffieldequals{namehash}{\cbx@lasthash}
+    {\setunit{\compcitedelim}%
+     \iffieldundef{shorthand}
+       {\usebibmacro{cite:title}}%
+       {\usebibmacro{cite:shorthand}}}
+    {\ifnameundef{labelname}
+       {\ifnumequal{\value{citecount}}{1}
+          {\usebibmacro{prenote}}
+          {}%
+        \iffieldundef{shorthand}
+          {\usebibmacro{cite:title}}%
+          {\usebibmacro{cite:shorthand}}}
+       {\ifthenelse{\ifsingletitle\AND
+                    \(\iffieldundef{prenote}\OR\value{citecount}>1\)}
+          {\printtext[bibhyperref]{\printnames{labelname}}}
+          {\printnames{labelname}
+           \setunit{%
+             \global\booltrue{cbx:parens}%
+             \printdelim{nametitledelim}\bibopenparen}%
+           \ifnumequal{\value{citecount}}{1}
+             {\usebibmacro{prenote}}
+             {}%
+           \iffieldundef{shorthand}
+             {\usebibmacro{cite:title}}%
+             {\usebibmacro{cite:shorthand}}}}%
+     \stepcounter{textcitecount}%
+     \savefield{namehash}{\cbx@lasthash}}%
+  \setunit{%
+    \ifbool{cbx:parens}
+      {\bibcloseparen\global\boolfalse{cbx:parens}}
+      {}%
+    \textcitedelim}}
+
+\renewbibmacro*{textcite:postnote}{%
+  \ifbool{cbx:parens}
+    {\setunit{\printdelim{postnotedelim}}}
+    {\setunit{%
+       \global\booltrue{cbx:parens}%
+       \printdelim{extpostnotedelim}\bibopenparen}}%
+  \printfield{postnote}%
+  \ifthenelse{\value{multicitecount}=\value{multicitetotal}}
+    {\setunit{}%
+     \printtext{%
+       \ifbool{cbx:parens}
+         {\bibcloseparen\global\boolfalse{cbx:parens}}
+         {}}}
+    {\setunit{%
+       \ifbool{cbx:parens}
+         {\bibcloseparen\global\boolfalse{cbx:parens}}
+         {}%
+       \textcitedelim}}}
+
+\endinput

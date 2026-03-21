@@ -1,0 +1,59 @@
+
+%% See needspace.dtx for Copyright and other information
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{needspace}[2025/03/13 v1.3e reserve vertical space]
+
+\newcommand{\needspace}[1]{%
+  \ifhmode \ifinner \@LRmoderr \else \par \fi \fi
+  \begingroup
+    \@tempskipb \lastskip
+    \vskip -\@tempskipb
+    \setlength\dimen@{#1}%
+    \advance\dimen@\@tempskipb
+    \vskip\z@\@plus\dimen@
+    \penalty -100
+    \vskip\z@\@plus -\dimen@
+    \vskip\dimen@
+    \penalty 9999%
+    \vskip -\dimen@
+    \vskip\@tempskipb % reinsert \lastskip
+  \endgroup
+}
+
+\newcommand\Needspace{%
+  \ifhmode \ifinner \@LRmoderr \else \par \fi \fi
+  \@tempskipb \lastskip
+  \vskip -\@tempskipb
+  \penalty-100
+  \begingroup
+  \@ifstar{\@sneedsp@}{\@needsp@}%
+}
+
+\newcommand\@sneedsp@[1]{%
+    \setlength\dimen@{#1}%
+    \advance\dimen@\@tempskipb
+    \dimen@ii\pagegoal \advance\dimen@ii-\pagetotal
+    \ifdim \dimen@>\dimen@ii
+      \break
+    \else
+      \vskip\@tempskipb  % reinsert \lastskip
+    \fi
+  \endgroup
+}
+
+\newcommand\@needsp@[1]{%
+    \setlength\dimen@{#1}%
+    \advance\dimen@\@tempskipb
+    \dimen@ii\pagegoal \advance\dimen@ii-\pagetotal
+    \ifdim \dimen@>\dimen@ii
+      \ifdim \dimen@ii>\z@
+        \vfil
+      \fi
+      \break
+    \else
+      \vskip\@tempskipb  % reinsert \lastskip
+    \fi
+  \endgroup
+}
+

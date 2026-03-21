@@ -1,0 +1,21 @@
+% This file is part of babel. For further details see:
+% https://www.ctan.org/pkg/babel
+\ifx\BabelBeforeIni\undefined
+  \PackageError{babel}%
+    {This file is a component of babel and cannot\MessageBreak
+     be loaded directly. I'll stop immediately}%
+    {Just use babel as documented.}%
+  \stop
+\fi
+\BabelBeforeIni{ms}{%
+  \expandafter\def\csname bbl@preini@melayu\endcsname{%
+    \csname bbl@error\endcsname{invalid-ini-name}{melayu}{malay}{}%
+    }%
+  \BabelDefinitionFile{0}{malay}{%
+    \PackageInfo{babel}{%
+      Name 'melayu' is discouraged.\MessageBreak
+      Prefer 'malay' instead.\MessageBreak
+      Reported}}%
+}
+\endinput
+

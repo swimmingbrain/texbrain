@@ -1,0 +1,488 @@
+\ProvidesFile{icelandic.lbx}
+[\abx@lbxid]
+
+% Translator's notes:
+% - Translated by a native speaker (Baldur Kristinsson).
+% - Many bibstrings remain untranslated.
+% - Needs fine tuning, since grammatical peculiarities of Icelandic
+%   make straight translations difficult.
+
+\DeclareRedundantLanguages{icelandic}{icelandic}
+
+% The beginning of this is the same as for Danish, since conventions are similar
+\DeclareBibliographyExtras{%
+  \protected\def\bibrangedash{%
+    \textendash\penalty\hyphenpenalty}% breakable dash
+  \let\finalandcomma=\empty
+  \let\finalandsemicolon=\empty
+  \protected\def\mkbibordinal#1{\stripzeros{#1}\adddot}%
+  \protected\def\mkbibmascord{\mkbibordinal}%
+  \protected\def\mkbibfemord{\mkbibordinal}%
+  \protected\def\mkbibneutord{\mkbibordinal}%
+  \protected\def\mkbibdatelong#1#2#3{%
+    \iffieldundef{#3}
+      {}
+      {\mkbibordinal{\thefield{#3}}%
+       \iffieldundef{#2}{}{\nobreakspace}}%
+    \iffieldundef{#2}
+      {}
+      {\mkbibmonth{\thefield{#2}}%
+       \iffieldundef{#1}{}{\space}}%
+    \iffieldbibstring{#1}
+      {\bibstring{\thefield{#1}}}
+      {\dateeraprintpre{#1}\stripzeros{\thefield{#1}}}}%
+  \protected\def\mkbibdateshort#1#2#3{%
+    \iffieldundef{#3}
+      {}
+      {\mkdayzeros{\thefield{#3}}\adddot}%
+    \iffieldundef{#2}
+      {}
+      {\mkmonthzeros{\thefield{#2}}%
+       \iffieldundef{#1}{}{\adddot}}%
+    \iffieldbibstring{#1}
+      {\bibstring{\thefield{#1}}}
+      {\dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}}%
+  % Later, it would be more elegant to reverse the order of the name and the localized
+  % bibstrings, in order to avoid problems with regard to declension. This has to be done
+  % in a coordinated manner, however, and a lot of macros would have to be redefined
+  % at the same time. The below, inactive code shows the general idea.
+  %
+  % \savebibmacro{bytranslator}%
+  %\renewbibmacro{bytranslator}{%
+  %    \ifnameundef{translator}
+  %  {}
+  %  {\printnames[bytranslator]{translator}%
+  %   \setunit{\addspace}%
+  %   \bibstring{bytranslator}%
+  %   }}%
+  \expandafter\protected\expandafter\def\csname mkbibtime24h\endcsname#1#2#3#4{%
+      \iffieldundef{#1}
+        {}
+        {\mktimezeros{\thefield{#1}}%
+         \iffieldundef{#2}{}{\bibtimesep}}%
+      \iffieldundef{#2}
+        {}
+        {\mktimezeros{\thefield{#2}}%
+         \iffieldundef{#3}{}{\bibtimesep}}%
+      \iffieldundef{#3}
+        {}
+        {\mktimezeros{\thefield{#3}}}%
+      \iffieldundef{#4}{}
+        {\bibtimezonesep
+         \mkbibtimezone{\thefield{#4}}}}%
+  \expandafter\protected\expandafter\def\csname mkbibtime12h\endcsname#1#2#3#4{%
+      \stripzeros{\mktimehh{\thefield{#1}}}\bibtimesep
+      \forcezerosmdt{\thefield{#2}}%
+      \iffieldundef{#3}{}
+        {\bibtimesep
+         \forcezerosmdt{\thefield{#3}}}%
+       \space
+       \ifnumless{\thefield{#1}}{12}
+         {\bibstring{am}}
+         {\bibstring{pm}}%
+      \iffieldundef{#4}{}
+       {\space\bibtimezonesep
+        \parentext{\mkbibtimezone{\thefield{#4}}}}}%
+  \protected\def\mkbibseasondateshort#1#2{%
+    \mkbibseason{\thefield{#2}}%
+    \iffieldundef{#1}{}{\space}%
+    \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}%
+  \protected\def\mkbibseasondatelong#1#2{%
+    \mkbibseason{\thefield{#2}}%
+    \iffieldundef{#1}{}{\space}%
+    \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}%
+}
+
+%\UndeclareBibliographyExtras{%
+%  \restorebibmacro{bytranslator}
+%}
+
+\DeclareBibliographyStrings{%
+  bibliography     = {{Heimildaskr\'a}{Heimildaskr\'a}},
+  references       = {{Heimildir}{Heimildir}},
+  shorthands       = {{Listi yfir skammstafanir}{Skammstafanir}},
+  editor           = {{ristj\'ori}{ritstj\adddot}},
+  editors          = {{ritstj\'orar}{ritstj\adddot}},
+  compiler         = {{samantekt}{samantekt}},
+  compilers        = {{samantekt}{samantekt}},
+% FIXME: redactor and editor are the same string;
+% is that acceptable?
+  redactor         = {{ritstj\'ori}{ritstj\adddot}},
+  redactors        = {{ritstj\'orar}{ritstj\adddot}},
+  reviser          = {{\'utg\'afuendursko\dh{}andi}{endursk\adddot}},
+  revisers         = {{\'utg\'afuendursko\dh{}endur}{endursk\adddot}},
+% founder          = {{}{}},% FIXME: missing
+% founders         = {{}{}},% FIXME: missing
+% continuator      = {{}{}},% FIXME: missing
+% continuators     = {{}{}},% FIXME: missing
+% collaborator     = {{}{}},% FIXME: missing
+% collaborators    = {{}{}},% FIXME: missing
+% FIXME: A great deal of conflation here, as well as simplifications in order
+% to avoid problems associated with declension:
+  translator       = {{\th\'y\dh{}andi}{\th\'y\dh\adddot}},
+  translators      = {{\th\'y\dh{}endur}{\th\'y\dh\adddot}},
+  commentator      = {{sk\'yrandi}{sk\'yr\adddot}},
+  commentators     = {{sk\'yrendur}{sk\'yr\adddot}},
+  annotator        = {{\'utsk\'yrandi}{\'utsk\'yr\adddot}},
+  annotators       = {{\'utsk\'yrendur}{\'utsk\'yr\adddot}},
+  commentary       = {{sk\'yringar}{sk\'yr\adddot}},
+  annotations      = {{\'utsk\'yringar}{\'utsk\'yr\adddot}},
+  introduction     = {{inngangur}{inng\adddot}},
+  foreword         = {{form\'ali}{form\'ali}},
+  afterword        = {{eftirm\'ali}{eftirm\'ali}},
+% editortr         = {{}{}},% FIXME: missing
+% editorstr        = {{}{}},% FIXME: missing
+% editorco         = {{}{}},% FIXME: missing
+% editorsco        = {{}{}},% FIXME: missing
+% editoran         = {{}{}},% FIXME: missing
+% editorsan        = {{}{}},% FIXME: missing
+% editorin         = {{}{}},% FIXME: missing
+% editorsin        = {{}{}},% FIXME: missing
+% editorfo         = {{}{}},% FIXME: missing
+% editorsfo        = {{}{}},% FIXME: missing
+% editoraf         = {{}{}},% FIXME: missing
+% editorsaf        = {{}{}},% FIXME: missing
+% editortrco       = {{}{}},% FIXME: missing
+% editorstrco      = {{}{}},% FIXME: missing
+% editortran       = {{}{}},% FIXME: missing
+% editorstran      = {{}{}},% FIXME: missing
+% editortrin       = {{}{}},% FIXME: missing
+% editorstrin      = {{}{}},% FIXME: missing
+% editortrfo       = {{}{}},% FIXME: missing
+% editorstrfo      = {{}{}},% FIXME: missing
+% editortraf       = {{}{}},% FIXME: missing
+% editorstraf      = {{}{}},% FIXME: missing
+% editorcoin       = {{}{}},% FIXME: missing
+% editorscoin      = {{}{}},% FIXME: missing
+% editorcofo       = {{}{}},% FIXME: missing
+% editorscofo      = {{}{}},% FIXME: missing
+% editorcoaf       = {{}{}},% FIXME: missing
+% editorscoaf      = {{}{}},% FIXME: missing
+% editoranin       = {{}{}},% FIXME: missing
+% editorsanin      = {{}{}},% FIXME: missing
+% editoranfo       = {{}{}},% FIXME: missing
+% editorsanfo      = {{}{}},% FIXME: missing
+% editoranaf       = {{}{}},% FIXME: missing
+% editorsanaf      = {{}{}},% FIXME: missing
+% editortrcoin     = {{}{}},% FIXME: missing
+% editorstrcoin    = {{}{}},% FIXME: missing
+% editortrcofo     = {{}{}},% FIXME: missing
+% editorstrcofo    = {{}{}},% FIXME: missing
+% editortrcoaf     = {{}{}},% FIXME: missing
+% editorstrcoaf    = {{}{}},% FIXME: missing
+% editortranin     = {{}{}},% FIXME: missing
+% editorstranin    = {{}{}},% FIXME: missing
+% editortranfo     = {{}{}},% FIXME: missing
+% editorstranfo    = {{}{}},% FIXME: missing
+% editortranaf     = {{}{}},% FIXME: missing
+% editorstranaf    = {{}{}},% FIXME: missing
+% translatorco     = {{}{}},% FIXME: missing
+% translatorsco    = {{}{}},% FIXME: missing
+% translatoran     = {{}{}},% FIXME: missing
+% translatorsan    = {{}{}},% FIXME: missing
+% translatorin     = {{}{}},% FIXME: missing
+% translatorsin    = {{}{}},% FIXME: missing
+% translatorfo     = {{}{}},% FIXME: missing
+% translatorsfo    = {{}{}},% FIXME: missing
+% translatoraf     = {{}{}},% FIXME: missing
+% translatorsaf    = {{}{}},% FIXME: missing
+% translatorcoin   = {{}{}},% FIXME: missing
+% translatorscoin  = {{}{}},% FIXME: missing
+% translatorcofo   = {{}{}},% FIXME: missing
+% translatorscofo  = {{}{}},% FIXME: missing
+% translatorcoaf   = {{}{}},% FIXME: missing
+% translatorscoaf  = {{}{}},% FIXME: missing
+% translatoranin   = {{}{}},% FIXME: missing
+% translatorsanin  = {{}{}},% FIXME: missing
+% translatoranfo   = {{}{}},% FIXME: missing
+% translatorsanfo  = {{}{}},% FIXME: missing
+% translatoranaf   = {{}{}},% FIXME: missing
+% translatorsanaf  = {{}{}},% FIXME: missing
+% organizer        = {{}{}},% FIXME: missing
+% organizers       = {{}{}},% FIXME: missing
+% byorganizer      = {{}{}},% FIXME: missing
+  byauthor         = {{h\"ofundur}{h\"of\adddot}},
+  byeditor         = {{gefi\dh{} \'ut af}{gefi\dh{} \'ut af}},
+  bycompiler       = {{teki\dh{} saman af}{teki\dh{} saman af}},
+  byredactor       = {{endursko\dh{}a\dh{} af}{endursk\adddot}},
+% byreviser        = {{}{}},% FIXME: missing
+% byreviewer       = {{}{}},% FIXME: missing
+% byfounder        = {{}{}},% FIXME: missing
+% bycontinuator    = {{}{}},% FIXME: missing
+% bycollaborator   = {{}{}},% FIXME: missing
+% FIXME: For some of the keys below, the better way would be to postpend
+% rather than prepend the localized bibstrings. That would however require a
+% redefinition of many macros. Later, perhaps...
+  bytranslator     = {{\th\'y\dh{}ing \lbx@lfromlang}{\th\'y\dh\adddot{} \lbx@sfromlang}},
+  bycommentator    = {{sk\'yringar eftir}{sk\'yr\adddot}},
+  byannotator      = {{\'utsk\'yringar eftir}{\'utsk\'yr\adddot}},
+  withcommentator  = {{me\dh{} sk\'yringum eftir}{m\adddot sk\'yr\adddot e\adddot}},
+  withannotator    = {{me\dh{} \'utsk\'yringum eftir}{m\adddot \'utsk\'yr\adddot e\adddot}},
+  withintroduction = {{me\dh{} inngangi eftir}{inng\adddot}},
+  withforeword     = {{me\dh{} form\'ala eftir}{m\adddot form\adddot e\adddot}},
+  withafterword    = {{me\dh{} eftirm\'ala eftir}{m\adddot eftirm\adddot e\adddot}},
+  byeditortr       = {{\'utg\'afa og \th\'y\dh{}ing \lbx@lfromlang}%
+                     {\'utg\adddot{} og \th\'y\dh\adddot}},
+  byeditorco       = {{\'utg\'a fa og sk\'yringar eftir}%
+                     {\'utg\adddot{} og sk\'yr\adddot}},
+  byeditoran       = {{\'utg\'a fa og \'utsk\'yringar eftir}%
+                     {\'utg\adddot{} og \'utsk\'yr\adddot}},
+  byeditorin       = {{\'utg\'afa og inngangur eftir}%
+                     {\'utg\adddot{} og inng\adddot}},
+  byeditorfo       = {{\'utg\'afa og form\'ali eftir}%
+                     {\'utg\adddot{} og form\adddot e\adddot}},
+  byeditoraf       = {{\'utg\'afa og eftirm\'ali eftir}%
+                     {\'utg\adddot{} og eftirm\adddot e\adddot}},
+  byeditortrco     = {{\'utg\'afa \th\'y\dh{}ing \lbx@sfromlang\ og sk\'yringar eftir}%
+                     {\'utg\adddot, \th\'y\dh\adddot{} \lbx@sfromlang\ og sk\'yr\adddot}},
+  byeditortran     = {{\'utg\'afa \th\'y\dh{}ing \lbx@sfromlang\ og \'utsk\'yringar eftir}%
+                     {\'utg\adddot, \th\'y\dh\adddot{} \lbx@sfromlang\ og \'utsk\'yr\adddot}},
+  byeditortrin     = {{\'utg\'afa \th\'y\dh{}ing \lbx@sfromlang\ og inngangur eftir}%
+                     {\'utg\adddot, \th\'y\dh\adddot{} \lbx@sfromlang\ og inng\adddot}},
+  byeditortrfo     = {{\'utg\'afa \th\'y\dh{}ing \lbx@sfromlang\ og form\'ali eftir}%
+                     {\'utg\adddot, \th\'y\dh\adddot{} \lbx@sfromlang\ og form\adddot}},
+  byeditortraf     = {{\'utg\'afa \th\'y\dh{}ing \lbx@sfromlang\ og eftirm\'ali eftir}%
+                     {\'utg\adddot, \th\'y\dh\adddot{} \lbx@sfromlang\ og eftirm\adddot}},
+  byeditorcoin     = {{\'utg\'afa, sk\'yringar og inngangur eftir}%
+                     {\'utg\adddot, sk\'yr\adddot{} og inng\adddot}},
+  byeditorcofo     = {{\'utg\'afa, sk\'yringar og form\'ali eftir}%
+                     {\'utg\adddot, sk\'yr\adddot{} og form\adddot}},
+  byeditorcoaf     = {{\'utg\'afa, sk\'yringar og eftirm\'ali eftir}%
+                     {\'utg\adddot, sk\'yr\adddot{} og eftirm\adddot}},
+  byeditoranin     = {{\'utg\'afa, \'utsk\'yringar og inngangur eftir}%
+                     {\'utg\adddot, \'utsk\'yr\adddot{} og inng\adddot}},
+  byeditoranfo     = {{\'utg\'afa, \'utsk\'yringar og form\'ali eftir}%
+                     {\'utg\adddot, \'utsk\'yr\adddot{} og form\adddot}},
+  byeditoranaf     = {{\'utg\'afa, sk\'yringar og eftirm\'ali eftir}%
+                     {\'utg\adddot, sk\'yr\adddot{} og eftirm\adddot}},
+  byeditortrcoin   = {{\'utg\'afa, \th\'y\dh{}ing \lbx@sfromlang, sk\'yringar og inngangur eftir}%
+                     {\'utg\adddot, \th\'y\dh\adddot{} \lbx@sfromlang, sk\'yr\adddot{} og inng\adddot}},
+  byeditortrcofo   = {{\'utg\'afa, \th\'y\dh{}ing \lbx@sfromlang, sk\'yringar og form\'ali eftir}%
+                     {\'utg\adddot, \th\'y\dh\adddot{} \lbx@sfromlang, sk\'yr\adddot{} og form\adddot}},
+  byeditortrcoaf   = {{\'utg\'afa, \th\'y\dh{}ing \lbx@sfromlang, sk\'yringar og eftirm\'ali eftir}%
+                     {\'utg\adddot, \th\'y\dh\adddot{} \lbx@sfromlang, sk\'yr\adddot{} og eftirm\adddot}},
+  byeditortranin   = {{\'utg\'afa, \th\'y\dh{}ing \lbx@sfromlang, \'utsk\'yringar og inngangur eftir}%
+                     {\'utg\adddot, \th\'y\dh\adddot{} \lbx@sfromlang, \'utsk\'yr\adddot{} og inng\adddot}},
+  byeditortranfo   = {{\'utg\'afa, \th\'y\dh{}ing \lbx@sfromlang, \'utsk\'yringar og form\'ali eftir}%
+                     {\'utg\adddot, \th\'y\dh\adddot{} \lbx@sfromlang, \'utsk\'yr\adddot{} og form\adddot}},
+  byeditortranaf   = {{\'utg\'afa, \th\'y\dh{}ing \lbx@sfromlang, \'utsk\'yringar og eftirm\'ali eftir}%
+                     {\'utg\adddot, \th\'y\dh\adddot{} \lbx@sfromlang, \'utsk\'yr\adddot{} og eftirm\adddot}},
+  bytranslatorco   = {{\th\'y\dh{}ing \lbx@lfromlang\ og sk\'yringar eftir}%
+                     {\th\'y\dh\adddot{} \lbx@lfromlang\ og sk\'yr\adddot}},
+  bytranslatoran   = {{\th\'y\dh{}ing \lbx@lfromlang\ og \'utsk\'yringar eftir}%
+                     {\th\'y\dh\adddot{} \lbx@lfromlang\ og \'utsk\'yr\adddot}},
+  bytranslatorin   = {{\th\'y\dh{}ing \lbx@lfromlang\ og inngangur eftir}%
+                     {\th\'y\dh\adddot{} \lbx@lfromlang\ og inng\adddot}},
+  bytranslatorfo   = {{\th\'y\dh{}ing \lbx@lfromlang\ og form\'ali eftir}%
+                     {\th\'y\dh\adddot{} \lbx@lfromlang\ og form\adddot}},
+  bytranslatoraf   = {{\th\'y\dh{}ing \lbx@lfromlang\ og eftirm\'ali eftir}%
+                     {\th\'y\dh\adddot{} \lbx@lfromlang\ og eftirm\adddot}},
+  bytranslatorcoin = {{\th\'y\dh{}ing \lbx@lfromlang, sk\'yringar og inngangur eftir}%
+                     {\th\'y\dh\adddot{} \lbx@lfromlang, sk\'yr\adddot{} og inng\adddot}},
+  bytranslatorcofo = {{\th\'y\dh{}ing \lbx@lfromlang, sk\'yringar og form\'ali eftir}%
+                     {\th\'y\dh\adddot{} \lbx@lfromlang, sk\'yr\adddot{} og form\adddot}},
+  bytranslatorcoaf = {{\th\'y\dh{}ing \lbx@lfromlang, sk\'yringar og eftirm\'ali eftir}%
+                     {\th\'y\dh\adddot{} \lbx@lfromlang, sk\'yr\adddot{} og eftirm\adddot}},
+  bytranslatoranin = {{\th\'y\dh{}ing \lbx@lfromlang, \'utsk\'yringar og inngangur eftir}%
+                     {\th\'y\dh\adddot{} \lbx@lfromlang, \'utsk\'yr\adddot{} og inng\adddot}},
+  bytranslatoranfo = {{\th\'y\dh{}ing \lbx@lfromlang, \'utsk\'yringar og form\'ali eftir}%
+                     {\th\'y\dh\adddot{} \lbx@lfromlang, \'utsk\'yringar og form\adddot}},
+  bytranslatoranaf = {{\th\'y\dh{}ing \lbx@lfromlang, \'utsk\'yringar og eftirm\'ali eftir}%
+                     {\th\'y\dh\adddot{} \lbx@lfromlang, \'utsk\'yr\adddot{} og eftirm\adddot}},
+  and              = {{og}{og}},
+  andothers        = {{\'asamt fleirum}{o\adddot fl\adddot}},
+  andmore          = {{og fleiri}{o\adddot fl\adddot}},
+  volume           = {{bindi}{bd\adddot}},
+  volumes          = {{bindi}{bd\adddot}},
+  involumes        = {{\'{\i}}{\'{\i}}},
+  jourvol          = {{\'argangur}{\'arg\adddot}},
+  jourser          = {{r\"o\dh}{r\"o\dh}},
+  book             = {{b\'ok}{b\'ok}},
+  part             = {{hluti}{hluti}},
+  issue            = {{hefti}{hefti}},
+  newseries        = {{n\'y ritr\"o\dh}{n\'y ritr\"o\dh}},
+  oldseries        = {{g\"omul ritr\"o\dh}{g\"omul ritr\"o\dh}},
+  edition          = {{\'utg\'afa}{\'utg\adddot}},
+  reprint          = {{endurprentun}{endurpr\adddot}},
+  reprintof        = {{endurprentun \'a}{endurpr\adddot{} \'a}},
+  reprintas        = {{endurprenta\dh{} sem}{endurpr\adddot{} sem}},
+  reprintfrom      = {{endurprentun \'ur}{endurpr\adddot{} \'ur}},
+  translationof    = {{\th'yth ing \'a}{\th\'y\dh\adddot{} \'a}},
+  translationas    = {{\th'ytt sem}{\th\'ytt sem}},
+  translationfrom  = {{\th'yth ing \'ur}{\th\'y\dh\adddot{} \'ur}},
+  reviewof         = {{ums\"ogn um}{ums\"ogn um}},
+% origpubas        = {{}{}},% FIXME: missing
+% origpubin        = {{}{}},% FIXME: missing
+% astitle          = {{}{}},% FIXME: missing
+  nodate           = {{\'an \'ars}{\'an \'ars}},
+  page             = {{bla\dh{}s\'{\i}\dh{}a}{bls\adddot}},
+  pages            = {{bla\dh{}s\'{\i}\dh{}ur}{bls\adddot}},
+  column           = {{d\'alkur}{dlk\adddot}},
+  columns          = {{d\'alkar}{dlk\adddot}},
+  line             = {{l\'{\i}na}{l\adddot}},
+  lines            = {{l\'{\i}nur}{l\adddot}},
+  verse            = {{erindi}{er\adddot}},
+  verses           = {{erindi}{er\adddot}},
+  section          = {{grein}{\S}},
+  sections         = {{grein}{\S\S}},
+  paragraph        = {{m\'alsgrein}{mgr\adddot}},
+  paragraphs       = {{m\'alsgreinar}{mgr\adddot}},
+% pagetotal        = {{}{}},% FIXME: missing
+% pagetotals       = {{}{}},% FIXME: missing
+% columntotal      = {{}{}},% FIXME: missing
+% columntotals     = {{}{}},% FIXME: missing
+% linetotal        = {{}{}},% FIXME: missing
+% linetotals       = {{}{}},% FIXME: missing
+% versetotal       = {{}{}},% FIXME: missing
+% versetotals      = {{}{}},% FIXME: missing
+% sectiontotal     = {{}{}},% FIXME: missing
+% sectiontotals    = {{}{}},% FIXME: missing
+% paragraphtotal   = {{}{}},% FIXME: missing
+% paragraphtotals  = {{}{}},% FIXME: missing
+  in               = {{\'{\i}}{\'{\i}}},
+  inseries         = {{ritr\"o\dh{}in}{ritr\"o\dh{}in}},
+  ofseries         = {{\'ur ritr\"o\dh{}inni}{\'ur ritr\adddot}},
+  number           = {{n\'umer}{nr\adddot}},
+  chapter          = {{kafli}{k\adddot}},
+% bathesis         = {{}{}},% FIXME: missing
+  mathesis         = {{meistarapr\'ofsritger\dh}{meistararitg\adddot}},
+  phdthesis        = {{doktorsritger\dh}{doktorsritg\adddot}},
+  candthesis       = {{kand\'{\i}datsritger\dh}{kand\'{\i}datsritg\adddot}},
+  resreport        = {{ranns\'oknarsk\'yrsla}{ranns\'oknarsk\'yrsla}},
+  techreport       = {{t\ae{}knileg sk\'yrsla}{t\ae{}knileg sk\'yrsla}},
+  software         = {{hugb\'una\dh{}ur}{hugb\'una\dh{}ur}},
+  datacd           = {{gagnadiskur}{gagnadiskur}},
+  audiocd          = {{hlj\'o\dh{}diskur}{hlj\'o\dh{}diskur}},
+  version          = {{\'utg\'afa}{\'utg\adddot}},
+  url              = {{vefsl\'o\dh{}}{vefsl\'o\dh{}}},
+% urlfrom          = {{}{}},% FIXME: missing
+  urlseen          = {{sko\dh{}a\dh}{sko\dh{}a\dh}},
+  inpreparation    = {{\'{\i} vinnslu}{\'{\i} vinnslu}},
+  submitted        = {{afhent til birtingar}{afhent til birtingar}},
+  forthcoming      = {{mun birtast}{mun birtast}},
+  inpress          = {{\'{\i} prentun}{\'{\i} prentun}},
+  prepublished     = {{forbirt}{forbirt}},
+  citedas          = {{h\'er eftir skammstafa\dh}{h\'er eftir skst\adddot}},
+  seenote          = {{sj\'a athugasemd}{sj\'a aths\adddot}},
+  quotedin         = {{tilvitnun samkv\ae{}mt}{tilvitnun skv\adddot}},
+  idem             = {{sama heimild}{s\adddot h\adddot}},
+  idemsf           = {{sama heimild}{s\adddot h\adddot}},
+  idemsm           = {{sama heimild}{s\adddot h\adddot}},
+  idemsn           = {{sama heimild}{s\adddot h\adddot}},
+  idempf           = {{sama heimild}{s\adddot h\adddot}},
+  idempm           = {{sama heimild}{s\adddot h\adddot}},
+  idempn           = {{sama heimild}{s\adddot h\adddot}},
+  idempp           = {{sama heimild}{s\adddot h\adddot}},
+  ibidem           = {{sama heimild}{s\adddot h\adddot}},
+  opcit            = {{sama rit}{sama rit}},
+  loccit           = {{sami sta\dh{}ur}{s\adddot st\adddot}},
+  confer           = {{sbr\adddot}{sbr\adddot}},
+  sequens          = {{o\adddot \'afr\adddot}{o\adddot \'afr\adddot}},
+  sequentes        = {{o\adddot \'afr\adddot}{o\adddot \'afr\adddot}},
+  passim           = {{v\'{\i}\dh{}a}{v\'{\i}\dh{}a}},
+  see              = {{sj\'a}{sj\'a}},
+  seealso          = {{sj\'a einnig}{sj\'a einnig}},
+  backrefpage      = {{sj\'a bla\dh{}s\'{\i}u}{sj\'a bls\adddot}},
+  backrefpages     = {{sj\'a bla\dh{}s\'{\i}ur}{sj\'a bls\adddot}},
+  january          = {{jan\'uar}{jan\adddot}},
+  february         = {{febr\'uar}{feb\adddot}},
+  march            = {{mars}{mar\adddot}},
+  april            = {{apr\'{\i}l}{apr\adddot}},
+  may              = {{ma\'{\i}}{ma\'{\i}}},
+  june             = {{j\'un\'{\i}}{j\'un\adddot}},
+  july             = {{j\'ul\'{\i}}{j\'ul\adddot}},
+  august           = {{\'ag\'ust}{\'ag\'u\adddot}},
+  september        = {{september}{sep\adddot}},
+  october          = {{okt\'ober}{okt\adddot}},
+  november         = {{n\'ovember}{n\'ov\adddot}},
+  december         = {{desember}{des\adddot}},
+  langamerican     = {{bandar\'{\i}ska}{bandar\'{\i}ska}},
+% langbrazilian    = {{}{}},% FIXME: missing
+% langbulgarian    = {{}{}},% FIXME: missing
+% langcatalan      = {{}{}},% FIXME: missing
+% langcroatian     = {{}{}},% FIXME: missing
+% langczech        = {{}{}},% FIXME: missing
+  langdanish       = {{danska}{danska}},
+  langdutch        = {{hollenska}{hollenska}},
+  langenglish      = {{enska}{enska}},
+% langestonian     = {{}{}},% FIXME: missing
+  langfinnish      = {{finnska}{finnska}},
+  langfrench       = {{franska}{franska}},
+  langgalician     = {{galis\'iska}{galis\'iska}},
+  langgerman       = {{\th\'yska}{\th\'yska}},
+  langgreek        = {{gr\'{\i}ska}{gr\'{\i}ska}},
+  langhungarian    = {{ungverska}{ungverska}},
+  langitalian      = {{\'{\i}talska}{\'{\i}talska}},
+  langlatin        = {{lat\'{\i}na}{lat\'{\i}na}},
+% langlatvian      = {{}{}},% FIXME: missing
+  langnorwegian    = {{norska}{norska}},
+  langpolish       = {{p\'olska}{p\'olska}},
+  langportuguese   = {{port\'ugalska}{port\'ugalska}},
+  langrussian      = {{r\'ussneska}{r\'ussneska}},
+% langslovak       = {{}{}},% FIXME: missing
+% langslovene      = {{}{}},% FIXME: missing
+  langspanish      = {{sp\ae{}nska}{sp\ae{}nska}},
+  langswedish      = {{s\ae{}nska}{s\ae{}nska}},
+  fromamerican     = {{\'ur bandar\'{\i}sku}{\'ur bandar\'{\i}sku}},
+% frombrazilian    = {{}{}},% FIXME: missing
+% frombulgarian    = {{}{}},% FIXME: missing
+% fromcatalan      = {{}{}},% FIXME: missing
+% fromcroatian     = {{}{}},% FIXME: missing
+% fromczech        = {{}{}},% FIXME: missing
+  fromdanish       = {{\'ur d\"onsku}{\'ur d\"onsku}},
+  fromdutch        = {{\'ur hollensku}{\'ur hollensku}},
+  fromenglish      = {{\'ur ensku}{\'ur ensku}},
+% fromestonian     = {{}{}},% FIXME: missing
+  fromfinnish      = {{\'ur finnsku}{\'ur finnsku}},
+  fromfrench       = {{\'ur fr\"onsku}{\'ur fr\"onsku}},
+  fromgalician     = {{\'ur galis\'isku}{\'ur galis\'isku}},
+  fromgerman       = {{\'ur \th\'ysku}{\'ur \th\'ysku}},
+  fromgreek        = {{\'ur gr\'{\i}sku}{\'ur gr\'{\i}sku}},
+  fromhungarian    = {{\'ur ungversku}{\'ur ungversku}},
+  fromitalian      = {{\'ur \'{\i}t\"olsku}{\'ur \'{\i}t\"olsku}},
+  fromlatin        = {{\'ur lat\'{\i}nu}{\'ur lat\'{\i}nu}},
+% fromlatvian      = {{}{}},% FIXME: missing
+  fromnorwegian    = {{\'ur norsku}{\'ur norsku}},
+  frompolish       = {{\'ur p\'olsku}{\'ur p\'olsku}},
+  fromportuguese   = {{\'ur port\'ug\"olsku}{\'ur port\'ug\"olsku}},
+  fromrussian      = {{\'ur r\'ussnesku}{\'ur r\'ussnesku}},
+% fromslovak       = {{}{}},% FIXME: missing
+% fromslovene      = {{}{}},% FIXME: missing
+  fromspanish      = {{\'ur sp\ae{}nsku}{\'ur sp\ae{}nsku}},
+  fromswedish      = {{\'ur s\ae{}nsku}{\'ur s\ae{}nsku}},
+  countryde        = {{\TH\'yskaland}{DE}},
+  countryeu        = {{Evr\'opusambandi\dh}{EU}},
+  countryep        = {{Evr\'opusambandi\dh}{EP}},
+  countryfr        = {{Frakkland}{FR}},
+  countryuk        = {{Bretland}{GB}},
+  countryus        = {{Bandar\'{\i}kin}{US}},
+  patent           = {{einkaleyfi}{einkaleyfi}},
+  patentde         = {{\th\'yskt einkaleyfi}{\th\'yskt einkaleyfi}},
+  patenteu         = {{evr\'opskt einkaleyfi}{evr\'opskt einkaleyfi}},
+  patentfr         = {{franskt einkaleyfi}{franskt einkaleyfi}},
+  patentuk         = {{breskt einkaleyfi}{breskt einkaleyfi}},
+  patentus         = {{bandar\'{\i}skt einkaleyfi}{bandar\'{\i}skt einkaleyfi}},
+  patreq           = {{ums\'okn um einkaleyfi}{ums\'okn um einkaleyfi}},
+  patreqde         = {{ums\'okn um \th\'yskt einkaleyfi}{ums\'okn um \th\'yskt einkaleyfi}},
+  patreqeu         = {{ums\'okn um evr\'opskt einkaleyfi}{ums\'okn um evr\'opskt einkaleyfi}},
+  patreqfr         = {{ums\'okn um franskt einkaleyfi}{ums\'okn um franskt einkaleyfi}},
+  patrequk         = {{ums\'okn um breskt einkaleyfi}{ums\'okn um breskt einkaleyfi}},
+  patrequs         = {{ums\'okn um bandar\'{\i}skt einkaleyfi}{ums\'okn um bandar\'{\i}skt einkaleyfi}},
+  file             = {{skr\'a}{skr\'a}},
+  library          = {{safn}{safn}},
+  abstract         = {{\'utdr\'attur}{\'utdr\'attur}},
+  annotation       = {{athugagrein}{athugagrein}},
+  commonera        = {{kristi\th t\'{\i}matal}{l\adddot t\adddot}},
+  beforecommonera  = {{fyrir kristi\th t\'{\i}matal}{f\adddot l\adddot t\adddot}},
+  annodomini       = {{eftir Krist}{e\adddot Kr\adddot}},
+  beforechrist     = {{fyrir Krist}{f\adddot Kr\adddot}},
+% circa            = {{}{}},% FIXME: missing
+% spring           = {{}{}},% FIXME: missing
+% summer           = {{}{}},% FIXME: missing
+% autumn           = {{}{}},% FIXME: missing
+% winter           = {{}{}},% FIXME: missing
+  am               = {{f\adddot h\adddot}{f\adddot h\adddot}},
+  pm               = {{e\adddot h\adddot}{e\adddot h\adddot}},
+}
+
+\endinput

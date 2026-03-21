@@ -1,0 +1,38 @@
+%%
+%% This is file `listings-riscv.prf',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% lstdrvrs.dtx  (with options: `riscv-prf')
+%% 
+%% The listings package is copyright 1996--2004 Carsten Heinz, and
+%% continued maintenance on the package is copyright 2006--2007 Brooks
+%% Moses. From 2013 on the maintenance is done by Jobst Hoffmann.
+%% The drivers are copyright 1997/1998/1999/2000/2001/2002/2003/2004/2006/
+%% 2007/2013 any individual author listed in this file.
+%%
+%% This file is distributed under the terms of the LaTeX Project Public
+%% License from CTAN archives in directory  macros/latex/base/lppl.txt.
+%% Either version 1.3c or, at your option, any later version.
+%%
+%% This file is completely free and comes without any warranty.
+%%
+%% Send comments and ideas on the package, error reports and additional
+%% programming languages to Jobst Hoffmann at <j.hoffmann@fh-aachen.de>.
+%%
+\ProvidesFile{listings-riscv.prf}
+    [2025/11/14 1.11b listings language file]
+\lstdefinestyle{riscv}{
+    language=[riscv]Assembler,
+    keywordstyle=\color{blue},
+    keywordstyle=[2]\color{teal},
+    keywordstyle=[3]\color{red},
+    keywordstyle=[4]\color{orange!80!black},
+    keywordstyle=[5]\color{purple},
+    keywordstyle=[6]\color{cyan!80!black},
+    commentstyle=\color{green!50!black}
+  }
+\endinput
+%%
+%% End of file `listings-riscv.prf'.

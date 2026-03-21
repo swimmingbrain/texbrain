@@ -1,0 +1,68 @@
+%%
+%% Minimal expl3.sty loader for use with a format that already
+%% includes the L3 programming layer (2020-02-14).
+%%
+\def\ExplFileDate{2020-02-14}%
+\let\ExplLoaderFileDate\ExplFileDate
+\ProvidesPackage{expl3}
+  [%
+    \ExplFileDate\space
+    L3 programming layer (loader)
+  ]%
+%% ProvidesExplPackage / ProvidesExplClass / ProvidesExplFile
+\protected\def\ProvidesExplPackage
+  {\@expl@provides@file@@Nnnnnn\ProvidesPackage{Package}}
+\protected\def\ProvidesExplClass
+  {\@expl@provides@file@@Nnnnnn\ProvidesClass{Document Class}}
+\protected\def\ProvidesExplFile
+  {\@expl@provides@file@@Nnnnnn\ProvidesFile{File}}
+\protected\long\def\@expl@provides@file@@Nnnnnn#1#2#3#4#5#6%
+  {%
+    \ifnum0%
+        \ifdefined#11\fi
+        \ifx\relax#1\else1\fi
+        =11
+      \expandafter#1%
+    \else
+      \@expl@provides@generic@@wnnw{#2}%
+    \fi
+      {#3}[{#4 \ifx\relax#5\relax\else v#5\space\fi #6}]%
+    \ExplSyntaxOn
+  }
+\protected\long\def\@expl@provides@generic@@wnnw#1\fi#2[#3]%
+  {%
+    \immediate\write-1{#1: #2 #3}%
+  }
+%% L3 is already in the format — skip loading expl3-code.tex
+\begingroup\expandafter\expandafter\expandafter\endgroup
+\expandafter\ifx\csname tex\string _let:D\endcsname\relax
+  \expandafter\@firstofone
+\else
+  \expandafter\@gobble
+\fi
+  {\input expl3-code.tex }%
+\begingroup\expandafter\expandafter\expandafter\endgroup
+\expandafter\ifx\csname tex\string _let:D\endcsname\relax
+  \expandafter\endinput
+\fi
+%% Ensure backend loads at \begin{document} if not already loaded
+\ExplSyntaxOn
+\cs_if_exist:NF \@expl@sys@load@backend@@
+  {
+    \tl_put_left:Nn \document
+      {
+        \endgroup
+        \@expl@sys@load@backend@@
+        \begingroup
+      }
+  }
+\cs_gset_protected:Npn \@expl@sys@load@backend@@
+  {
+    \str_if_exist:NF \c_sys_backend_str
+      { \sys_load_backend:n { } }
+  }
+\str_if_exist:NF \c_sys_backend_str
+  { \sys_load_backend:n { } }
+\ExplSyntaxOff
+%%
+%% End of file `expl3.sty'.

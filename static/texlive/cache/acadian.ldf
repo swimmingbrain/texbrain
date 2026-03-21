@@ -1,0 +1,36 @@
+%%
+%% This is file `acadian.ldf',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% frenchb3.dtx  (with options: `acadian')
+%% This is a generated file part of the babel-french bundle
+%% to be used with the Babel system.
+%% -------------------------------------------------------------
+%% 
+%% It may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License, either version 1.3c
+%% of this license or (at your option) any later version.
+%% The latest version of this license is in
+%%   http://www.latex-project.org/lppl.txt
+%% and version 1.3c or later is part of all distributions of LaTeX
+%% version 2003/12/01 or later.
+%% 
+%% This work has the LPPL maintenance status "maintained".
+%% 
+%% The Current Maintainer of this work is Daniel Flipo.
+%% 
+%% Please report errors to: <daniel (dot) flipo (at) free (dot) fr>
+%% 
+\ProvidesLanguage{acadian}
+         [2025-08-15 v3.7e French support from the babel system]
+\PackageInfo{acadian.ldf}%
+  {Option 'acadian' for Babel is *deprecated*,\MessageBreak
+   it might be removed sooner or later.  Please\MessageBreak
+   use 'french' instead; reported}%
+\chardef\l@acadian\l@french
+\def\CurrentOption{french}
+%% 
+%%
+%% End of file `acadian.ldf'.

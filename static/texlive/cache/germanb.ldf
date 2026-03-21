@@ -1,0 +1,263 @@
+%%
+%% This is file `germanb.ldf',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% germanb.dtx  (with options: `germanb')
+%% This is a generated file.
+%% 
+%% Copyright 1989--2021
+%%     Johannes L. Braams
+%%     Bernd Raichle
+%%     Walter Schmidt
+%%     Juergen Spitzmueller
+%% All rights reserved.
+%% 
+%% This file is part of the babel-german bundle,
+%% an extension to the Babel system.
+%% ----------------------------------------------
+%% 
+%% It may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License, either version 1.3
+%% of this license or (at your option) any later version.
+%% The latest version of this license is in
+%%   http://www.latex-project.org/lppl.txt
+%% and version 1.3 or later is part of all distributions of LaTeX
+%% version 2003/12/01 or later.
+%% 
+%% This work has the LPPL maintenance status "maintained".
+%% 
+%% The Current Maintainer of this work is Juergen Spitzmueller.
+%% 
+%% Please report errors to: Juergen Spitzmueller
+%%                     via: https://github.com/jspitz/babel-german
+%% 
+\ProvidesLanguage{germanb}
+        [2021/02/27 v2.13 German support for babel (pre-1996 orthography)]
+\def\tmpa{germanb}
+\let\SaveCurrentOption\CurrentOption
+\ifx\CurrentOption\tmpa
+  \def\CurrentOption{german}
+\fi
+\LdfInit\CurrentOption{captions\CurrentOption}
+\def\bbl@opt@german{german}
+\def\bbl@opt@germanb{germanb}
+\def\bbl@opt@austrian{austrian}
+\def\bbl@opt@swissgerman{swissgerman}
+\ifx\SaveCurrentOption\bbl@opt@germanb
+  \ifx\l@german\@undefined
+    \@nopatterns{German (trad. orthography)}
+    \adddialect\l@german0
+  \fi
+  \let\l@germanb\l@german
+  \AtBeginDocument{%
+    \let\captionsgermanb\captionsgerman
+    \let\dategermanb\dategerman
+    \let\extrasgermanb\extrasgerman
+    \let\noextrasgermanb\noextrasgerman
+  }
+\fi
+\ifx\l@german\@undefined
+  \@nopatterns{German (trad. orthography)}
+  \adddialect\l@german0
+\fi
+\ifx\CurrentOption\bbl@opt@austrian
+  \ifx\l@german\@undefined
+    \@nopatterns{German (trad. orthography), needed by Austrian (trad. orthography)}
+    \adddialect\l@austrian0
+  \else
+    \adddialect\l@austrian\l@german
+  \fi
+\fi
+\ifx\CurrentOption\bbl@opt@swissgerman
+  \ifx\l@swissgerman\@undefined
+    \ifx\l@german\@undefined
+      \@nopatterns{Swiss Standard German (trad. orthography) and German (trad. orthography)}
+      \adddialect\l@swissgerman0
+    \else
+      \@nopatterns{Swiss Standard German (trad. orthography)}
+      \adddialect\l@swissgerman\l@german
+    \fi
+  \fi
+\fi
+\@namedef{@captionsgerman}{%
+  \def\prefacename{Vorwort}%
+  \def\refname{Literatur}%
+  \def\abstractname{Zusammenfassung}%
+  \def\bibname{Literaturverzeichnis}%
+  \def\chaptername{Kapitel}%
+  \def\appendixname{Anhang}%
+  \def\contentsname{Inhaltsverzeichnis}%
+  \def\listfigurename{Abbildungsverzeichnis}%
+  \def\listtablename{Tabellenverzeichnis}%
+  \def\indexname{Index}%
+  \def\figurename{Abbildung}%
+  \def\tablename{Tabelle}%
+  \def\partname{Teil}%
+  \def\enclname{Anlage(n)}%
+  \def\ccname{Verteiler}%
+  \def\headtoname{An}%
+  \def\pagename{Seite}%
+  \def\seename{siehe}%
+  \def\alsoname{siehe auch}%
+  \def\proofname{Beweis}%
+  \def\glossaryname{Glossar}%
+}
+\ifx\CurrentOption\bbl@opt@german
+  \@namedef{captionsgerman}{%
+    \@nameuse{@captionsgerman}%
+  }
+\fi
+\ifx\CurrentOption\bbl@opt@austrian
+  \@namedef{captionsaustrian}{%
+    \@nameuse{@captionsgerman}%
+    \def\enclname{Beilage(n)}%
+  }
+\fi
+\ifx\CurrentOption\bbl@opt@swissgerman
+  \@namedef{captionsswissgerman}{%
+    \@nameuse{@captionsgerman}%
+    \def\enclname{Beilage(n)}%
+  }
+\fi
+\def\month@german{\ifcase\month\or
+  Januar\or Februar\or M\"arz\or April\or Mai\or Juni\or
+  Juli\or August\or September\or Oktober\or November\or Dezember\fi}
+\ifx\CurrentOption\bbl@opt@german
+  \def\dategerman{\def\today{\number\day.~\month@german
+      \space\number\year}}
+\fi
+\ifx\CurrentOption\bbl@opt@swissgerman
+  \def\dateswissgerman{\def\today{\number\day.~\month@german
+      \space\number\year}}
+\fi
+\ifx\CurrentOption\bbl@opt@austrian
+  \def\dateaustrian{\def\today{\number\day.~\ifnum1=\month
+    J\"anner\else \month@german\fi \space\number\year}}
+\fi
+\initiate@active@char{"}
+\@namedef{extras\CurrentOption}{%
+  \languageshorthands{german}}
+\expandafter\addto\csname extras\CurrentOption\endcsname{%
+  \bbl@activate{"}}
+\newif\iftoss\tossfalse
+\newif\ifbbl@toss\bbl@tossfalse
+\ifx\bbl@mod@swissgerman\@undefined\else
+  \@expandtwoargs\in@{,toss,}{,\bbl@mod@swissgerman,}
+  \ifin@
+    \tosstrue
+  \fi
+  \addto\extrasswissgerman{%
+    \iftoss\bbl@tosstrue\else\bbl@tossfalse\fi}
+\fi
+\expandafter\addto\csname noextras\CurrentOption\endcsname{%
+  \bbl@deactivate{"}}
+\ifx\CurrentOption\bbl@opt@swissgerman
+  \addto\noextrasswissgerman{\bbl@tossfalse}
+\fi
+\expandafter\addto\csname extras\CurrentOption\endcsname{%
+  \babel@savevariable{\lccode25}%
+  \lccode25=25}
+\expandafter\addto\csname extras\CurrentOption\endcsname{%
+  \babel@save\"\umlautlow}
+\expandafter\addto\csname noextras\CurrentOption\endcsname{%
+  \umlauthigh}
+\providehyphenmins{\CurrentOption}{\tw@\tw@}
+\expandafter\addto\csname extras\CurrentOption\endcsname{%
+  \bbl@frenchspacing}
+\expandafter\addto\csname noextras\CurrentOption\endcsname{%
+  \bbl@nonfrenchspacing}
+\begingroup \catcode`\"12
+\def\x{\endgroup
+  \def\dq{"}
+  \def\@SS{\mathchar"7019 }
+  \def\bbl@ss{\ifbbl@toss ss\else\textormath{\ss}{\@SS{}}\fi}
+  \def\bbl@SS{SS}
+  \def\bbl@sz{\ifbbl@toss sz\else\textormath{\ss}{\@SS{}}\fi}
+  \def\bbl@SZ{SZ}
+}
+\x
+\providecommand\texorpdfstring[2]{#1}
+\declare@shorthand{german}{"a}{\textormath{\"{a}\bbl@allowhyphens}{\ddot a}}
+\declare@shorthand{german}{"o}{\textormath{\"{o}\bbl@allowhyphens}{\ddot o}}
+\declare@shorthand{german}{"u}{\textormath{\"{u}\bbl@allowhyphens}{\ddot u}}
+\declare@shorthand{german}{"A}{\textormath{\"{A}\bbl@allowhyphens}{\ddot A}}
+\declare@shorthand{german}{"O}{\textormath{\"{O}\bbl@allowhyphens}{\ddot O}}
+\declare@shorthand{german}{"U}{\textormath{\"{U}\bbl@allowhyphens}{\ddot U}}
+\declare@shorthand{german}{"e}{\textormath{\"{e}}{\ddot e}}
+\declare@shorthand{german}{"E}{\textormath{\"{E}}{\ddot E}}
+\declare@shorthand{german}{"i}{\textormath{\"{\i}}%
+                              {\ddot\imath}}
+\declare@shorthand{german}{"I}{\textormath{\"{I}}{\ddot I}}
+\declare@shorthand{german}{"s}{\bbl@ss}
+\declare@shorthand{german}{"S}{\bbl@SS}
+\declare@shorthand{german}{"z}{\bbl@sz}
+\declare@shorthand{german}{"Z}{\bbl@SZ}
+\declare@shorthand{german}{"`}{\glqq}
+\declare@shorthand{german}{"'}{\grqq}
+\declare@shorthand{german}{"<}{\flqq}
+\declare@shorthand{german}{">}{\frqq}
+\declare@shorthand{german}{"c}{\textormath{\bbl@disc ck}{c}}
+\declare@shorthand{german}{"C}{\textormath{\bbl@disc CK}{C}}
+\declare@shorthand{german}{"F}{\textormath{\bbl@disc F{FF}}{F}}
+\declare@shorthand{german}{"l}{\textormath{\bbl@disc l{ll}}{l}}
+\declare@shorthand{german}{"L}{\textormath{\bbl@disc L{LL}}{L}}
+\declare@shorthand{german}{"m}{\textormath{\bbl@disc m{mm}}{m}}
+\declare@shorthand{german}{"M}{\textormath{\bbl@disc M{MM}}{M}}
+\declare@shorthand{german}{"n}{\textormath{\bbl@disc n{nn}}{n}}
+\declare@shorthand{german}{"N}{\textormath{\bbl@disc N{NN}}{N}}
+\declare@shorthand{german}{"p}{\textormath{\bbl@disc p{pp}}{p}}
+\declare@shorthand{german}{"P}{\textormath{\bbl@disc P{PP}}{P}}
+\declare@shorthand{german}{"r}{\textormath{\bbl@disc r{rr}}{r}}
+\declare@shorthand{german}{"R}{\textormath{\bbl@disc R{RR}}{R}}
+\declare@shorthand{german}{"t}{\textormath{\bbl@disc t{tt}}{t}}
+\declare@shorthand{german}{"T}{\textormath{\bbl@disc T{TT}}{T}}
+\declare@shorthand{german}{"f}{%
+  \texorpdfstring{\textormath{\bbl@discff}{f}}% TeX string
+                 {f}% PDF string
+}
+\def\bbl@discff{\penalty\@M
+  \afterassignment\bbl@insertff \let\bbl@nextff= }
+\def\bbl@insertff{%
+  \if f\bbl@nextff
+    \expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi
+  {\relax\discretionary{ff-}{f}{ff}\bbl@allowhyphens}{f\bbl@nextff}}
+\let\bbl@nextff=f
+\declare@shorthand{german}{"-}{\nobreak\-\bbl@allowhyphens}
+\declare@shorthand{german}{"|}{%
+  \texorpdfstring{\textormath{\penalty\@M\discretionary{-}{}{\kern.03em}\bbl@allowhyphens}{}}% TeX string
+                 {}% PDF string
+}
+\declare@shorthand{german}{""}{\hskip\z@skip}
+\declare@shorthand{german}{"~}{%
+  \texorpdfstring{\textormath{\leavevmode\hbox{-}}{-}}% tex string
+                 {-}% PDF string
+}
+\declare@shorthand{german}{"=}{\penalty\@M-\hskip\z@skip}
+\declare@shorthand{german}{"/}{\textormath
+  {\bbl@allowhyphens\discretionary{/}{}{/}\bbl@allowhyphens}{}}
+\def\mdqon{\shorthandon{"}}
+\def\mdqoff{\shorthandoff{"}}
+\def\ck{\bbl@allowhyphens\discretionary{k-}{k}{ck}\bbl@allowhyphens}
+\ldf@finish\CurrentOption
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput
+%%
+%% End of file `germanb.ldf'.

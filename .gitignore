@@ -7,4 +7,3 @@ build/
 *.local
 *.log
 *.tgz
-static/texlive/cache/

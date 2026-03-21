@@ -2736,3 +2736,4 @@ tikzlibrarypgfplots.ternary.code.tex
 binary.lua
 tikzlibrarypgfplots.contourlua.code.tex
 streamer.lua
+algorithm2e.sty

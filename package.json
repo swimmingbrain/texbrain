@@ -5,8 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "vite dev",
-    "build": "node bundle-core.js && vite build",
-    "bundle-core": "node bundle-core.js",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "type": "module",

@@ -2,19 +2,18 @@ import { base } from '$app/paths';
 
 let engine: any = null;
 let loadPromise: Promise<void> | null = null;
-let coreLoaded = false;
-let restLoaded = false;
-let restLoadingPromise: Promise<void> | null = null;
+let texliveLoaded = false;
 
 const IDB_NAME = 'texbrain-texlive';
 const IDB_STORE = 'cache';
-const IDB_VERSION = 2;
+const IDB_VERSION = 1;
 
+// directories already created in the engine's MEMFS (persist across compiles)
 const createdDirs = new Set<string>();
 
-interface CacheBundle {
-  text: Record<string, string>;
-  binary: Record<string, string>;
+interface TexliveCache {
+  textFiles: Record<string, string>;
+  binaryFiles: Record<string, string>;
 }
 
 function openIdb(): Promise<IDBDatabase> {
@@ -22,9 +21,7 @@ function openIdb(): Promise<IDBDatabase> {
     const req = indexedDB.open(IDB_NAME, IDB_VERSION);
     req.onupgradeneeded = () => {
       const db = req.result;
-      if (db.objectStoreNames.contains(IDB_STORE)) {
-        db.deleteObjectStore(IDB_STORE);
-      }
+      if (db.objectStoreNames.contains(IDB_STORE)) db.deleteObjectStore(IDB_STORE);
       db.createObjectStore(IDB_STORE);
     };
     req.onsuccess = () => resolve(req.result);
@@ -32,7 +29,7 @@ function openIdb(): Promise<IDBDatabase> {
   });
 }
 
-function idbGet(db: IDBDatabase, key: string): Promise<CacheBundle | undefined> {
+function idbGet(db: IDBDatabase, key: string): Promise<TexliveCache | undefined> {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(IDB_STORE, 'readonly');
     const req = tx.objectStore(IDB_STORE).get(key);
@@ -41,7 +38,7 @@ function idbGet(db: IDBDatabase, key: string): Promise<CacheBundle | undefined> 
   });
 }
 
-function idbPut(db: IDBDatabase, key: string, value: CacheBundle): Promise<void> {
+function idbPut(db: IDBDatabase, key: string, value: TexliveCache): Promise<void> {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(IDB_STORE, 'readwrite');
     tx.objectStore(IDB_STORE).put(value, key);
@@ -57,50 +54,103 @@ function base64ToArrayBuffer(b64: string): ArrayBuffer {
   return buf.buffer;
 }
 
-function writeBundleToEngine(eng: any, bundle: CacheBundle): void {
-  for (const [name, content] of Object.entries(bundle.text)) {
+function looksLikeHtml(first100: string): boolean {
+  const l = first100.toLowerCase();
+  return l.includes('<!doctype') || l.includes('<html');
+}
+
+async function loadManifest(path: string): Promise<string[]> {
+  try {
+    const resp = await fetch(path);
+    if (!resp.ok) return [];
+    const text = await resp.text();
+    return text.split('\n').map(l => l.trim()).filter(Boolean);
+  } catch { return []; }
+}
+
+async function fetchTextFile(name: string): Promise<string | null> {
+  const resp = await fetch(`${base}/texlive/cache/${name}`);
+  if (!resp.ok) return null;
+  const text = await resp.text();
+  if (looksLikeHtml(text.slice(0, 100))) return null;
+  return text;
+}
+
+async function fetchBinaryFile(name: string): Promise<string | null> {
+  const resp = await fetch(`${base}/texlive/cache/${name}`);
+  if (!resp.ok) return null;
+  const buf = await resp.arrayBuffer();
+  const head = new TextDecoder().decode(new Uint8Array(buf, 0, Math.min(100, buf.byteLength)));
+  if (looksLikeHtml(head)) return null;
+  // store as base64 for IDB serialization
+  const bytes = new Uint8Array(buf);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
+async function fetchAllFiles(textNames: string[], binNames: string[]): Promise<TexliveCache> {
+  const cache: TexliveCache = { textFiles: {}, binaryFiles: {} };
+
+  const tasks: (() => Promise<void>)[] = [
+    ...textNames.map(name => async () => {
+      const content = await fetchTextFile(name).catch(() => null);
+      if (content) cache.textFiles[name] = content;
+    }),
+    ...binNames.map(name => async () => {
+      const b64 = await fetchBinaryFile(name).catch(() => null);
+      if (b64) cache.binaryFiles[name] = b64;
+    })
+  ];
+
+  // batch size 50 to avoid ERR_INSUFFICIENT_RESOURCES
+  for (let i = 0; i < tasks.length; i += 50) {
+    await Promise.allSettled(tasks.slice(i, i + 50).map(fn => fn()));
+  }
+
+  return cache;
+}
+
+function writeToEngine(eng: any, cache: TexliveCache): void {
+  for (const [name, content] of Object.entries(cache.textFiles)) {
     eng.writeMemFSFile(`/tex/${name}`, content);
   }
-  for (const [name, b64] of Object.entries(bundle.binary)) {
+  for (const [name, b64] of Object.entries(cache.binaryFiles)) {
     eng.writeBinaryMemFSFile(`/tex/${name}`, base64ToArrayBuffer(b64));
   }
 }
 
-async function fetchBundle(url: string, idbKey: string): Promise<CacheBundle> {
+async function preloadTexliveCache(eng: any): Promise<void> {
+  if (texliveLoaded) return;
+
+  // try loading from IndexedDB first
   try {
     const db = await openIdb();
-    const cached = await idbGet(db, idbKey);
+    const cached = await idbGet(db, 'texlive');
     if (cached) {
+      writeToEngine(eng, cached);
       db.close();
-      return cached;
+      texliveLoaded = true;
+      return;
     }
     db.close();
   } catch { /* fall through to network */ }
 
-  const resp = await fetch(url);
-  const bundle: CacheBundle = await resp.json();
+  const [textNames, binNames] = await Promise.all([
+    loadManifest(`${base}/texlive/cache-manifest-text.txt`),
+    loadManifest(`${base}/texlive/cache-manifest-binary.txt`)
+  ]);
 
+  const cache = await fetchAllFiles(textNames, binNames);
+  writeToEngine(eng, cache);
+  texliveLoaded = true;
+
+  // persist for next visit
   try {
     const db = await openIdb();
-    await idbPut(db, idbKey, bundle);
+    await idbPut(db, 'texlive', cache);
     db.close();
   } catch { /* non-critical */ }
-
-  return bundle;
-}
-
-async function loadCore(eng: any): Promise<void> {
-  if (coreLoaded) return;
-  const bundle = await fetchBundle(`${base}/texlive/core-bundle.json`, 'core');
-  writeBundleToEngine(eng, bundle);
-  coreLoaded = true;
-}
-
-async function loadRest(eng: any): Promise<void> {
-  if (restLoaded) return;
-  const bundle = await fetchBundle(`${base}/texlive/rest-bundle.json`, 'rest');
-  writeBundleToEngine(eng, bundle);
-  restLoaded = true;
 }
 
 function loadScript(src: string): Promise<void> {
@@ -141,12 +191,7 @@ export async function getEngine(): Promise<any> {
 
 export async function warmup(): Promise<void> {
   const eng = await getEngine();
-  await loadCore(eng);
-
-  // start loading the rest in the background
-  if (!restLoadingPromise) {
-    restLoadingPromise = loadRest(eng).catch(() => {});
-  }
+  await preloadTexliveCache(eng);
 }
 
 export interface CompileResult {
@@ -161,10 +206,7 @@ export async function compileLaTeX(
   binaryFiles?: Map<string, ArrayBuffer>
 ): Promise<CompileResult> {
   const eng = await getEngine();
-  await loadCore(eng);
-
-  // wait for the rest if still loading, so all packages are available
-  if (restLoadingPromise) await restLoadingPromise;
+  await preloadTexliveCache(eng);
 
   const allPaths = [...files.keys(), ...(binaryFiles?.keys() || [])];
   for (const path of allPaths) {

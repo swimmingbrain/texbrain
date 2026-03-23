@@ -104,7 +104,7 @@
 
       const pageDiv = document.createElement('div');
       pageDiv.dataset.page = String(i);
-      pageDiv.style.cssText = `width:${viewport.width}px;height:${viewport.height}px;position:relative;background:white;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,0.3);flex-shrink:0;`;
+      pageDiv.style.cssText = `width:${viewport.width}px;height:${viewport.height}px;position:relative;background:white;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,0.3);flex-shrink:0;--scale-factor:${scale};`;
 
       const canvas = document.createElement('canvas');
       canvas.width = Math.floor(viewport.width * dpr);

@@ -231,6 +231,16 @@ export async function compileLaTeX(
   }
 
   eng.setEngineMainFile(mainFile);
+  const firstPass = await eng.compileLaTeX();
+
+  if (firstPass.status !== 0) {
+    return {
+      pdf: firstPass.pdf,
+      status: firstPass.status,
+      log: firstPass.log
+    };
+  }
+
   const result = await eng.compileLaTeX();
 
   return {

@@ -2,7 +2,7 @@
   <img src="static/texbrain-logo-readme.svg" alt="texbrain logo" width="80" />
 </p>
 
-<h1 align="center">texbrain</h1>
+<h1 align="center">TeXbrain</h1>
 
 <p align="center">
   A free, open-source LaTeX editor that runs entirely in your browser.<br/>

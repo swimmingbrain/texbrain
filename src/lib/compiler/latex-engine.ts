@@ -1,5 +1,6 @@
 import { base } from '$app/paths';
 import { patchBiblatexFiles } from './bibliography';
+import { warmOfflineCache } from './offline-cache';
 
 let engine: any = null;
 let loadPromise: Promise<void> | null = null;
@@ -190,6 +191,8 @@ export async function compileLaTeX(
   }
 
   const result = await eng.compileLaTeX();
+
+  if (result.status === 0) warmOfflineCache();
 
   return {
     pdf: result.pdf,

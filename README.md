@@ -25,7 +25,8 @@ You can open a local project folder, edit your files, see the PDF update, commit
 
 ## Features
 
-- **LaTeX compilation in the browser.** Uses a WebAssembly port of pdfTeX (SwiftLaTeX). Your `.tex` files are compiled to PDF without ever leaving your machine. The first compilation takes up to a minute because the TexLive package cache needs to be loaded. After that, recompilations take 1 to 5 seconds depending on project complexity.
+- **LaTeX compilation in the browser.** Uses a WebAssembly port of pdfTeX (SwiftLaTeX). Your `.tex` files are compiled to PDF without ever leaving your machine. Packages are loaded on demand and cached locally, so the first compile only downloads what your document actually uses. Recompilations take 1 to 5 seconds depending on project complexity.
+- **Full package and document class support.** Common packages ship with the app. Anything else (`memoir`, `abntex2`, KOMA-Script, you name it) is resolved automatically from a TeX Live mirror the first time a document needs it, then cached locally for offline use.
 - **Live PDF preview.** Rendered with pdf.js. Multi-page, zoomable, with text selection.
 - **Full git integration.** Clone repos, create branches, stage files, commit, push, pull, merge. All powered by isomorphic-git running in the browser. No CLI needed.
 - **Local file system access.** Uses the File System Access API to read and write directly to your project folder on disk (Chrome/Edge).
@@ -33,7 +34,7 @@ You can open a local project folder, edit your files, see the PDF update, commit
 - **CodeMirror 6 editor.** Syntax highlighting, autocomplete for 70+ LaTeX commands, bracket matching, code folding, snippets, dark/light theme.
 - **Command palette.** Quick access to actions via keyboard shortcut.
 - **Snippet picker.** Math environments, document structures, Greek letters, common commands. Searchable and categorized.
-- **Works offline.** Once loaded, the app works without an internet connection. Compilation is local, editing is local.
+- **Works offline.** Once loaded, the app works without an internet connection. Compilation is local, editing is local. Packages you've compiled with before are cached; only a package you've never used needs the network once.
 - **Project templates.** Start from scratch or pick a template (article, thesis, beamer, report, CV, letter, minimal).
 
 ## How it works under the hood
@@ -42,7 +43,7 @@ There's no magic and no backend.
 
 **Editor.** Built on [CodeMirror 6](https://codemirror.net/) with a custom LaTeX grammar (Lezer parser), autocomplete provider, and theme system. The editor supports multiple open files via tabs and syncs content with both the local filesystem and the in-memory git working tree.
 
-**Compiler.** LaTeX compilation uses [SwiftLaTeX](https://github.com/SwiftLaTeX/SwiftLaTeX)'s pdfTeX engine compiled to WebAssembly. The engine runs in a memory filesystem (MEMFS), where your project files are written before each compilation. A TexLive package cache is loaded from static assets on first compile. The preprocessor strips unsupported packages and converts certain environments so the WASM engine can handle them.
+**Compiler.** LaTeX compilation uses [SwiftLaTeX](https://github.com/SwiftLaTeX/SwiftLaTeX)'s pdfTeX engine compiled to WebAssembly. The engine runs in a memory filesystem (MEMFS), where your project files are written before each compilation. When the engine asks for a file it doesn't have (a class, package, font, ...), the service worker resolves it through a chain: previously cached files first, then the package subset bundled with the app, then a TeX Live mirror (a texmf-dist mirror on jsDelivr, with a community SwiftLaTeX server as fallback). Every resolved file is stored in the browser's cache storage, so each package is downloaded at most once. After the first successful compile, the bundled subset is also prefetched in the background so the core package set works offline.
 
 **Git.** All git operations use [isomorphic-git](https://isomorphic-git.org/), a pure JavaScript implementation of git. The repository lives in an in-memory filesystem ([LightningFS](https://github.com/isomorphic-git/lightning-fs)) backed by IndexedDB. Your project files are synced between the local filesystem and the git working tree. Remote operations (push/pull/clone) go through a CORS proxy since browsers can't speak the git protocol directly.
 
@@ -62,6 +63,7 @@ Everything runs in your browser. Your files never leave your machine unless you 
 - LaTeX compilation happens in a WebAssembly sandbox. There are no shell commands being executed. No `pdflatex`, no `exec()`, no `spawn()`.
 - Git operations use a JavaScript library, not CLI commands. No command injection is possible.
 - The CORS proxy for git remotes is a known trade-off. By default it uses `cors.isomorphic-git.org` (the isomorphic-git project's public proxy). You can point it at your own if you prefer.
+- Packages that aren't bundled are fetched from public TeX Live mirrors on demand. Only package filenames are sent, never your document content. Fetched files are cached locally, so this happens once per package. The fallback server can be changed or disabled entirely via the `texliveMirror` preference (empty string turns it off).
 - LaTeX and TeX are free and open-source software. This project uses them. It doesn't redistribute or modify their source.
 
 ## Tech stack

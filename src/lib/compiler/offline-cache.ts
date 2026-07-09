@@ -2,18 +2,29 @@ import { base } from '$app/paths';
 
 // after the first successful compile, slowly pull the bundled texlive subset
 // through the service worker so the base package set works offline. runs once
-// per browser, throttled so it never competes with the editor.
+// per browser, and only while the editor is idle so it never slows compiles
+// down (the cache writes compete with compile i/o otherwise).
 
 const FLAG = 'texbrain-texlive-warmed';
-const CONCURRENCY = 4;
-const PAUSE_MS = 25;
+const CONCURRENCY = 2;
+const PAUSE_MS = 50;
+const IDLE_MS = 15000;
 
 let started = false;
+let compileBusy = false;
+let lastCompileEnd = 0;
+
+// latex-engine reports compile activity so warming can stay out of the way
+export function setCompileBusy(busy: boolean): void {
+  compileBusy = busy;
+  if (!busy) lastCompileEnd = Date.now();
+}
 
 export function warmOfflineCache(): void {
   if (started) return;
   started = true;
 
+  if (import.meta.env.DEV) return; // pointless against the dev server
   if (typeof navigator === 'undefined') return;
   if (!navigator.serviceWorker?.controller) return; // nothing persists without the sw
   if ((navigator as any).connection?.saveData) return;
@@ -21,10 +32,23 @@ export function warmOfflineCache(): void {
     if (localStorage.getItem(FLAG)) return;
   } catch { /* storage blocked, warm anyway */ }
 
+  lastCompileEnd = Date.now();
   void run();
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForIdle(): Promise<void> {
+  while (compileBusy || Date.now() - lastCompileEnd < IDLE_MS) {
+    await sleep(2000);
+  }
+}
+
 async function run(): Promise<void> {
+  await waitForIdle();
+
   const names: string[] = [];
   for (const manifest of ['cache-manifest-text.txt', 'cache-manifest-binary.txt']) {
     try {
@@ -44,6 +68,7 @@ async function run(): Promise<void> {
 
   const worker = async () => {
     while (queue.length > 0) {
+      await waitForIdle();
       const name = queue.shift()!;
       try {
         const resp = await fetch(`${base}/texlive/cache/${encodeURIComponent(name)}`);
@@ -55,7 +80,7 @@ async function run(): Promise<void> {
       } catch {
         failed++;
       }
-      await new Promise((resolve) => setTimeout(resolve, PAUSE_MS));
+      await sleep(PAUSE_MS);
     }
   };
 

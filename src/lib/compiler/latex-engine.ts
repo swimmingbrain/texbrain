@@ -1,6 +1,6 @@
 import { base } from '$app/paths';
 import { patchBiblatexFiles } from './bibliography';
-import { warmOfflineCache } from './offline-cache';
+import { setCompileBusy, warmOfflineCache } from './offline-cache';
 
 let engine: any = null;
 let loadPromise: Promise<void> | null = null;
@@ -155,48 +155,53 @@ export async function compileLaTeX(
   const eng = await getEngine();
   if (!onDemandAvailable) await preloadFallback(eng);
 
-  const patchedFiles = patchBiblatexFiles(files);
+  setCompileBusy(true);
+  try {
+    const patchedFiles = patchBiblatexFiles(files);
 
-  const allPaths = [...patchedFiles.keys(), ...(binaryFiles?.keys() || [])];
-  for (const path of allPaths) {
-    const parts = path.split('/');
-    for (let i = 1; i < parts.length; i++) {
-      const dir = parts.slice(0, i).join('/');
-      if (!createdDirs.has(dir)) {
-        eng.makeMemFSFolder(dir);
-        createdDirs.add(dir);
+    const allPaths = [...patchedFiles.keys(), ...(binaryFiles?.keys() || [])];
+    for (const path of allPaths) {
+      const parts = path.split('/');
+      for (let i = 1; i < parts.length; i++) {
+        const dir = parts.slice(0, i).join('/');
+        if (!createdDirs.has(dir)) {
+          eng.makeMemFSFolder(dir);
+          createdDirs.add(dir);
+        }
       }
     }
-  }
 
-  for (const [path, content] of patchedFiles) {
-    eng.writeMemFSFile(path, content);
-  }
-
-  if (binaryFiles) {
-    for (const [path, data] of binaryFiles) {
-      eng.writeBinaryMemFSFile(path, data);
+    for (const [path, content] of patchedFiles) {
+      eng.writeMemFSFile(path, content);
     }
-  }
 
-  eng.setEngineMainFile(mainFile);
-  const firstPass = await eng.compileLaTeX();
+    if (binaryFiles) {
+      for (const [path, data] of binaryFiles) {
+        eng.writeBinaryMemFSFile(path, data);
+      }
+    }
 
-  if (firstPass.status !== 0) {
+    eng.setEngineMainFile(mainFile);
+    const firstPass = await eng.compileLaTeX();
+
+    if (firstPass.status !== 0) {
+      return {
+        pdf: firstPass.pdf,
+        status: firstPass.status,
+        log: firstPass.log
+      };
+    }
+
+    const result = await eng.compileLaTeX();
+
+    if (result.status === 0) warmOfflineCache();
+
     return {
-      pdf: firstPass.pdf,
-      status: firstPass.status,
-      log: firstPass.log
+      pdf: result.pdf,
+      status: result.status,
+      log: result.log
     };
+  } finally {
+    setCompileBusy(false);
   }
-
-  const result = await eng.compileLaTeX();
-
-  if (result.status === 0) warmOfflineCache();
-
-  return {
-    pdf: result.pdf,
-    status: result.status,
-    log: result.log
-  };
 }

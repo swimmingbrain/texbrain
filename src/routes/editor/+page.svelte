@@ -216,6 +216,24 @@
     return { projectFiles, binaryFiles };
   }
 
+  // \include/\input targets in the entry file that no project file satisfies
+  function findMissingIncludes(projectFiles: Map<string, string>, entryPointPath: string): string[] {
+    const epContent = projectFiles.get(entryPointPath);
+    if (!epContent) return [];
+
+    const missing: string[] = [];
+    const re = /^[^%\n]*?\\(?:input|include)\{([^}]+)\}/gm;
+    let m;
+    while ((m = re.exec(epContent)) !== null) {
+      let name = m[1].trim();
+      if (name.includes('\\')) continue; // built from a macro, can't check statically
+      if (!name.toLowerCase().endsWith('.tex')) name += '.tex';
+      name = name.replace(/^\.\//, '');
+      if (!projectFiles.has(name) && !missing.includes(name)) missing.push(name);
+    }
+    return missing;
+  }
+
   // build a flattened include map for multi-file fraction calculation
   function updateIncludeMap(projectFiles: Map<string, string>, entryPointPath: string) {
     const epContent = projectFiles.get(entryPointPath);
@@ -351,6 +369,14 @@
       const mainFile = get(entryPoint) || af.path || af.name;
 
       updateIncludeMap(projectFiles, mainFile);
+
+      // included files that aren't part of the project would silently drop
+      // content (or worse, resolve against texlive), so warn upfront
+      const missingIncludes = findMissingIncludes(projectFiles, mainFile);
+      if (missingIncludes.length > 0) {
+        const hint = get(projectHandle) ? '' : ' Open the project folder so all files can be compiled.';
+        addToast(`Referenced but not found: ${missingIncludes.join(', ')}.${hint}`, 'warning', 8000);
+      }
 
       let compileContext = '';
       if (editorView) {

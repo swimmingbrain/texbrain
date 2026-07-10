@@ -192,7 +192,10 @@ export async function compileLaTeX(
       };
     }
 
-    const result = await eng.compileLaTeX();
+    // aux/toc files survive between compiles, so a second pass is only
+    // needed when latex explicitly asks for one
+    const needsRerun = /rerun|No file [^\s]+\.(aux|toc|lof|lot)/i.test(firstPass.log || '');
+    const result = needsRerun ? await eng.compileLaTeX() : firstPass;
 
     if (result.status === 0) warmOfflineCache();
 

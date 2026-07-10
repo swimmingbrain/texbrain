@@ -197,8 +197,9 @@ export async function compileLaTeX(
     }
 
     // aux/toc files survive between compiles, so a second pass is only
-    // needed when latex explicitly asks for one
-    const needsRerun = /rerun|No file [^\s]+\.(aux|toc|lof|lot)/i.test(firstPass.log || '');
+    // needed when latex explicitly asks for one. patterns must not match
+    // the rerunfilecheck package name that hyperref drags into every log
+    const needsRerun = /Rerun to get|Rerun LaTeX|Please rerun|Label\(s\) may have changed|No file [^\s]+\.(aux|toc|lof|lot)/.test(firstPass.log || '');
     const result = needsRerun ? await eng.compileLaTeX() : firstPass;
 
     if (result.status === 0) warmOfflineCache();

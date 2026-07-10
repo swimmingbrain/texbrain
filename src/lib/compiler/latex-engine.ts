@@ -86,7 +86,11 @@ async function serviceWorkerActive(timeoutMs = 4000): Promise<boolean> {
     ]);
     if (!reg) return false;
     if (navigator.serviceWorker.controller) return true;
-    // active registration but page not yet claimed (first visit)
+    // active registration but page not controlled: first visit, or a hard
+    // reload which deliberately bypasses the service worker. ask it to
+    // claim this page, otherwise every compile falls back to the slow
+    // full-preload path
+    reg.active?.postMessage({ type: 'claim' });
     await Promise.race([
       new Promise<void>(resolve => navigator.serviceWorker.addEventListener('controllerchange', () => resolve(), { once: true })),
       new Promise<void>(resolve => setTimeout(resolve, timeoutMs))

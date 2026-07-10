@@ -56,7 +56,13 @@ self.addEventListener('activate', (event) => {
 // receive config from the app (persisted so it survives worker restarts)
 self.addEventListener('message', (event) => {
   const data = event.data;
-  if (!data || data.type !== 'texlive-config') return;
+  if (!data) return;
+  // hard reloads bypass service worker control, the app asks to reclaim it
+  if (data.type === 'claim') {
+    self.clients.claim();
+    return;
+  }
+  if (data.type !== 'texlive-config') return;
   mirrorOverride = typeof data.mirror === 'string' ? data.mirror : null;
   event.waitUntil(
     caches.open(CONFIG_CACHE).then((cache) => {

@@ -1,59 +1,18 @@
 import { base } from '$app/paths';
 import { patchBiblatexFiles } from './bibliography';
+import { setCompileBusy, warmOfflineCache } from './offline-cache';
 
 let engine: any = null;
 let loadPromise: Promise<void> | null = null;
-let texliveLoaded = false;
 
-const IDB_NAME = 'texbrain-texlive';
-const IDB_STORE = 'cache';
-const IDB_VERSION = 1;
+// texlive files are resolved on demand through the service worker
+// (persistent cache -> bundled subset -> remote mirror). when no service
+// worker controls the page, we fall back to preloading the bundled subset.
+let onDemandAvailable = false;
+let fallbackLoaded = false;
 
 // directories already created in the engine's MEMFS (persist across compiles)
 const createdDirs = new Set<string>();
-
-interface TexliveCache {
-  textFiles: Record<string, string>;
-  binaryFiles: Record<string, string>;
-}
-
-function openIdb(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(IDB_NAME, IDB_VERSION);
-    req.onupgradeneeded = () => {
-      const db = req.result;
-      if (db.objectStoreNames.contains(IDB_STORE)) db.deleteObjectStore(IDB_STORE);
-      db.createObjectStore(IDB_STORE);
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
-
-function idbGet(db: IDBDatabase, key: string): Promise<TexliveCache | undefined> {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(IDB_STORE, 'readonly');
-    const req = tx.objectStore(IDB_STORE).get(key);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
-
-function idbPut(db: IDBDatabase, key: string, value: TexliveCache): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(IDB_STORE, 'readwrite');
-    tx.objectStore(IDB_STORE).put(value, key);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
-
-function base64ToArrayBuffer(b64: string): ArrayBuffer {
-  const raw = atob(b64);
-  const buf = new Uint8Array(raw.length);
-  for (let i = 0; i < raw.length; i++) buf[i] = raw.charCodeAt(i);
-  return buf.buffer;
-}
 
 function looksLikeHtml(first100: string): boolean {
   const l = first100.toLowerCase();
@@ -77,30 +36,33 @@ async function fetchTextFile(name: string): Promise<string | null> {
   return text;
 }
 
-async function fetchBinaryFile(name: string): Promise<string | null> {
+async function fetchBinaryFile(name: string): Promise<ArrayBuffer | null> {
   const resp = await fetch(`${base}/texlive/cache/${name}`);
   if (!resp.ok) return null;
   const buf = await resp.arrayBuffer();
   const head = new TextDecoder().decode(new Uint8Array(buf, 0, Math.min(100, buf.byteLength)));
   if (looksLikeHtml(head)) return null;
-  // store as base64 for IDB serialization
-  const bytes = new Uint8Array(buf);
-  let binary = '';
-  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-  return btoa(binary);
+  return buf;
 }
 
-async function fetchAllFiles(textNames: string[], binNames: string[]): Promise<TexliveCache> {
-  const cache: TexliveCache = { textFiles: {}, binaryFiles: {} };
+// old behavior for browsers without service worker support: load the whole
+// bundled subset into MEMFS before the first compile
+async function preloadFallback(eng: any): Promise<void> {
+  if (fallbackLoaded) return;
+
+  const [textNames, binNames] = await Promise.all([
+    loadManifest(`${base}/texlive/cache-manifest-text.txt`),
+    loadManifest(`${base}/texlive/cache-manifest-binary.txt`)
+  ]);
 
   const tasks: (() => Promise<void>)[] = [
     ...textNames.map(name => async () => {
       const content = await fetchTextFile(name).catch(() => null);
-      if (content) cache.textFiles[name] = content;
+      if (content) eng.writeMemFSFile(`/tex/${name}`, content);
     }),
     ...binNames.map(name => async () => {
-      const b64 = await fetchBinaryFile(name).catch(() => null);
-      if (b64) cache.binaryFiles[name] = b64;
+      const buf = await fetchBinaryFile(name).catch(() => null);
+      if (buf) eng.writeBinaryMemFSFile(`/tex/${name}`, buf);
     })
   ];
 
@@ -109,49 +71,28 @@ async function fetchAllFiles(textNames: string[], binNames: string[]): Promise<T
     await Promise.allSettled(tasks.slice(i, i + 50).map(fn => fn()));
   }
 
-  return cache;
+  fallbackLoaded = true;
 }
 
-function writeToEngine(eng: any, cache: TexliveCache): void {
-  for (const [name, content] of Object.entries(cache.textFiles)) {
-    eng.writeMemFSFile(`/tex/${name}`, content);
-  }
-  for (const [name, b64] of Object.entries(cache.binaryFiles)) {
-    eng.writeBinaryMemFSFile(`/tex/${name}`, base64ToArrayBuffer(b64));
-  }
-}
-
-async function preloadTexliveCache(eng: any): Promise<void> {
-  if (texliveLoaded) return;
-
-  // try loading from IndexedDB first
+// the engine worker inherits the page's service worker at creation time,
+// so this must resolve before the worker is spawned
+async function serviceWorkerActive(timeoutMs = 4000): Promise<boolean> {
+  if (!('serviceWorker' in navigator)) return false;
+  if (navigator.serviceWorker.controller) return true;
   try {
-    const db = await openIdb();
-    const cached = await idbGet(db, 'texlive');
-    if (cached) {
-      writeToEngine(eng, cached);
-      db.close();
-      texliveLoaded = true;
-      return;
-    }
-    db.close();
-  } catch { /* fall through to network */ }
-
-  const [textNames, binNames] = await Promise.all([
-    loadManifest(`${base}/texlive/cache-manifest-text.txt`),
-    loadManifest(`${base}/texlive/cache-manifest-binary.txt`)
-  ]);
-
-  const cache = await fetchAllFiles(textNames, binNames);
-  writeToEngine(eng, cache);
-  texliveLoaded = true;
-
-  // persist for next visit
-  try {
-    const db = await openIdb();
-    await idbPut(db, 'texlive', cache);
-    db.close();
-  } catch { /* non-critical */ }
+    const reg = await Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise<null>(resolve => setTimeout(() => resolve(null), timeoutMs))
+    ]);
+    if (!reg) return false;
+    if (navigator.serviceWorker.controller) return true;
+    // active registration but page not yet claimed (first visit)
+    await Promise.race([
+      new Promise<void>(resolve => navigator.serviceWorker.addEventListener('controllerchange', () => resolve(), { once: true })),
+      new Promise<void>(resolve => setTimeout(resolve, timeoutMs))
+    ]);
+    return !!navigator.serviceWorker.controller;
+  } catch { return false; }
 }
 
 function loadScript(src: string): Promise<void> {
@@ -169,6 +110,11 @@ function loadScript(src: string): Promise<void> {
 }
 
 async function initEngine(): Promise<void> {
+  onDemandAvailable = await serviceWorkerActive();
+
+  // drop the old preload cache, files are cached per-request now
+  try { indexedDB.deleteDatabase('texbrain-texlive'); } catch { /* non-critical */ }
+
   await loadScript(`${base}/swiftlatex/PdfTeXEngine.js`);
   const PdfTeXEngine = (globalThis as any).PdfTeXEngine;
   if (!PdfTeXEngine) throw new Error('PdfTeXEngine not found after loading script');
@@ -176,7 +122,7 @@ async function initEngine(): Promise<void> {
   await engine.loadEngine();
   engine.setTexliveEndpoint(`${base}/texlive/`);
   createdDirs.clear();
-  texliveLoaded = false;
+  fallbackLoaded = false;
 }
 
 export async function getEngine(): Promise<any> {
@@ -192,7 +138,7 @@ export async function getEngine(): Promise<any> {
 
 export async function warmup(): Promise<void> {
   const eng = await getEngine();
-  await preloadTexliveCache(eng);
+  if (!onDemandAvailable) await preloadFallback(eng);
 }
 
 export interface CompileResult {
@@ -207,48 +153,55 @@ export async function compileLaTeX(
   binaryFiles?: Map<string, ArrayBuffer>
 ): Promise<CompileResult> {
   const eng = await getEngine();
-  await preloadTexliveCache(eng);
+  if (!onDemandAvailable) await preloadFallback(eng);
 
-  const patchedFiles = patchBiblatexFiles(files);
+  setCompileBusy(true);
+  try {
+    const patchedFiles = patchBiblatexFiles(files);
 
-  const allPaths = [...patchedFiles.keys(), ...(binaryFiles?.keys() || [])];
-  for (const path of allPaths) {
-    const parts = path.split('/');
-    for (let i = 1; i < parts.length; i++) {
-      const dir = parts.slice(0, i).join('/');
-      if (!createdDirs.has(dir)) {
-        eng.makeMemFSFolder(dir);
-        createdDirs.add(dir);
+    const allPaths = [...patchedFiles.keys(), ...(binaryFiles?.keys() || [])];
+    for (const path of allPaths) {
+      const parts = path.split('/');
+      for (let i = 1; i < parts.length; i++) {
+        const dir = parts.slice(0, i).join('/');
+        if (!createdDirs.has(dir)) {
+          eng.makeMemFSFolder(dir);
+          createdDirs.add(dir);
+        }
       }
     }
-  }
 
-  for (const [path, content] of patchedFiles) {
-    eng.writeMemFSFile(path, content);
-  }
-
-  if (binaryFiles) {
-    for (const [path, data] of binaryFiles) {
-      eng.writeBinaryMemFSFile(path, data);
+    for (const [path, content] of patchedFiles) {
+      eng.writeMemFSFile(path, content);
     }
-  }
 
-  eng.setEngineMainFile(mainFile);
-  const firstPass = await eng.compileLaTeX();
+    if (binaryFiles) {
+      for (const [path, data] of binaryFiles) {
+        eng.writeBinaryMemFSFile(path, data);
+      }
+    }
 
-  if (firstPass.status !== 0) {
+    eng.setEngineMainFile(mainFile);
+    const firstPass = await eng.compileLaTeX();
+
+    if (firstPass.status !== 0) {
+      return {
+        pdf: firstPass.pdf,
+        status: firstPass.status,
+        log: firstPass.log
+      };
+    }
+
+    const result = await eng.compileLaTeX();
+
+    if (result.status === 0) warmOfflineCache();
+
     return {
-      pdf: firstPass.pdf,
-      status: firstPass.status,
-      log: firstPass.log
+      pdf: result.pdf,
+      status: result.status,
+      log: result.log
     };
+  } finally {
+    setCompileBusy(false);
   }
-
-  const result = await eng.compileLaTeX();
-
-  return {
-    pdf: result.pdf,
-    status: result.status,
-    log: result.log
-  };
 }

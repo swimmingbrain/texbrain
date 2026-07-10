@@ -21,7 +21,13 @@
     text: string;
     items: Array<{ str: string; transform: number[] }>;
     viewportHeight: number;
-  }> = [];
+  } | undefined> = [];
+
+  // lazy rendering state: pages are rasterized only when they come near the
+  // viewport, a bumped token invalidates everything in flight
+  let renderToken = 0;
+  let renderedPages = new Set<number>();
+  let observer: IntersectionObserver | null = null;
 
   function makeLinkService(doc: any) {
     return {
@@ -68,18 +74,25 @@
       pendingSourceText = '';
 
       const doc = await pdfjsLib.getDocument({ data: data.slice() }).promise;
+      const oldDoc = pdfDoc;
       pdfDoc = doc;
       pageCount = doc.numPages;
 
       await tick();
       if (!container) { rendering = false; return; }
 
-      await renderAllPages(doc);
+      await buildPages(doc);
+      if (oldDoc) oldDoc.destroy().catch(() => {});
 
       if (targetSourceText) {
+        // the search needs the text of every page
+        await fillTextCache(doc, renderToken);
         scrollToSourceText(targetSourceText, targetFraction >= 0 ? targetFraction : 0);
       } else if (targetFraction >= 0) {
         scrollToFractionImpl(targetFraction);
+        void fillTextCache(doc, renderToken);
+      } else {
+        void fillTextCache(doc, renderToken);
       }
     } catch (err) {
       console.error('[PDF] error:', err);
@@ -88,23 +101,57 @@
     }
   }
 
-  async function renderAllPages(doc: any) {
+  // create placeholders for all pages, rasterize only what scrolls into view
+  async function buildPages(doc: any) {
+    const token = ++renderToken;
+    observer?.disconnect();
     container.innerHTML = '';
-    pageTextCache = [];
-    const dpr = window.devicePixelRatio || 1;
+    renderedPages = new Set();
+    pageTextCache = new Array(doc.numPages);
 
     const page1 = await doc.getPage(1);
     const baseVp = page1.getViewport({ scale: 1 });
     const fitScale = (container.clientWidth - 32) / baseVp.width;
     if (!userZoomed) scale = Math.max(0.3, fitScale);
+    const vp = page1.getViewport({ scale });
+
+    observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const num = Number((entry.target as HTMLElement).dataset.page);
+        observer?.unobserve(entry.target);
+        void renderPage(doc, num, token);
+      }
+    }, { root: container, rootMargin: '1000px 0px' });
 
     for (let i = 1; i <= doc.numPages; i++) {
-      const page = i === 1 ? page1 : await doc.getPage(i);
-      const viewport = page.getViewport({ scale });
-
       const pageDiv = document.createElement('div');
       pageDiv.dataset.page = String(i);
-      pageDiv.style.cssText = `width:${viewport.width}px;height:${viewport.height}px;position:relative;background:white;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,0.3);flex-shrink:0;--scale-factor:${scale};`;
+      pageDiv.style.cssText = `width:${vp.width}px;height:${vp.height}px;position:relative;background:white;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,0.3);flex-shrink:0;--scale-factor:${scale};`;
+      container.appendChild(pageDiv);
+      observer.observe(pageDiv);
+    }
+
+    // first page right away so the preview never shows a blank sheet
+    await renderPage(doc, 1, token);
+  }
+
+  async function renderPage(doc: any, num: number, token: number) {
+    if (token !== renderToken || renderedPages.has(num)) return;
+    renderedPages.add(num);
+
+    const pageDiv = container?.querySelector(`[data-page="${num}"]`) as HTMLElement | null;
+    if (!pageDiv) return;
+
+    try {
+      const dpr = window.devicePixelRatio || 1;
+      const page = await doc.getPage(num);
+      if (token !== renderToken) return;
+      const viewport = page.getViewport({ scale });
+
+      // placeholders assume the size of page 1, fix up if this page differs
+      pageDiv.style.width = `${viewport.width}px`;
+      pageDiv.style.height = `${viewport.height}px`;
 
       const canvas = document.createElement('canvas');
       canvas.width = Math.floor(viewport.width * dpr);
@@ -116,13 +163,12 @@
       textDiv.className = 'textLayer';
       pageDiv.appendChild(textDiv);
 
-      container.appendChild(pageDiv);
-
       const ctx = canvas.getContext('2d')!;
       ctx.scale(dpr, dpr);
       await page.render({ canvasContext: ctx, viewport }).promise;
 
       const textContent = await page.getTextContent();
+      if (token !== renderToken) return;
       const tl = new pdfjsLib.TextLayer({
         textContentSource: textContent,
         container: textDiv,
@@ -131,7 +177,7 @@
       await tl.render();
 
       const annotations = await page.getAnnotations();
-      if (annotations.length > 0) {
+      if (annotations.length > 0 && token === renderToken) {
         const annotDiv = document.createElement('div');
         annotDiv.className = 'annotationLayer';
         pageDiv.appendChild(annotDiv);
@@ -143,11 +189,30 @@
         await al.render({ annotations, linkService: makeLinkService(doc) });
       }
 
-      pageTextCache.push({
-        text: textContent.items.map((it: any) => it.str || '').join(' '),
-        items: textContent.items.filter((it: any) => it.str && it.transform),
-        viewportHeight: viewport.height
-      });
+      cacheTextEntry(num, textContent, viewport.height);
+    } catch { /* document was replaced mid-render */ }
+  }
+
+  function cacheTextEntry(num: number, textContent: any, viewportHeight: number) {
+    pageTextCache[num - 1] = {
+      text: textContent.items.map((it: any) => it.str || '').join(' '),
+      items: textContent.items.filter((it: any) => it.str && it.transform),
+      viewportHeight
+    };
+  }
+
+  // text extraction is cheap compared to rasterizing, fill it for all pages
+  // so scroll-to-source can search the whole document
+  async function fillTextCache(doc: any, token: number) {
+    for (let i = 1; i <= doc.numPages; i++) {
+      if (token !== renderToken) return;
+      if (pageTextCache[i - 1]) continue;
+      try {
+        const page = await doc.getPage(i);
+        const textContent = await page.getTextContent();
+        if (token !== renderToken) return;
+        cacheTextEntry(i, textContent, page.getViewport({ scale }).height);
+      } catch { return; /* document was replaced mid-fill */ }
     }
   }
 
@@ -259,8 +324,9 @@
     rendering = true;
     try {
       const savedScroll = container ? container.scrollTop / container.scrollHeight : 0;
-      await renderAllPages(pdfDoc);
+      await buildPages(pdfDoc);
       if (container) container.scrollTop = savedScroll * container.scrollHeight;
+      void fillTextCache(pdfDoc, renderToken);
     } finally {
       rendering = false;
     }

@@ -7,7 +7,7 @@
 %% babel.dtx  (with options: `texxet')
 %% 
 %%
-%% Copyright (C) 2012-2021 Javier Bezos and Johannes L. Braams.
+%% Copyright (C) 2012-2020 Javier Bezos and Johannes L. Braams.
 %% Copyright (C) 1989-2012 Johannes L. Braams and
 %%           any individual authors listed elsewhere in this file.
 %% All rights reserved.
@@ -94,17 +94,17 @@
        \hskip\columnwidth}}}%
   {}
 \bbl@trace{Bidi footnotes}
-\ifnum\bbl@bidimode>\z@
+\ifx\bbl@beforeforeign\leavevmode
   \def\bbl@footnote#1#2#3{%
     \@ifnextchar[%
       {\bbl@footnote@o{#1}{#2}{#3}}%
       {\bbl@footnote@x{#1}{#2}{#3}}}
-  \long\def\bbl@footnote@x#1#2#3#4{%
+  \def\bbl@footnote@x#1#2#3#4{%
     \bgroup
       \select@language@x{\bbl@main@language}%
       \bbl@fn@footnote{#2#1{\ignorespaces#4}#3}%
     \egroup}
-  \long\def\bbl@footnote@o#1#2#3[#4]#5{%
+  \def\bbl@footnote@o#1#2#3[#4]#5{%
     \bgroup
       \select@language@x{\bbl@main@language}%
       \bbl@fn@footnote[#4]{#2#1{\ignorespaces#5}#3}%
@@ -113,12 +113,12 @@
     \@ifnextchar[%
       {\bbl@footnotetext@o{#1}{#2}{#3}}%
       {\bbl@footnotetext@x{#1}{#2}{#3}}}
-  \long\def\bbl@footnotetext@x#1#2#3#4{%
+  \def\bbl@footnotetext@x#1#2#3#4{%
     \bgroup
       \select@language@x{\bbl@main@language}%
       \bbl@fn@footnotetext{#2#1{\ignorespaces#4}#3}%
     \egroup}
-  \long\def\bbl@footnotetext@o#1#2#3[#4]#5{%
+  \def\bbl@footnotetext@o#1#2#3[#4]#5{%
     \bgroup
       \select@language@x{\bbl@main@language}%
       \bbl@fn@footnotetext[#4]{#2#1{\ignorespaces#5}#3}%

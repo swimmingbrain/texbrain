@@ -7,7 +7,7 @@
 %% babel.dtx  (with options: `luatex')
 %% 
 %%
-%% Copyright (C) 2012-2021 Javier Bezos and Johannes L. Braams.
+%% Copyright (C) 2012-2020 Javier Bezos and Johannes L. Braams.
 %% Copyright (C) 1989-2012 Johannes L. Braams and
 %%           any individual authors listed elsewhere in this file.
 %% All rights reserved.
@@ -32,7 +32,7 @@
 %% extension |.ins|) which are part of the distribution.
 %%
 
-\ifx\AddBabelHook\@undefined % When plain.def, babel.sty starts
+\ifx\AddBabelHook\@undefined
 \bbl@trace{Read language.dat}
 \ifx\bbl@readstream\@undefined
   \csname newread\endcsname\bbl@readstream
@@ -120,30 +120,27 @@
 \bbl@trace{Macros for reading patterns files}
 \def\bbl@get@enc#1:#2:#3\@@@{\def\bbl@hyph@enc{#2}}
 \ifx\babelcatcodetablenum\@undefined
-  \ifx\newcatcodetable\@undefined
-    \def\babelcatcodetablenum{5211}
-    \def\bbl@pattcodes{\numexpr\babelcatcodetablenum+1\relax}
-  \else
-    \newcatcodetable\babelcatcodetablenum
-    \newcatcodetable\bbl@pattcodes
-  \fi
-\else
-  \def\bbl@pattcodes{\numexpr\babelcatcodetablenum+1\relax}
+  \def\babelcatcodetablenum{5211}
 \fi
 \def\bbl@luapatterns#1#2{%
   \bbl@get@enc#1::\@@@
   \setbox\z@\hbox\bgroup
     \begingroup
+      \ifx\catcodetable\@undefined
+        \let\savecatcodetable\luatexsavecatcodetable
+        \let\initcatcodetable\luatexinitcatcodetable
+        \let\catcodetable\luatexcatcodetable
+      \fi
       \savecatcodetable\babelcatcodetablenum\relax
-      \initcatcodetable\bbl@pattcodes\relax
-      \catcodetable\bbl@pattcodes\relax
-        \catcode`\#=6  \catcode`\$=3 \catcode`\&=4 \catcode`\^=7
-        \catcode`\_=8  \catcode`\{=1 \catcode`\}=2 \catcode`\~=13
-        \catcode`\@=11 \catcode`\^^I=10 \catcode`\^^J=12
-        \catcode`\<=12 \catcode`\>=12 \catcode`\*=12 \catcode`\.=12
-        \catcode`\-=12 \catcode`\/=12 \catcode`\[=12 \catcode`\]=12
-        \catcode`\`=12 \catcode`\'=12 \catcode`\"=12
-        \input #1\relax
+      \initcatcodetable\numexpr\babelcatcodetablenum+1\relax
+      \catcodetable\numexpr\babelcatcodetablenum+1\relax
+      \catcode`\#=6  \catcode`\$=3 \catcode`\&=4 \catcode`\^=7
+      \catcode`\_=8  \catcode`\{=1 \catcode`\}=2 \catcode`\~=13
+      \catcode`\@=11 \catcode`\^^I=10 \catcode`\^^J=12
+      \catcode`\<=12 \catcode`\>=12 \catcode`\*=12 \catcode`\.=12
+      \catcode`\-=12 \catcode`\/=12 \catcode`\[=12 \catcode`\]=12
+      \catcode`\`=12 \catcode`\'=12 \catcode`\"=12
+      \input #1\relax
       \catcodetable\babelcatcodetablenum\relax
     \endgroup
     \def\bbl@tempa{#2}%
@@ -176,26 +173,7 @@
        {\expandafter\expandafter\expandafter\bbl@luapatterns
           \csname bbl@hyphendata@\the\language\endcsname}}{}}
 \endinput\fi
-  % Here ends \ifx\AddBabelHook\@undefined
-  % A few lines are only read by hyphen.cfg
-\ifx\DisableBabelHook\@undefined
-  \AddBabelHook{luatex}{everylanguage}{%
-    \def\process@language##1##2##3{%
-      \def\process@line####1####2 ####3 ####4 {}}}
-  \AddBabelHook{luatex}{loadpatterns}{%
-     \input #1\relax
-     \expandafter\gdef\csname bbl@hyphendata@\the\language\endcsname
-       {{#1}{}}}
-  \AddBabelHook{luatex}{loadexceptions}{%
-     \input #1\relax
-     \def\bbl@tempb##1##2{{##1}{#1}}%
-     \expandafter\xdef\csname bbl@hyphendata@\the\language\endcsname
-       {\expandafter\expandafter\expandafter\bbl@tempb
-        \csname bbl@hyphendata@\the\language\endcsname}}
-\endinput\fi
-  % Here stops reading code for hyphen.cfg
-  % The following is read the 2nd time it's loaded
-\begingroup  % TODO - to a lua file
+\begingroup
 \catcode`\%=12
 \catcode`\'=12
 \catcode`\"=12
@@ -251,7 +229,6 @@
 \endgroup
 \ifx\newattribute\@undefined\else
   \newattribute\bbl@attr@locale
-  \directlua{ Babel.attr_locale = luatexbase.registernumber'bbl@attr@locale'}
   \AddBabelHook{luatex}{beforeextras}{%
     \setattribute\bbl@attr@locale\localeid}
 \fi
@@ -303,6 +280,19 @@
     \bbl@ifunset{bbl@prehc@\languagename}{}%
       {\\\bbl@ifblank{\bbl@cs{prehc@\languagename}}{}%
         {\prehyphenchar=\bbl@cl{prehc}\relax}}}}
+\AddBabelHook{luatex}{everylanguage}{%
+  \def\process@language##1##2##3{%
+    \def\process@line####1####2 ####3 ####4 {}}}
+\AddBabelHook{luatex}{loadpatterns}{%
+   \input #1\relax
+   \expandafter\gdef\csname bbl@hyphendata@\the\language\endcsname
+     {{#1}{}}}
+\AddBabelHook{luatex}{loadexceptions}{%
+   \input #1\relax
+   \def\bbl@tempb##1##2{{##1}{#1}}%
+   \expandafter\xdef\csname bbl@hyphendata@\the\language\endcsname
+     {\expandafter\expandafter\expandafter\bbl@tempb
+      \csname bbl@hyphendata@\the\language\endcsname}}
 \@onlypreamble\babelpatterns
 \AtEndOfPackage{%
   \newcommand\babelpatterns[2][\@empty]{%
@@ -380,7 +370,7 @@
     function Babel.sea_disc_to_space (head)
       local sea_ranges = Babel.sea_ranges
       local last_char = nil
-      local quad = 655360      ^% 10 pt = 655360 = 10 * 65536
+      local quad = 655360      ^^ 10 pt = 655360 = 10 * 65536
       for item in node.traverse(head) do
         local i = item.id
         if i == node.id'glyph' then
@@ -390,16 +380,16 @@
           quad = font.getfont(last_char.font).size
           for lg, rg in pairs(sea_ranges) do
             if last_char.char > rg[1] and last_char.char < rg[2] then
-              lg = lg:sub(1, 4)  ^% Remove trailing number of, eg, Cyrl1
+              lg = lg:sub(1, 4)  ^^ Remove trailing number of, eg, Cyrl1
               local intraspace = Babel.intraspaces[lg]
               local intrapenalty = Babel.intrapenalties[lg]
               local n
               if intrapenalty ~= 0 then
-                n = node.new(14, 0)     ^% penalty
+                n = node.new(14, 0)     ^^ penalty
                 n.penalty = intrapenalty
                 node.insert_before(head, item, n)
               end
-              n = node.new(12, 13)      ^% (glue, spaceskip)
+              n = node.new(12, 13)      ^^ (glue, spaceskip)
               node.setglue(n, intraspace.b * quad,
                               intraspace.p * quad,
                               intraspace.m * quad)
@@ -417,7 +407,7 @@
   \let\bbl@cjkintraspace\relax
   \directlua{
     Babel = Babel or {}
-    require('babel-data-cjk.lua')
+    require'babel-data-cjk.lua'
     Babel.cjk_enabled = true
     function Babel.cjk_linebreak(head)
       local GLYPH = node.id'glyph'
@@ -462,9 +452,7 @@
             node.insert_before(head, item, n)
           end
 
-          if font.getfont(item.font) then
-            quad = font.getfont(item.font).size
-          end
+          quad = font.getfont(item.font).size
           last_class = class
           last_lang = lang
         else % if penalty, glue or anything else
@@ -534,42 +522,52 @@
      \ifx\bbl@KVP@intrapenalty\@nil\else
        \expandafter\bbl@intrapenalty\bbl@KVP@intrapenalty\@@
      \fi}}
+\AddBabelHook{luatex}{loadkernel}{%
+  \begingroup
+      % Reset chars "80-"C0 to category "other", no case mapping:
+    \catcode`\@=11 \count@=128
+    \loop\ifnum\count@<192
+      \global\uccode\count@=0 \global\lccode\count@=0
+      \global\catcode\count@=12 \global\sfcode\count@=1000
+      \advance\count@ by 1 \repeat
+      % Other:
+    \def\O ##1 {%
+      \global\uccode"##1=0 \global\lccode"##1=0
+      \global\catcode"##1=12 \global\sfcode"##1=1000 }%
+      % Letter:
+    \def\L ##1 ##2 ##3 {\global\catcode"##1=11
+      \global\uccode"##1="##2
+      \global\lccode"##1="##3
+      % Uppercase letters have sfcode=999:
+      \ifnum"##1="##3 \else \global\sfcode"##1=999 \fi }%
+      % Letter without case mappings:
+    \def\l ##1 {\L ##1 ##1 ##1 }%
+    \l 00AA
+    \L 00B5 039C 00B5
+    \l 00BA
+    \O 00D7
+    \l 00DF
+    \O 00F7
+    \L 00FF 0178 00FF
+  \endgroup
+  \input #1\relax}
+\ifx\DisableBabelHook\@undefined\endinput\fi
 \AddBabelHook{babel-fontspec}{afterextras}{\bbl@switchfont}
 \AddBabelHook{babel-fontspec}{beforestart}{\bbl@ckeckstdfonts}
 \DisableBabelHook{babel-fontspec}
 \bbl@trace{Font handling with fontspec}
-\ifx\ExplSyntaxOn\@undefined\else
-  \ExplSyntaxOn
-  \catcode`\ =10
-  \def\bbl@loadfontspec{%
-    \usepackage{fontspec}%
-    \expandafter
-    \def\csname msg~text~>~fontspec/language-not-exist\endcsname##1##2##3##4{%
-      Font '\l_fontspec_fontname_tl' is using the\\%
-      default features for language '##1'.\\%
-      That's usually fine, because many languages\\%
-      require no specific features, but if the output is\\%
-      not as expected, consider selecting another font.}
-    \expandafter
-    \def\csname msg~text~>~fontspec/no-script\endcsname##1##2##3##4{%
-      Font '\l_fontspec_fontname_tl' is using the\\%
-      default features for script '##2'.\\%
-      That's not always wrong, but if the output is\\%
-      not as expected, consider selecting another font.}}
-  \ExplSyntaxOff
-\fi
 \@onlypreamble\babelfont
 \newcommand\babelfont[2][]{%  1=langs/scripts 2=fam
   \bbl@foreach{#1}{%
     \expandafter\ifx\csname date##1\endcsname\relax
-      \IfFileExists{babel-##1.tex}%
-        {\babelprovide{##1}}%
-        {}%
+    \IfFileExists{babel-##1.tex}%
+      {\babelprovide{##1}}%
+      {}%
     \fi}%
   \edef\bbl@tempa{#1}%
   \def\bbl@tempb{#2}%  Used by \bbl@bblfont
   \ifx\fontspec\@undefined
-    \bbl@loadfontspec
+    \usepackage{fontspec}%
   \fi
   \EnableBabelHook{babel-fontspec}% Just calls \bbl@switchfont
   \bbl@bblfont}
@@ -632,7 +630,7 @@
     \bbl@ifunset{bbl@##1dflt@\languagename}%
       {\bbl@cs{famrst@##1}%
        \global\bbl@csarg\let{famrst@##1}\relax}%
-      {\bbl@exp{% order is relevant. TODO: but sometimes wrong!
+      {\bbl@exp{% order is relevant
          \\\bbl@add\\\originalTeX{%
            \\\bbl@font@rst{\bbl@cl{##1dflt}}%
                           \<##1default>\<##1family>{##1}}%
@@ -674,13 +672,9 @@
   \ifin@
     \bbl@exp{\\\bbl@fontspec@set\\#1\expandafter\@gobbletwo#1\\#3}%
   \fi
-  \bbl@exp{%              'Unprotected' macros return prev values
+  \bbl@exp{%
     \def\\#2{#1}%         eg, \rmdefault{\bbl@rmdflt@lang}
-    \\\bbl@ifsamestring{#2}{\f@family}%
-      {\\#3%
-       \\\bbl@ifsamestring{\f@series}{\bfdefault}{\\\bfseries}{}%
-       \let\\\bbl@tempa\relax}%
-      {}}}
+    \\\bbl@ifsamestring{#2}{\f@family}{\\#3\let\\\bbl@tempa\relax}{}}}
 \def\bbl@fontspec@set#1#2#3#4{% eg \bbl@rmdflt@lang fnt-opt fnt-nme \xxfamily
   \let\bbl@tempe\bbl@mapselect
   \let\bbl@mapselect\relax
@@ -745,7 +739,6 @@
     \edef\bbl@langfeatures{#2,}}}
 \directlua{
 Babel.script_blocks = {
-  ['dflt'] = {},
   ['Arab'] = {{0x0600, 0x06FF}, {0x08A0, 0x08FF}, {0x0750, 0x077F},
               {0xFE70, 0xFEFF}, {0xFB50, 0xFDFF}, {0x1EE00, 0x1EEFF}},
   ['Armn'] = {{0x0530, 0x058F}},
@@ -887,8 +880,8 @@ end
 \let\bbl@chprop@bmg\bbl@chprop@mirror
 \def\bbl@chprop@linebreak#1{%
   \directlua{
-    Babel.cjk_characters[\the\count@] = Babel.cjk_characters[\the\count@] or {}
-    Babel.cjk_characters[\the\count@]['c'] = '#1'
+    Babel.Babel.cjk_characters[\the\count@] = Babel.Babel.cjk_characters[\the\count@] or {}
+    Babel.Babel.cjk_characters[\the\count@]['c'] = '#1'
   }}
 \let\bbl@chprop@lb\bbl@chprop@linebreak
 \def\bbl@chprop@locale#1{%
@@ -897,17 +890,13 @@ end
     Babel.chr_to_loc[\the\count@] =
       \bbl@ifblank{#1}{-1000}{\the\bbl@cs{id@@#1}}\space
   }}
-\begingroup % TODO - to a lua file
-\catcode`\~=12
+\begingroup
 \catcode`\#=12
 \catcode`\%=12
 \catcode`\&=14
 \directlua{
   Babel.linebreaking.replacements = {}
-  Babel.linebreaking.replacements[0] = {}  &% pre
-  Babel.linebreaking.replacements[1] = {}  &% post
 
-  &% Discretionaries contain strings as nodes
   function Babel.str_to_nodes(fn, matches, base)
     local n, head, last
     if fn == nil then return nil end
@@ -927,87 +916,21 @@ end
     return head
   end
 
-  Babel.fetch_subtext = {}
-
-  &% Merging both functions doesn't seen feasible, because there are too
-  &% many differences.
-  Babel.fetch_subtext[0] = function(head)
+  function Babel.fetch_word(head, funct)
     local word_string = ''
     local word_nodes = {}
     local lang
     local item = head
-    local inmath = false
 
     while item do
 
-      if item.id == 11 then
-        inmath = (item.subtype == 0)
-      end
-
-      if inmath then
-        &% pass
-
-      elseif item.id == 29 then
-        local locale = node.get_attribute(item, Babel.attr_locale)
-
-        if lang == locale or lang == nil then
-          if (item.char ~= 124) then &% ie, not | = space
-            lang = lang or locale
-            word_string = word_string .. unicode.utf8.char(item.char)
-            word_nodes[#word_nodes+1] = item
-          end
-        else
-          break
-        end
-
-      elseif item.id == 12 and item.subtype == 13 then
-        word_string = word_string .. '|'
+      if item.id == 29
+          and not(item.char == 124) &% ie, not |
+          and not(item.char == 61)  &% ie, not =
+          and (item.lang == lang or lang == nil) then
+        lang = lang or item.lang
+        word_string = word_string .. unicode.utf8.char(item.char)
         word_nodes[#word_nodes+1] = item
-
-      &% Ignore leading unrecognized nodes, too.
-      elseif word_string ~= '' then
-        word_string = word_string .. Babel.us_char
-        word_nodes[#word_nodes+1] = item  &% Will be ignored
-      end
-
-      item = item.next
-    end
-
-    &% Here and above we remove some trailing chars but not the
-    &% corresponding nodes. But they aren't accessed.
-    if word_string:sub(-1) == '|' then
-      word_string = word_string:sub(1,-2)
-    end
-    word_string = unicode.utf8.gsub(word_string, Babel.us_char .. '+$', '')
-    return word_string, word_nodes, item, lang
-  end
-
-  Babel.fetch_subtext[1] = function(head)
-    local word_string = ''
-    local word_nodes = {}
-    local lang
-    local item = head
-    local inmath = false
-
-    while item do
-
-      if item.id == 11 then
-        inmath = (item.subtype == 0)
-      end
-
-      if inmath then
-        &% pass
-
-      elseif item.id == 29 then
-        if item.lang == lang or lang == nil then
-          if (item.char ~= 124) and (item.char ~= 61) then &% not =, not |
-            lang = lang or item.lang
-            word_string = word_string .. unicode.utf8.char(item.char)
-            word_nodes[#word_nodes+1] = item
-          end
-        else
-          break
-        end
 
       elseif item.id == 7 and item.subtype == 2 then
         word_string = word_string .. '='
@@ -1017,230 +940,130 @@ end
         word_string = word_string .. '|'
         word_nodes[#word_nodes+1] = item
 
-      &% (1) Go to next word if nothing was found, and (2) implictly
-      &% remove leading USs.
       elseif word_string == '' then
         &% pass
 
-      &% This is the responsible for splitting by words.
-      elseif (item.id == 12 and item.subtype == 13) then
-        break
-
       else
-        word_string = word_string .. Babel.us_char
-        word_nodes[#word_nodes+1] = item  &% Will be ignored
+        return word_string, word_nodes, item, lang
       end
 
       item = item.next
     end
-
-    word_string = unicode.utf8.gsub(word_string, Babel.us_char .. '+$', '')
-    return word_string, word_nodes, item, lang
-  end
-
-  function Babel.pre_hyphenate_replace(head)
-    Babel.hyphenate_replace(head, 0)
   end
 
   function Babel.post_hyphenate_replace(head)
-    Babel.hyphenate_replace(head, 1)
-  end
-
-  Babel.us_char = string.char(31)
-
-  function Babel.hyphenate_replace(head, mode)
     local u = unicode.utf8
-    local lbkr = Babel.linebreaking.replacements[mode]
-
+    local lbkr = Babel.linebreaking.replacements
     local word_head = head
 
-    while true do  &% for each subtext block
+    while true do
+      local w, wn, nw, lang = Babel.fetch_word(word_head)
+      if not lang then return head end
 
-      local w, wn, nw, lang = Babel.fetch_subtext[mode](word_head)
-
-      if Babel.debug then
-        print()
-        print('@@@@@', w, nw)
+      if not lbkr[lang] then
+        break
       end
 
-      if nw == nil and w == '' then break end
-
-      if not lang then goto next end
-      if not lbkr[lang] then goto next end
-
-      &% For each saved (pre|post)hyphenation. TODO. Reconsider how
-      &% loops are nested.
       for k=1, #lbkr[lang] do
         local p = lbkr[lang][k].pattern
         local r = lbkr[lang][k].replace
 
-        if Babel.debug then
-          print('=====', p, mode)
-        end
-
-        &% This variable is set in some cases below to the first *byte*
-        &% after the match, either as found by u.match (faster) or the
-        &% computed position based on sc if w has changed.
-        local last_match = 0
-
-        &% For every match.
         while true do
-          if Babel.debug then
-            print('-----')
-          end
-          local new  &% used when inserting and removing nodes
-          local refetch = false
-
-          local matches = { u.match(w, p, last_match) }
+          local matches = { u.match(w, p) }
           if #matches < 2 then break end
 
-          &% Get and remove empty captures (with ()'s, which return a
-          &% number with the position), and keep actual captures
-          &% (from (...)), if any, in matches.
           local first = table.remove(matches, 1)
-          local last  = table.remove(matches, #matches)
-          &% Non re-fetched substrings may contain \31, which separates
-          &% subsubstrings.
-          if string.find(w:sub(first, last-1), Babel.us_char) then break end
+          local last =  table.remove(matches, #matches)
 
-          local save_last = last &% with A()BC()D, points to D
-
-          &% Fix offsets, from bytes to unicode. Explained above.
+          &% Fix offsets, from bytes to unicode.
           first = u.len(w:sub(1, first-1)) + 1
-          last  = u.len(w:sub(1, last-1)) &% now last points to C
+          last  = u.len(w:sub(1, last-1))
 
-          if Babel.debug then
-            print(p)
-            print('', 'sc', 'first', 'last', 'last_m', 'w')
-          end
+          local new  &% used when inserting and removing nodes
+          local changed = 0
 
-          &% This loop traverses the matched substring and takes the
-          &% corresponding action stored in the replacement list.
-          &% sc = the position in substr nodes / string
-          &% rc = the replacement table index
-          local sc = first-1
-          local rc = 0
-          while rc < last-first+1 do &% for each replacement
-            if Babel.debug then
-              print('.....')
-            end
-            sc = sc + 1
-            rc = rc + 1
-            local crep = r[rc]
-            local char_node = wn[sc]
+          &% This loop traverses the replace list and takes the
+          &% corresponding actions
+          for q = first, last do
+            local crep = r[q-first+1]
+            local char_node = wn[q]
             local char_base = char_node
-            local end_replacement = false
 
             if crep and crep.data then
               char_base = wn[crep.data+first-1]
             end
 
-            if Babel.debug then
-              print('*', sc, first, last, last_match, w)
-            end
-
-            if crep and next(crep) == nil then &% {}
-              last_match = save_last
-
-            elseif crep == nil then &% remove
+            if crep == {} then
+              break
+            elseif crep == nil then
+              changed = changed + 1
               node.remove(head, char_node)
-              table.remove(wn, sc)
-              w = u.sub(w, 1, sc-1) .. u.sub(w, sc+1)
-              last_match = utf8.offset(w, sc)
-              sc = sc - 1  &% Nothing has been inserted
-
-            elseif mode == 1 and crep and (crep.pre or crep.no or crep.post) then
-              local d = node.new(7, 0)   &% (disc, discretionary)
-              d.pre     = Babel.str_to_nodes(crep.pre, matches, char_base)
-              d.post    = Babel.str_to_nodes(crep.post, matches, char_base)
+            elseif crep and (crep.pre or crep.no or crep.post) then
+              changed = changed + 1
+              d = node.new(7, 0)   &% (disc, discretionary)
+              d.pre = Babel.str_to_nodes(crep.pre, matches, char_base)
+              d.post = Babel.str_to_nodes(crep.post, matches, char_base)
               d.replace = Babel.str_to_nodes(crep.no, matches, char_base)
               d.attr = char_base.attr
               if crep.pre == nil then  &% TeXbook p96
-                d.penalty = crep.penalty or tex.hyphenpenalty
+                d.penalty  = crep.penalty or tex.hyphenpenalty
               else
-                d.penalty = crep.penalty or tex.exhyphenpenalty
+                d.penalty  = crep.penalty or tex.exhyphenpenalty
               end
               head, new = node.insert_before(head, char_node, d)
-              end_replacement = true
-
-            elseif crep and crep.penalty then
-              local d = node.new(14, 0)   &% (penalty, userpenalty)
-              d.attr = char_base.attr
-              d.penalty = crep.penalty
-              head, new = node.insert_before(head, char_node, d)
-              end_replacement = true
-
+              node.remove(head, char_node)
+              if q == 1 then
+                word_head = new
+              end
             elseif crep and crep.string then
+              changed = changed + 1
               local str = crep.string(matches)
-              if str == '' then  &% Gather with nil
-                refetch = true
-                if sc == 1 then
+              if str == '' then
+                if q == 1 then
                   word_head = char_node.next
                 end
                 head, new = node.remove(head, char_node)
               elseif char_node.id == 29 and u.len(str) == 1 then
                 char_node.char = string.utfvalue(str)
-                w = u.sub(w, 1, sc-1) .. str .. u.sub(w, sc+1)
-                last_match = utf8.offset(w, sc+1)
               else
-                refetch = true
                 local n
                 for s in string.utfvalues(str) do
                   if char_node.id == 7 then
-                    &% TODO. Remove this limitation.
-                    texio.write_nl('Automatic hyphens cannot be replaced, just removed.')
+                    log('Automatic hyphens cannot be replaced, just removed.')
                   else
                     n = node.copy(char_base)
                   end
                   n.char = s
-                  if sc == 1 then
+                  if q == 1 then
                     head, new = node.insert_before(head, char_node, n)
                     word_head = new
                   else
                     node.insert_before(head, char_node, n)
                   end
                 end
+
                 node.remove(head, char_node)
               end  &% string length
-            end  &% if char and char.string (ie replacement cases)
-
-            &% Shared by disc and penalty.
-            if end_replacement then
-              if sc == 1 then
-                word_head = new
-              end
-              if crep.insert then
-                last_match = save_last
-              else
-                node.remove(head, char_node)
-                w = u.sub(w, 1, sc-1) .. Babel.us_char .. u.sub(w, sc+1)
-                last_match = utf8.offset(w, sc)
-              end
-            end
-          end  &% for each replacement
-
-          if Babel.debug then
-            print('/', sc, first, last, last_match, w)
-          end
-
-          &% TODO. refetch will be eventually unnecesary.
-          if refetch then
-            w, wn, nw, lang = Babel.fetch_subtext[mode](word_head)
+            end  &% if char and char.string
+          end  &% for char in match
+          if changed > 20 then
+            texio.write('Too many changes. Ignoring the rest.')
+          elseif changed > 0 then
+            w, wn, nw = Babel.fetch_word(word_head)
           end
 
         end  &% for match
       end  &% for patterns
-
-      ::next::
       word_head = nw
-    end  &% for substring
+    end  &% for words
     return head
   end
+
+  &% The following functions belong to the next macro
 
   &% This table stores capture maps, numbered consecutively
   Babel.capture_maps = {}
 
-  &% The following functions belong to the next macro
   function Babel.capture_func(key, cap)
     local ret = "[[" .. cap:gsub('{([0-9])}', "]]..m[%1]..[[") .. "]]"
     ret = ret:gsub('{([0-9])|([^|]+)|(.-)}', Babel.capture_func_map)
@@ -1269,6 +1092,7 @@ end
     return "]]..Babel.capt_map(m[" .. capno .. "]," ..
            (mlen) .. ").." .. "[["
   end
+
 }
 \catcode`\#=6
 \gdef\babelposthyphenation#1#2#3{&%
@@ -1281,7 +1105,6 @@ end
         {\bbl@add@list\babeltempb{nil}}&%
         {\directlua{
            local rep = [[##1]]
-           rep = rep:gsub('^%s*(insert)%s*,', 'insert = true, ')
            rep = rep:gsub(    '(no)%s*=%s*([^%s,]*)', Babel.capture_func)
            rep = rep:gsub(   '(pre)%s*=%s*([^%s,]*)', Babel.capture_func)
            rep = rep:gsub(  '(post)%s*=%s*([^%s,]*)', Babel.capture_func)
@@ -1289,15 +1112,13 @@ end
            tex.print([[\string\babeltempa{{]] .. rep .. [[}}]])
          }}}&%
     \directlua{
-      local lbkr = Babel.linebreaking.replacements[1]
+      local lbkr = Babel.linebreaking.replacements
       local u = unicode.utf8
       &% Convert pattern:
-      local patt = string.gsub([==[#2]==], '%s', '')
+      local patt = string.gsub([[#2]], '%s', '')
       if not u.find(patt, '()', nil, true) then
         patt = '()' .. patt .. '()'
       end
-      patt = string.gsub(patt, '%(%)%^', '^()')
-      patt = string.gsub(patt, '%$%(%)', '()$')
       patt = u.gsub(patt, '{(.)}',
                 function (n)
                   return '%' .. (tonumber(n) and (tonumber(n)+1) or n)
@@ -1307,49 +1128,11 @@ end
                    { pattern = patt, replace = { \babeltempb } })
     }&%
   \endgroup}
-\gdef\babelprehyphenation#1#2#3{&%
-  \bbl@activateprehyphen
-  \begingroup
-    \def\babeltempa{\bbl@add@list\babeltempb}&%
-    \let\babeltempb\@empty
-    \bbl@foreach{#3}{&%
-      \bbl@ifsamestring{##1}{remove}&%
-        {\bbl@add@list\babeltempb{nil}}&%
-        {\directlua{
-           local rep = [[##1]]
-           rep = rep:gsub('^%s*(insert)%s*,', 'insert = true, ')
-           rep = rep:gsub('(string)%s*=%s*([^%s,]*)', Babel.capture_func)
-           tex.print([[\string\babeltempa{{]] .. rep .. [[}}]])
-         }}}&%
-    \directlua{
-      local lbkr = Babel.linebreaking.replacements[0]
-      local u = unicode.utf8
-      &% Convert pattern:
-      local patt = string.gsub([==[#2]==], '%s', '')
-      if not u.find(patt, '()', nil, true) then
-        patt = '()' .. patt .. '()'
-      end
-      &% patt = string.gsub(patt, '%(%)%^', '^()')
-      &% patt = string.gsub(patt, '([^%%])%$%(%)', '%1()$')
-      patt = u.gsub(patt, '{(.)}',
-                function (n)
-                  return '%' .. (tonumber(n) and (tonumber(n)+1) or n)
-                end)
-      lbkr[\the\csname bbl@id@@#1\endcsname] = lbkr[\the\csname  bbl@id@@#1\endcsname] or {}
-      table.insert(lbkr[\the\csname bbl@id@@#1\endcsname],
-                   { pattern = patt, replace = { \babeltempb } })
-    }&%
-  \endgroup}
 \endgroup
 \def\bbl@activateposthyphen{%
   \let\bbl@activateposthyphen\relax
   \directlua{
     Babel.linebreaking.add_after(Babel.post_hyphenate_replace)
-  }}
-\def\bbl@activateprehyphen{%
-  \let\bbl@activateprehyphen\relax
-  \directlua{
-    Babel.linebreaking.add_before(Babel.pre_hyphenate_replace)
   }}
 \bbl@trace{Redefinitions for bidi layout}
 \ifx\@eqnnum\@undefined\else
@@ -1360,7 +1143,7 @@ end
   \fi
 \fi
 \ifx\bbl@opt@layout\@nnil\endinput\fi  % if no layout
-\ifnum\bbl@bidimode>\z@
+\ifx\bbl@beforeforeign\leavevmode % A poor test for bidi=
   \def\bbl@nextfake#1{%  non-local changes, use always inside a group!
     \bbl@exp{%
       \mathdir\the\bodydir
@@ -1409,94 +1192,27 @@ end
   {}
 \IfBabelLayout{graphics}
   {\let\bbl@pictresetdir\relax
-   \def\bbl@pictsetdir#1{%
+   \def\bbl@pictsetdir{%
      \ifcase\bbl@thetextdir
        \let\bbl@pictresetdir\relax
      \else
-       \ifcase#1\bodydir TLT  % Remember this sets the inner boxes
-         \or\textdir TLT
-         \else\bodydir TLT \textdir TLT
-       \fi
-       % \(text|par)dir required in pgf:
-       \def\bbl@pictresetdir{\bodydir TRT\pardir TRT\textdir TRT\relax}%
+       \textdir TLT\relax
+       \def\bbl@pictresetdir{\textdir TRT\relax}%
      \fi}%
-   \ifx\AddToHook\@undefined\else
-     \AddToHook{env/picture/begin}{\bbl@pictsetdir\tw@}%
-     \directlua{
-       Babel.get_picture_dir = true
-       Babel.picture_has_bidi = 0
-       function Babel.picture_dir (head)
-         if not Babel.get_picture_dir then return head end
-         for item in node.traverse(head) do
-           if item.id == node.id'glyph' then
-             local itemchar = item.char
-             % TODO. Copypaste pattern from Babel.bidi (-r)
-             local chardata = Babel.characters[itemchar]
-             local dir = chardata and chardata.d or nil
-             if not dir then
-               for nn, et in ipairs(Babel.ranges) do
-                 if itemchar < et[1] then
-                   break
-                 elseif itemchar <= et[2] then
-                   dir = et[3]
-                   break
-                 end
-               end
-             end
-             if dir and (dir == 'al' or dir == 'r') then
-               Babel.picture_has_bidi = 1
-             end
-           end
-         end
-         return head
-       end
-       luatexbase.add_to_callback("hpack_filter", Babel.picture_dir,
-         "Babel.picture_dir")
-     }%
-   \AtBeginDocument{%
-     \long\def\put(#1,#2)#3{%
-       \@killglue
-       % Try:
-       \ifx\bbl@pictresetdir\relax
-         \def\bbl@tempc{0}%
-       \else
-         \directlua{
-           Babel.get_picture_dir = true
-           Babel.picture_has_bidi = 0
-         }%
-         \setbox\z@\hb@xt@\z@{%
-           \@defaultunitsset\@tempdimc{#1}\unitlength
-           \kern\@tempdimc
-           #3\hss}%
-         \edef\bbl@tempc{\directlua{tex.print(Babel.picture_has_bidi)}}%
-       \fi
-       % Do:
-       \@defaultunitsset\@tempdimc{#2}\unitlength
-       \raise\@tempdimc\hb@xt@\z@{%
-         \@defaultunitsset\@tempdimc{#1}\unitlength
-         \kern\@tempdimc
-         {\ifnum\bbl@tempc>\z@\bbl@pictresetdir\fi#3}\hss}%
-       \ignorespaces}%
-       \MakeRobust\put}%
-   \fi
+   \let\bbl@OL@@picture\@picture
+   \let\bbl@OL@put\put
+   \bbl@sreplace\@picture{\hskip-}{\bbl@pictsetdir\hskip-}%
+   \def\put(#1,#2)#3{%  Not easy to patch. Better redefine.
+     \@killglue
+     \raise#2\unitlength
+     \hb@xt@\z@{\kern#1\unitlength{\bbl@pictresetdir#3}\hss}}%
    \AtBeginDocument
      {\ifx\tikz@atbegin@node\@undefined\else
-        \ifx\AddToHook\@undefined\else % TODO. Still tentative.
-          \AddToHook{env/pgfpicture/begin}{\bbl@pictsetdir\@ne}%
-          \bbl@add\pgfinterruptpicture{\bbl@pictresetdir}%
-        \fi
         \let\bbl@OL@pgfpicture\pgfpicture
-        \bbl@sreplace\pgfpicture{\pgfpicturetrue}%
-          {\bbl@pictsetdir\z@\pgfpicturetrue}%
-        \bbl@add\pgfsys@beginpicture{\bbl@pictsetdir\z@}%
+        \bbl@sreplace\pgfpicture{\pgfpicturetrue}{\bbl@pictsetdir\pgfpicturetrue}%
+        \bbl@add\pgfsys@beginpicture{\bbl@pictsetdir}%
         \bbl@add\tikz@atbegin@node{\bbl@pictresetdir}%
-        \bbl@sreplace\tikz{\begingroup}%
-          {\begingroup\bbl@pictsetdir\tw@}%
-      \fi
-      \ifx\AddToHook\@undefined\else
-        \AddToHook{env/tcolorbox/begin}{\bbl@pictsetdir\@ne}%
-      \fi
-      }}
+      \fi}}
   {}
 \IfBabelLayout{counters}%
   {\let\bbl@OL@@textsuperscript\@textsuperscript
@@ -1516,17 +1232,17 @@ end
       \let\bbl@OL@p@enumiii\p@enumiii
       \def\p@enumiii{\p@enumii)\theenumii(}}{}}{}
 \bbl@trace{Bidi footnotes}
-\ifnum\bbl@bidimode>\z@
+\ifx\bbl@beforeforeign\leavevmode
   \def\bbl@footnote#1#2#3{%
     \@ifnextchar[%
       {\bbl@footnote@o{#1}{#2}{#3}}%
       {\bbl@footnote@x{#1}{#2}{#3}}}
-  \long\def\bbl@footnote@x#1#2#3#4{%
+  \def\bbl@footnote@x#1#2#3#4{%
     \bgroup
       \select@language@x{\bbl@main@language}%
       \bbl@fn@footnote{#2#1{\ignorespaces#4}#3}%
     \egroup}
-  \long\def\bbl@footnote@o#1#2#3[#4]#5{%
+  \def\bbl@footnote@o#1#2#3[#4]#5{%
     \bgroup
       \select@language@x{\bbl@main@language}%
       \bbl@fn@footnote[#4]{#2#1{\ignorespaces#5}#3}%
@@ -1535,12 +1251,12 @@ end
     \@ifnextchar[%
       {\bbl@footnotetext@o{#1}{#2}{#3}}%
       {\bbl@footnotetext@x{#1}{#2}{#3}}}
-  \long\def\bbl@footnotetext@x#1#2#3#4{%
+  \def\bbl@footnotetext@x#1#2#3#4{%
     \bgroup
       \select@language@x{\bbl@main@language}%
       \bbl@fn@footnotetext{#2#1{\ignorespaces#4}#3}%
     \egroup}
-  \long\def\bbl@footnotetext@o#1#2#3[#4]#5{%
+  \def\bbl@footnotetext@o#1#2#3[#4]#5{%
     \bgroup
       \select@language@x{\bbl@main@language}%
       \bbl@fn@footnotetext[#4]{#2#1{\ignorespaces#5}#3}%

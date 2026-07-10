@@ -3,8 +3,10 @@ const TEXLIVE_CACHE = 'texbrain-texlive-v1';
 const CONFIG_CACHE = 'texbrain-config-v1';
 const CONFIG_URL = '/__texbrain-config';
 
-// texlive 2025 texmf-dist mirror on jsdelivr, pinned to a commit. addressed
-// by path, so lookups go through its ls-R index (fetched lazily, cached).
+// texlive 2020 texmf-dist mirror on jsdelivr, pinned to a commit. same era
+// as the engine's format and the bundled subset, so versions stay coherent.
+// addressed by path, so lookups go through its ls-R index (fetched lazily,
+// cached).
 const STATIC_MIRROR = 'https://cdn.jsdelivr.net/gh/SachaNevsky/latexdiff-texmf-dist@aca46fc00975feebf98e038976790805c3e932df';
 const LSR_URL = STATIC_MIRROR + '/ls-R';
 

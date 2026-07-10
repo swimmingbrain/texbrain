@@ -409,7 +409,7 @@
 
         pdfData = new Uint8Array(result.pdf);
         compileStatus.set('success');
-        compileLog.set([`[${ts()}] compilation successful (${pdfPageCount} pages)`, ...cleanedLines]);
+        compileLog.set([`[${ts()}] compilation successful (${pdfPageCount} pages)`, ...capLogLines(cleanedLines)]);
 
         if (parsedErrors.some(e => e.type === 'error')) {
           previewTab.set('errors');
@@ -420,7 +420,7 @@
         }
       } else {
         compileStatus.set('error');
-        compileLog.set([`[${ts()}] compilation failed (status ${result.status})`, ...cleanedLines]);
+        compileLog.set([`[${ts()}] compilation failed (status ${result.status})`, ...capLogLines(cleanedLines)]);
         previewTab.set('errors');
 
         if (isCollabMode) {
@@ -443,6 +443,17 @@
   function compilePreview() { doCompile(); }
 
   function ts() { return new Date().toLocaleTimeString(); }
+
+  // the log panel renders one element per line, huge logs freeze the ui
+  function capLogLines(lines: string[], max = 800): string[] {
+    if (lines.length <= max) return lines;
+    const half = max / 2;
+    return [
+      ...lines.slice(0, half),
+      `... ${lines.length - max} lines omitted ...`,
+      ...lines.slice(-half)
+    ];
+  }
 
   // parse latex log into structured errors/warnings
   function parseLog(rawLog: string): {

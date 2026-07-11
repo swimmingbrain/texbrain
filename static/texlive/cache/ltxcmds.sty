@@ -9,11 +9,11 @@
 %% This is a generated file.
 %% 
 %% Project: ltxcmds
-%% Version: 2020-05-10 v1.25
+%% Version: 2019/12/15 v1.24
 %% 
 %% Copyright (C)
 %%    2009-2011 Heiko Oberdiek
-%%    2016-2020 Oberdiek Package Support Group
+%%    2016-2019 Oberdiek Package Support Group
 %% 
 %% This work may be distributed and/or modified under the
 %% conditions of the LaTeX Project Public License, either
@@ -30,6 +30,7 @@
 %% The Current Maintainers of this work are
 %% Heiko Oberdiek and the Oberdiek Package Support Group
 %% https://github.com/ho-tex/ltxcmds/issues
+%% 
 %% 
 %% The Base Interpreter refers to any `TeX-Format',
 %% because some files are installed in TDS:tex/generic//.
@@ -108,7 +109,7 @@
   \fi
 \expandafter\x\csname ver@ltxcmds.sty\endcsname
 \ProvidesPackage{ltxcmds}%
-  [2020-05-10 v1.25 LaTeX kernel commands for general use (HO)]%
+  [2019/12/15 v1.24 LaTeX kernel commands for general use (HO)]%
 \begingroup\catcode61\catcode48\catcode32=10\relax%
   \catcode13=5 % ^^M
   \endlinechar=13 %
@@ -415,25 +416,67 @@
 \def\ltx@ifpackageloaded#1{%
   \ltx@iffileloaded{#1.\ltx@pkgextension}%
 }
-\def\ltx@ifl@ter#1#2{%
-  \expandafter\ltx@ifl@t@r
-    \csname ver@#2.#1\endcsname}
-\def\ltx@ifl@t@r#1#2{%
-  \ifnum\expandafter\ltx@parse@version@#1//00\@nil<%
-        \expandafter\ltx@parse@version@#2//00\@nil
-    \expandafter\@secondoftwo
-  \else
-    \expandafter\@firstoftwo
-  \fi}
-\def\ltx@parse@version@#1{\ltx@parse@version0#1}
-\def\ltx@parse@version#1/#2/#3#4#5\@nil{%
-\ltx@parse@version@dash#1-#2-#3#4\@nil
+\def\ltx@iffilelater#1#2{%
+  \ltx@iffileloaded{#1}{%
+    \expandafter\LTXcmds@IfLater\expandafter{%
+      \number
+      \expandafter\expandafter\expandafter\LTXcmds@ParseVersion
+      \expandafter\expandafter\expandafter{%
+        \csname ver@#1\endcsname
+      }%
+    \expandafter}\expandafter{%
+      \number
+      \expandafter\LTXcmds@ParseVersion\expandafter{#2}%
+    }%
+  }\ltx@secondoftwo
 }
-\def\ltx@parse@version@dash#1-#2-#3#4#5\@nil{%
-  \if\relax#2\relax\else#1\fi#2#3#4 }
-\def\ltx@iffilelater#1{\expandafter\ltx@ifl@t@r\csname ver@#1\endcsname}
-\def\ltx@ifclasslater{\ltx@ifl@ter\ltx@clsextension}
-\def\ltx@ifpackagelater{\ltx@ifl@ter\ltx@pkgextension}
+\def\LTXcmds@IfLater#1#2{%
+  \ifcase 0%
+      \ifnum#1<19940101 %
+      \else
+        \ifnum#2<19940101 %
+        \else
+          \ifnum#2>#1 %
+          \else
+            1%
+          \fi
+        \fi
+      \fi
+      \ltx@space
+    \expandafter\ltx@secondoftwo
+  \else
+    \expandafter\ltx@firstoftwo
+  \fi
+}
+\def\ltx@ifclasslater#1{%
+  \ltx@iffilelater{#1.\ltx@clsextension}%
+}
+\def\ltx@ifpackagelater#1{%
+  \ltx@iffilelater{#1.\ltx@pkgextension}%
+}
+\ltx@IfUndefined{pdfmatch}{%
+  \def\LTXcmds@ParseVersion#1{%
+    \LTXcmds@@ParseVersion#10000/00/00\@nil
+  }%
+  \def\LTXcmds@@ParseVersion#1#2#3#4/#5#6/#7#8#9\@nil{%
+    #1#2#3#4#5#6#7#8%
+  }%
+}{%
+  \def\LTXcmds@ParseVersion#1{%
+    \ifnum\pdfmatch{%
+      ^%
+      (199[4-9]|[2-9][0-9][0-9][0-9])/%
+      (0[1-9]|1[0-2])/%
+      (0[1-9]|[1-2][0-9]|3[0-1])%
+    }{#1}=1 %
+      \ltx@StripPrefix\pdflastmatch1 %
+      \ltx@StripPrefix\pdflastmatch2 %
+      \ltx@StripPrefix\pdflastmatch3 %
+    \else
+      0%
+    \fi
+  }%
+}
 \long\def\ltx@GlobalAppendToMacro#1#2{%
   \ifx\ltx@undefined#1%
     \let#1\ltx@empty

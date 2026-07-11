@@ -5,8 +5,9 @@ const CONFIG_URL = '/__texbrain-config';
 const BUNDLE_VERSION_URL = '/__texbrain-bundle-version';
 
 // bump whenever files under static/texlive/cache change, so users with
-// older copies in their cache pick up the new ones
-const BUNDLE_VERSION = 2;
+// older copies in their cache pick up the new ones (keep the offline
+// warmer flag in offline-cache.ts in sync)
+const BUNDLE_VERSION = 3;
 
 // texlive 2020 texmf-dist mirror on jsdelivr, pinned to a commit. same era
 // as the engine's format and the bundled subset, so versions stay coherent.
@@ -60,6 +61,12 @@ async function evictStaleBundledFiles() {
         const resp = await cache.match(req);
         const id = resp && (resp.headers.get('fileid') || resp.headers.get('pkid'));
         if (id && names.has(id)) await cache.delete(req);
+      }
+      // the offline warmer stores raw copies in the app cache, and the
+      // bundled lookup finds those too, so they must go as well
+      const appCache = await caches.open(CACHE_NAME);
+      for (const name of names) {
+        await appCache.delete(`/texlive/cache/${encodeURIComponent(name)}`);
       }
       await cfg.put(BUNDLE_VERSION_URL, new Response(String(BUNDLE_VERSION)));
     }

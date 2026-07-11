@@ -6,6 +6,9 @@ import { base } from '$app/paths';
 // down (the cache writes compete with compile i/o otherwise).
 
 const FLAG = 'texbrain-texlive-warmed';
+// matches BUNDLE_VERSION in sw.js: when the bundle changes, the warm set
+// is evicted and needs one fresh run
+const WARMED_VERSION = '3';
 const CONCURRENCY = 2;
 const PAUSE_MS = 50;
 const IDLE_MS = 15000;
@@ -29,7 +32,7 @@ export function warmOfflineCache(): void {
   if (!navigator.serviceWorker?.controller) return; // nothing persists without the sw
   if ((navigator as any).connection?.saveData) return;
   try {
-    if (localStorage.getItem(FLAG)) return;
+    if (localStorage.getItem(FLAG) === WARMED_VERSION) return;
   } catch { /* storage blocked, warm anyway */ }
 
   lastCompileEnd = Date.now();
@@ -88,6 +91,6 @@ async function run(): Promise<void> {
 
   // only mark as done when the run wasn't cut off (e.g. going offline midway)
   if (failed < names.length / 100) {
-    try { localStorage.setItem(FLAG, '1'); } catch { /* non-critical */ }
+    try { localStorage.setItem(FLAG, WARMED_VERSION); } catch { /* non-critical */ }
   }
 }

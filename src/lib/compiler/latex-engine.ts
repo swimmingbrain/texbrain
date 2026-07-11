@@ -14,6 +14,17 @@ let fallbackLoaded = false;
 // directories already created in the engine's MEMFS (persist across compiles)
 const createdDirs = new Set<string>();
 
+// contents already written to MEMFS: unchanged files are skipped, which
+// saves a structured clone per file per compile (strings compare by value,
+// buffers by identity - the editor reuses buffer objects for unchanged files)
+const memfsState = new Map<string, string | ArrayBuffer>();
+
+function flushWorkDir(eng: any): void {
+  eng.flushCache();
+  createdDirs.clear();
+  memfsState.clear();
+}
+
 function looksLikeHtml(first100: string): boolean {
   const l = first100.toLowerCase();
   return l.includes('<!doctype') || l.includes('<html');
@@ -126,6 +137,7 @@ async function initEngine(): Promise<void> {
   await engine.loadEngine();
   engine.setTexliveEndpoint(`${base}/texlive/`);
   createdDirs.clear();
+  memfsState.clear();
   fallbackLoaded = false;
 }
 
@@ -176,12 +188,18 @@ export async function compileLaTeX(
     }
 
     for (const [path, content] of patchedFiles) {
-      eng.writeMemFSFile(path, content);
+      if (memfsState.get(path) !== content) {
+        eng.writeMemFSFile(path, content);
+        memfsState.set(path, content);
+      }
     }
 
     if (binaryFiles) {
       for (const [path, data] of binaryFiles) {
-        eng.writeBinaryMemFSFile(path, data);
+        if (memfsState.get(path) !== data) {
+          eng.writeBinaryMemFSFile(path, data);
+          memfsState.set(path, data);
+        }
       }
     }
 
@@ -191,8 +209,7 @@ export async function compileLaTeX(
     if (firstPass.status !== 0) {
       // a crashed pass can leave truncated aux files behind that poison
       // every following compile, start the next one clean
-      eng.flushCache();
-      createdDirs.clear();
+      flushWorkDir(eng);
       return {
         pdf: firstPass.pdf,
         status: firstPass.status,
@@ -207,8 +224,7 @@ export async function compileLaTeX(
     const result = needsRerun ? await eng.compileLaTeX() : firstPass;
 
     if (result.status !== 0) {
-      eng.flushCache();
-      createdDirs.clear();
+      flushWorkDir(eng);
     }
 
     if (result.status === 0) warmOfflineCache();

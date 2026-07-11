@@ -198,6 +198,11 @@
     const binaryFiles = new Map<string, ArrayBuffer>();
     const handle = get(projectHandle);
 
+    if (handle !== fileReadCacheHandle) {
+      fileReadCache = new Map();
+      fileReadCacheHandle = handle;
+    }
+
     if (handle) {
       await readDirRecursive(handle, '', projectFiles, binaryFiles);
     }
@@ -588,6 +593,13 @@
     doCompile();
   }
 
+  // re-reading every file from disk on each compile is wasteful, especially
+  // for images. metadata (mtime + size) decides whether the cached copy is
+  // still current. reusing the same objects also lets the compiler skip
+  // re-uploading unchanged files to the engine.
+  let fileReadCache = new Map<string, { lastModified: number; size: number; text?: string; buffer?: ArrayBuffer }>();
+  let fileReadCacheHandle: FileSystemDirectoryHandle | null = null;
+
   async function readDirRecursive(
     dirHandle: FileSystemDirectoryHandle,
     prefix: string,
@@ -609,14 +621,26 @@
         if (textExts.has(ext)) {
           try {
             const file = await entry.getFile();
-            const content = await file.text();
-            fileMap.set(path, content);
+            const cached = fileReadCache.get(path);
+            if (cached && cached.lastModified === file.lastModified && cached.size === file.size && cached.text !== undefined) {
+              fileMap.set(path, cached.text);
+            } else {
+              const content = await file.text();
+              fileReadCache.set(path, { lastModified: file.lastModified, size: file.size, text: content });
+              fileMap.set(path, content);
+            }
           } catch {}
         } else if (binaryMap && binaryExts.has(ext)) {
           try {
             const file = await entry.getFile();
-            const data = await file.arrayBuffer();
-            binaryMap.set(path, data);
+            const cached = fileReadCache.get(path);
+            if (cached && cached.lastModified === file.lastModified && cached.size === file.size && cached.buffer !== undefined) {
+              binaryMap.set(path, cached.buffer);
+            } else {
+              const data = await file.arrayBuffer();
+              fileReadCache.set(path, { lastModified: file.lastModified, size: file.size, buffer: data });
+              binaryMap.set(path, data);
+            }
           } catch {}
         }
       } else if (entry.kind === 'directory') {

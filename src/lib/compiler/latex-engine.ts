@@ -189,6 +189,10 @@ export async function compileLaTeX(
     const firstPass = await eng.compileLaTeX();
 
     if (firstPass.status !== 0) {
+      // a crashed pass can leave truncated aux files behind that poison
+      // every following compile, start the next one clean
+      eng.flushCache();
+      createdDirs.clear();
       return {
         pdf: firstPass.pdf,
         status: firstPass.status,
@@ -201,6 +205,11 @@ export async function compileLaTeX(
     // the rerunfilecheck package name that hyperref drags into every log
     const needsRerun = /Rerun to get|Rerun LaTeX|Please rerun|Label\(s\) may have changed|No file [^\s]+\.(aux|toc|lof|lot)/.test(firstPass.log || '');
     const result = needsRerun ? await eng.compileLaTeX() : firstPass;
+
+    if (result.status !== 0) {
+      eng.flushCache();
+      createdDirs.clear();
+    }
 
     if (result.status === 0) warmOfflineCache();
 

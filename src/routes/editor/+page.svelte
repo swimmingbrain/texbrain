@@ -10,6 +10,7 @@
   import type { EditorView } from '@codemirror/view';
   import type { Snippet as SnippetDef } from '$lib/snippets/index';
   import { compileLaTeX, warmup } from '$lib/compiler/latex-engine';
+  import { placeholderImage } from '$lib/compiler/placeholder-image';
   import { yCollab } from 'y-codemirror.next';
   import { collabActive, collabPanelOpen, collabPeers, collabConnected } from '$lib/collab/store';
   import { createRoom, joinRoom, leaveRoom, getYTextWithUndo, getAwareness, setCurrentFile, getSharedFileList, getSharedEntryPoint, isHost, requestCompile, setCompileStatus, setCompileResult, observeCompileState, readCompileState, collectFilesFromYjs } from '$lib/collab/provider';
@@ -216,6 +217,38 @@
     return { projectFiles, binaryFiles };
   }
 
+  // scan all tex files for \includegraphics targets no project file satisfies
+  // and inject a placeholder image so the compile behaves like overleaf:
+  // the pdf still builds, the missing image shows as a gray box
+  function injectImagePlaceholders(projectFiles: Map<string, string>, binaryFiles: Map<string, ArrayBuffer>): string[] {
+    const imageExts = ['.png', '.pdf', '.jpg', '.jpeg', '.eps'];
+    const known = [...projectFiles.keys(), ...binaryFiles.keys()];
+    const satisfied = (candidate: string) =>
+      known.some(k => k === candidate || k.endsWith('/' + candidate));
+
+    const missing: string[] = [];
+    const re = /^[^%\n]*?\\includegraphics\s*(?:\[[^\]]*\])?\s*\{([^}]+)\}/gm;
+    for (const [path, content] of projectFiles) {
+      if (!path.toLowerCase().endsWith('.tex')) continue;
+      let m;
+      while ((m = re.exec(content)) !== null) {
+        const name = m[1].trim().replace(/^\.\//, '');
+        if (!name || name.includes('\\')) continue; // built from a macro
+        const hasExt = imageExts.some(e => name.toLowerCase().endsWith(e));
+        const candidates = hasExt ? [name] : imageExts.map(e => name + e);
+        if (candidates.some(satisfied)) continue;
+        if (!missing.includes(name)) missing.push(name);
+        // pdftex picks the decoder by extension, so the png placeholder can
+        // only stand in for png and extension-less references
+        const target = hasExt ? name : `${name}.png`;
+        if (target.toLowerCase().endsWith('.png') && !binaryFiles.has(target)) {
+          binaryFiles.set(target, placeholderImage());
+        }
+      }
+    }
+    return missing;
+  }
+
   // \include/\input targets in the entry file that no project file satisfies
   function findMissingIncludes(projectFiles: Map<string, string>, entryPointPath: string): string[] {
     const epContent = projectFiles.get(entryPointPath);
@@ -376,6 +409,12 @@
       if (missingIncludes.length > 0) {
         const hint = get(projectHandle) ? '' : ' Open the project folder so all files can be compiled.';
         addToast(`Referenced but not found: ${missingIncludes.join(', ')}.${hint}`, 'warning', 8000);
+      }
+
+      // missing images get a gray placeholder so the compile still succeeds
+      const missingImages = injectImagePlaceholders(projectFiles, binaryFiles);
+      if (missingImages.length > 0) {
+        addToast(`Missing images (compiled with placeholders): ${missingImages.join(', ')}`, 'warning', 8000);
       }
 
       let compileContext = '';

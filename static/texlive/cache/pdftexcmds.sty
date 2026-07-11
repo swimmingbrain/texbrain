@@ -9,7 +9,7 @@
 %% This is a generated file.
 %% 
 %% Project: pdftexcmds
-%% Version: 2020-06-27 v0.33
+%% Version: 2019/11/24 v0.31
 %% 
 %% Copyright (C)
 %%    2007, 2009-2011  Heiko Oberdiek
@@ -30,6 +30,7 @@
 %% The Current Maintainers of this work are
 %% Heiko Oberdiek and the Oberdiek Package Support Group
 %% https://github.com/ho-tex/pdftexcmds/issues
+%% 
 %% 
 %% The Base Interpreter refers to any `TeX-Format',
 %% because some files are installed in TDS:tex/generic//.
@@ -105,7 +106,7 @@
   \fi
 \expandafter\x\csname ver@pdftexcmds.sty\endcsname
 \ProvidesPackage{pdftexcmds}%
-  [2020-06-27 v0.33 Utility functions of pdfTeX for LuaTeX (HO)]%
+  [2019/11/24 v0.31 Utility functions of pdfTeX for LuaTeX (HO)]%
 \begingroup\catcode61\catcode48\catcode32=10\relax%
   \catcode13=5 % ^^M
   \endlinechar=13 %
@@ -186,7 +187,6 @@
   \RequirePackage{ltxcmds}[2010/12/02]%
 \fi
 \ifluatex
-   \ifcsname catcodetable@string\endcsname\else\input{ltluatex}\fi
 \else
   \def\pdftexcmds@nopdftex{%
     \let\pdftexcmds@nopdftex\relax
@@ -262,7 +262,6 @@
          \expandafter\ifx\csname pdf#1\endcsname\relax\else pdf\fi#1\endcsname\relax
       \pdftexcmds@nopdftex
     \else
-      \begingroup\expandafter\expandafter\expandafter\endgroup
       \expandafter\let\csname pdf@#1\expandafter\endcsname
       \csname\expandafter\ifx\csname pdf#1\endcsname\relax\else pdf\fi#1\endcsname
     \fi
@@ -506,7 +505,7 @@
   \fi
 \fi
 \begingroup
-  \def\x{2020-06-27 v0.33}%
+  \def\x{2019/11/24 v0.31}%
   \ltx@onelevel@sanitize\x
   \edef\y{%
     \pdftexcmds@directlua{%

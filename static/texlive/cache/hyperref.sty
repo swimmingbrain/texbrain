@@ -11,7 +11,7 @@
 %% 1995-2001 Sebastian Rahtz, with portions written by David Carlisle and Heiko Oberdiek,
 %% 2001-2015 Heiko Oberdiek.
 %% 2016-2019 Oberdiek Package Support Group
-%% 2019-2021 LaTeX Project
+%% 2019-2020 LaTeX3 Project
 %%      https://github.com/latex3/hyperref/issues
 %%
 %% This file is part of the `Hyperref Bundle'.
@@ -27,14 +27,14 @@
 %%
 %% This work has the LPPL maintenance status `maintained'.
 %%
-%% The Current Maintainer of this work is the LaTeX Project.
+%% The Current Maintainer of this work is the LaTeX3 Project.
 %%
 %% The list of all files belonging to the `Hyperref Bundle' is
 %% given in the file `manifest.txt'.
 %%
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
 \ProvidesPackage{hyperref}
-  [2021-02-27 v7.00k %
+  [2020/01/14 v7.00d %
   Hypertext links for LaTeX]
 \begingroup
   \@makeother\`%
@@ -105,7 +105,24 @@
 \Hy@SetCatcodes
 \RequirePackage{ltxcmds}[2010/11/12]
 \RequirePackage{iftex}[2019/10/24]
-\RequirePackage{pdftexcmds}[2018/09/10]
+\RequirePackage{pdftexcmds}[2009/04/10]
+\@ifpackagelater{pdftexcmds}{2010/11/04}{}{%
+  \ltx@IfUndefined{pdfdraftmode}{%
+    \let\pdf@ifdraftmode\ltx@secondoftwo
+  }{%
+    \ifpdf
+      \def\pdf@ifdraftmode{%
+        \ifnum\pdfdraftmode=\ltx@one
+          \expandafter\ltx@firstoftwo
+        \else
+          \expandafter\ltx@secondoftwo
+        \fi
+      }%
+    \else
+      \let\pdf@ifdraftmode\ltx@secondoftwo
+    \fi
+  }%
+}
 \RequirePackage{infwarerr}[2010/04/08]
 \RequirePackage{keyval}[1997/11/10]
 \RequirePackage{kvsetkeys}[2007/09/29]
@@ -209,6 +226,18 @@
       \expandafter\ltx@firstoftwo
     \fi
   }%
+  \ltx@ifpackagelater{ltxcmds}{2010/09/11}{}{%
+    \begingroup
+      \lccode`0=`\{\relax
+    \lowercase{\endgroup
+      \def\ltx@leftbracechar{0}%
+    }%
+    \begingroup
+      \lccode`0=`\}\relax
+    \lowercase{\endgroup
+      \def\ltx@rightbracechar{0}%
+    }%
+  }%
 }
 \@ifundefined{AfterBeginDocument}{%
   \def\AfterBeginDocument{\AtBeginDocument}%
@@ -263,6 +292,7 @@
 \newif\ifHy@ocgcolorlinks
 \newif\ifHy@pageanchor
 \newif\ifHy@pdfpagelabels
+\newif\ifHy@pdfpagehidden
 \newif\ifHy@pdfstring
 \newif\ifHy@plainpages
 \newif\ifHy@psize
@@ -304,6 +334,7 @@
 \Hy@pdfnewwindowfalse
 \Hy@pageanchortrue
 \Hy@pdfpagelabelstrue
+\Hy@pdfpagehiddenfalse
 \Hy@pdfstringfalse
 \Hy@plainpagesfalse
 \Hy@raiselinksfalse
@@ -312,13 +343,7 @@
 \Hy@psdextrafalse
 \Hy@pdftoolbartrue
 \Hy@typexmlfalse
-\Hy@unicodetrue
-\ifx\kanjiskip\@undefined
-\else
-  \ifx\forcecjktoken\@undefined
-   \Hy@unicodefalse
-  \fi
-\fi
+\Hy@unicodefalse
 \Hy@pdfusetitlefalse
 \Hy@verbosefalse
 \Hy@pdfwindowuitrue
@@ -420,10 +445,10 @@
     \def\LaTeX{La\TeX}%
     \def\LaTeXe{%
       \LaTeX2%
-      \ifHy@unicode\83\265\else e\fi
+      \ifHy@unicode\textepsilon\else e\fi
     }%
     \def\eTeX{%
-      \ifHy@unicode\83\265\else e\fi
+      \ifHy@unicode\textepsilon\else e\fi
       -\TeX%
     }%
     \def\SliTeX{Sli\TeX}%
@@ -475,8 +500,8 @@
     \let\hphantom\@gobble
     \let\ding\HyPsd@ding
     \let\Cube\HyPsd@DieFace
-    \def\begin##1{\csname##1\endcsname}%
-    \def\end##1{\csname end##1\endcsname}%
+    \def\begin#1{\csname#1\endcsname}%
+    \def\end#1{\csname end#1\endcsname}%
     \def\textcolor##1##{\@secondoftwo}%
     \def\MakeUppercase{\MakeUppercaseUnsupportedInPdfStrings}%
     \def\MakeLowercase{\MakeLowercaseUnsupportedInPdfStrings}%
@@ -492,7 +517,10 @@
       \let\bbl@info\@gobble
       \csname HyPsd@babel@\language@group\endcsname
     }%
+    \HyPsd@GreekPatch
     \HyPsd@SpanishPatch
+    \HyPsd@RussianPatch
+    \HyPsd@BabelPatch
     \let\@safe@activestrue\relax
     \let\@safe@activesfalse\relax
     \let\cyr\relax
@@ -642,7 +670,7 @@
         \ltx@IfUndefined{StringEncodingConvertTest}{%
         }{%
           \EdefUnescapeString\HyPsd@temp#1%
-          \iftutex
+          \ifxetex
             \let\HyPsd@UnescapedString\HyPsd@temp
             \StringEncodingConvertTest\HyPsd@temp\HyPsd@temp
                                       {utf16be}{ascii-print}{%
@@ -651,6 +679,7 @@
               \HyPsd@EscapeTeX#1%
               \Hy@unicodefalse
             }{%
+              \HyPsd@ToBigChars#1%
               \HyPsd@EscapeTeX#1%
             }%
           \else
@@ -665,6 +694,7 @@
         }%
       \fi
     \fi
+    \HyPsd@XeTeXBigCharsfalse
     \pdfstringdefPostHook#1%
   \endgroup
 }
@@ -672,6 +702,79 @@
   \pdfstringdef\Hy@gtemp{#2}%
   \let#1\Hy@gtemp
 }
+\edef\Hy@temp{\catcode0=\the\catcode0\relax}
+\catcode\z@=12 %
+\ifxetex
+  \expandafter\@firstofone
+\else
+  \let\HyPsd@XeTeXBigCharstrue\@empty
+  \let\HyPsd@XeTeXBigCharsfalse\@empty
+  \expandafter\@gobble
+\fi
+{%
+  \newif\ifHyPsd@XeTeXBigChars
+  \def\HyPsd@XeTeXBigCharsfalse{%
+    \global\let\ifHyPsd@XeTeXBigChars\iffalse
+  }%
+  \def\HyPsd@XeTeXBigCharstrue{%
+    \global\let\ifHyPsd@XeTeXBigChars\iftrue
+  }%
+  \def\HyPsd@ToBigChars#1{%
+    \ifHyPsd@XeTeXBigChars
+      \EdefEscapeHex\HyPsd@UnescapedString{%
+        \expandafter\@gobbletwo\HyPsd@UnescapedString
+      }%
+      \begingroup
+        \toks@{}%
+        \escapechar=92\relax
+        \let\x\HyPsd@ToBigChar
+        \expandafter\HyPsd@ToBigChar\HyPsd@UnescapedString
+        \relax\relax\relax\relax\relax\relax\relax
+      \edef\x{%
+        \endgroup
+        \gdef\noexpand#1{\the\toks@}%
+      }%
+      \x
+    \fi
+  }%
+  \def\HyPsd@ToBigChar#1#2#3#4{%
+    \ifx\relax#1\relax
+      \let\x\relax
+    \else
+      \count@="#1#2#3#4\relax
+      \let\y\@empty
+      \lccode\z@=\count@
+      \ifnum\count@=40 % (
+        \let\y\@backslashchar
+      \else
+        \ifnum\count@=41 % )
+          \let\y\@backslashchar
+        \else
+          \ifnum\count@=92 % backslash
+            \let\y\@backslashchar
+          \else
+            \ifnum\count@=10 % newline
+              \edef\y##1{\string\n}%
+            \else
+              \ifnum\count@=13 % carriage return
+                \edef\y##1{\string\r}%
+              \fi
+            \fi
+          \fi
+        \fi
+      \fi
+      \lowercase{%
+        \toks@\expandafter{%
+          \the\expandafter\toks@
+          \y
+          ^^@%
+        }%
+      }%
+    \fi
+    \x
+  }%
+}
+\Hy@temp
 \@ifpackageloaded{linguex}{%
   \let\HyLinguex@OrgB\b
   \let\HyLinguex@OrgC\c
@@ -708,7 +811,7 @@
     \catcode62 \the\catcode62\relax % >
     \catcode64 \the\catcode64\relax % @
     \catcode91 \the\catcode91\relax % [
-    \catcode92 \the\catcode92\relax % (backslash)
+    \catcode92 \the\catcode92\relax % \
     \catcode93 \the\catcode93\relax % ]
     \catcode123 \the\catcode123\relax % {
     \catcode124 \the\catcode124\relax % |
@@ -728,7 +831,7 @@
   \catcode61 12 % =
   \catcode62 12 % >
   \catcode91 12 % [
-  \catcode92 0 % (backslash)
+  \catcode92 0 % \
   \catcode93 12 % ]
   \catcode123 1 % {
   \catcode124 12 % |
@@ -764,10 +867,6 @@
 \def\HyPsd@LoadExtra{%
   \ifHy@psdextra
     \ltx@iffileloaded{puenc.def}{%
-      \ltx@iffileloaded{puenc-greekbasic.def}{}{%
-       \Hy@SaveCatcodeSettings{pu}%
-       \input{puenc-greekbasic.def}%
-       \Hy@RestoreCatcodeSettings{pu}}%
       \Hy@SaveCatcodeSettings{psdextra}%
       \input{psdextra.def}%
       \Hy@RestoreCatcodeSettings{psdextra}%
@@ -815,8 +914,285 @@
     }%
   }%
 \x
+\def\HyPsd@BabelPatch{%
+  \let\HyOrg@languageshorthands\languageshorthands
+  \let\languageshorthands\HyPsd@LanguageShorthands
+}
+\begingroup\expandafter\expandafter\expandafter\endgroup
+\expandafter\ifx\csname pdf@strcmp\endcsname\relax
+  \let\HyPsd@langshort@system\@empty
+  \def\HyPsd@LanguageShorthands#1{%
+    \expandafter\ifx\csname HyPsd@langshort@#1\endcsname
+                    \HyPsd@langshort@system
+      \expandafter\@gobble
+    \else
+      \expandafter\@firstofone
+    \fi
+    {%
+      \HyOrg@languageshorthands{#1}%
+    }%
+  }%
+\else
+  \def\HyPsd@LanguageShorthands#1{%
+    \ifnum\pdf@strcmp{#1}{system}=\z@
+      \expandafter\@gobble
+    \else
+      \expandafter\@firstofone
+    \fi
+    {%
+      \HyOrg@languageshorthands{#1}%
+    }%
+  }%
+\fi
+\def\Hy@temp{%
+  \@ifpackageloaded{babel}{%
+    \@ifpackagelater{babel}{2008/03/16}{%
+      \let\Hy@temp\@empty
+    }{%
+      \def\HyPsd@BabelPatch{%
+        \let\HyOrg@languageshorthands\languageshorthands
+      }%
+    }%
+  }{}%
+}
+\Hy@temp
+\expandafter\Hy@AtBeginDocument\expandafter{\Hy@temp}
 \newif\ifHy@next
-\input{hyperref-langpatches.def}
+\ltx@IfUndefined{danish@sh@"@sel}{}{%
+  \def\HyPsd@babel@danish{%
+    \declare@shorthand{danish}{"|}{}%
+    \declare@shorthand{danish}{"~}{-}%
+  }%
+}
+\ltx@IfUndefined{dutch@sh@"@sel}{}{%
+  \def\HyPsd@babel@dutch{%
+    \declare@shorthand{dutch}{"|}{}%
+    \declare@shorthand{dutch}{"~}{-}%
+  }%
+}
+\ltx@IfUndefined{finnish@sh@"@sel}{}{%
+  \def\HyPsd@babel@finnish{%
+    \declare@shorthand{finnish}{"|}{}%
+  }%
+}
+\ltx@IfUndefined{french@sh@:@sel}{}{%
+  \def\HyPsd@babel@frenchb{%
+    \def\guill@spacing{ }%
+  }%
+}
+\ltx@IfUndefined{german@sh@"@sel}{}{%
+  \def\HyPsd@babel@german{%
+    \declare@shorthand{german}{"f}{f}%
+    \declare@shorthand{german}{"|}{}%
+    \declare@shorthand{german}{"~}{-}%
+  }%
+}
+\ltx@IfUndefined{macedonian@sh@"@sel}{}{%
+  \def\HyPsd@babel@macedonian{%
+    \declare@shorthand{macedonian}{"|}{}%
+    \declare@shorthand{macedonian}{"~}{-}%
+  }%
+}{}
+\ltx@IfUndefined{ngerman@sh@"@sel}{}{%
+  \def\HyPsd@babel@ngerman{%
+    \declare@shorthand{ngerman}{"|}{}%
+    \declare@shorthand{ngerman}{"~}{-}%
+  }%
+}
+\ltx@IfUndefined{portuges@sh@"@sel}{}{%
+  \def\HyPsd@babel@portuges{%
+    \declare@shorthand{portuges}{"|}{}%
+  }%
+}
+\ltx@IfUndefined{russian@sh@"@sel}{}{%
+  \def\HyPsd@babel@russian{%
+    \declare@shorthand{russian}{"|}{}%
+    \declare@shorthand{russian}{"~}{-}%
+  }%
+}
+\ltx@IfUndefined{slovene@sh@"@sel}{}{%
+  \def\HyPsd@babel@slovene{%
+    \declare@shorthand{slovene}{"|}{}%
+  }%
+}
+\ltx@IfUndefined{spanish@sh@>@sel}{}{%
+  \def\HyPsd@babel@spanish{%
+    \declare@shorthand{spanish}{<<}{\guillemotleft}%
+    \declare@shorthand{spanish}{>>}{\guillemotright}%
+    \declare@shorthand{spanish}{"=}{-}%
+    \declare@shorthand{spanish}{"~}{-}%
+    \declare@shorthand{spanish}{"!}{\textexclamdown}%
+    \declare@shorthand{spanish}{"?}{\textquestiondown}%
+  }%
+}
+\ltx@IfUndefined{swedish@sh@"@sel}{}{%
+  \def\HyPsd@babel@swedish{%
+    \declare@shorthand{swedish}{"|}{}%
+    \declare@shorthand{swedish}{"~}{-}%
+  }%
+}
+\ltx@IfUndefined{ukrainian@sh@"@sel}{}{%
+  \def\HyPsd@babel@ukrainian{%
+    \declare@shorthand{ukrainian}{"|}{}%
+    \declare@shorthand{ukrainian}{"~}{-}%
+  }%
+}
+\ltx@IfUndefined{usorbian@sh@"@sel}{}{%
+  \def\HyPsd@babel@usorbian{%
+    \declare@shorthand{usorbian}{"f}{f}%
+    \declare@shorthand{usorbian}{"|}{}%
+  }%
+}
+\ltx@IfUndefined{greek@sh@\string~@sel}{%
+  \let\HyPsd@GreekPatch\@empty
+}{%
+  \def\HyPsd@GreekPatch{%
+    \let\greeknumeral\HyPsd@greeknumeral
+    \let\Greeknumeral\HyPsd@Greeknumeral
+  }%
+}
+\def\HyPsd@greeknumeral#1{%
+  \HyPsd@GreekNum\@firstoftwo{#1}%
+}
+\def\HyPsd@Greeknumeral#1{%
+  \HyPsd@GreekNum\@secondoftwo{#1}%
+}
+\def\HyPsd@GreekNum#1#2{%
+  \ifHy@unicode
+    \ifnum#2<\@ne
+      \@arabic{#2}%
+    \else
+      \ifnum#2<1000000 %
+        \HyPsd@@GreekNum#1{#2}%
+      \else
+        \@arabic{#2}%
+      \fi
+    \fi
+  \else
+    \@arabic{#2}%
+  \fi
+}
+\def\HyPsd@@GreekNum#1#2{%
+  \ifnum#2<\@m
+    \ifnum#2<10 %
+      \expandafter\HyPsd@GreekNumI
+          \expandafter\@gobble\expandafter#1\number#2%
+    \else
+      \ifnum#2<100 %
+        \expandafter\HyPsd@GreekNumII
+            \expandafter\@gobble\expandafter#1\number#2%
+      \else
+        \expandafter\HyPsd@GreekNumIII
+            \expandafter\@gobble\expandafter#1\number#2%
+      \fi
+    \fi
+    \ifnum#2>\z@
+      \textnumeralsigngreek
+    \fi
+  \else
+    \ifnum#2<\@M
+      \expandafter\HyPsd@GreekNumIV\expandafter#1\number#2%
+    \else
+      \ifnum#2<100000 %
+        \expandafter\HyPsd@GreekNumV\expandafter#1\number#2%
+      \else
+        \expandafter\HyPsd@GreekNumVI\expandafter#1\number#2%
+      \fi
+    \fi
+  \fi
+}
+\def\HyPsd@GreekNumI#1#2#3{%
+  #1{%
+    \ifnum#3>\z@
+      \textnumeralsignlowergreek
+    \fi
+  }%
+  \expandafter#2%
+  \ifcase#3 %
+    {}{}%
+  \or\textalpha\textAlpha
+  \or\textbeta\textBeta
+  \or\textgamma\textGamma
+  \or\textdelta\textDelta
+  \or\textepsilon\textEpsilon
+  \or\textstigmagreek\textStigmagreek
+  \or\textzeta\textZeta
+  \or\texteta\textEta
+  \or\texttheta\textTheta
+  \else
+    {}{}%
+  \fi
+}
+\def\HyPsd@GreekNumII#1#2#3#4{%
+  #1{%
+    \ifnum#3>\z@
+      \textnumeralsignlowergreek
+    \fi
+  }%
+  \expandafter#2%
+  \ifcase#3 %
+    {}{}%
+  \or\textiota\textIota
+  \or\textkappa\textKappa
+  \or\textlambda\textLambda
+  \or\textmu\textMu
+  \or\textnu\textNu
+  \or\textxi\textXi
+  \or\textomicron\textOmicron
+  \or\textpi\textPi
+  \or\textkoppagreek\textKoppagreek
+  \else
+    {}{}%
+  \fi
+  \HyPsd@GreekNumI#1#2#4%
+}
+\def\HyPsd@GreekNumIII#1#2#3#4#5{%
+  #1{%
+    \ifnum#3>\z@
+      \textnumeralsignlowergreek
+    \fi
+  }%
+  \expandafter#2%
+  \ifcase#3 %
+    {}{}%
+  \or\textrho\textRho
+  \or\textsigma\textSigma
+  \or\texttau\textTau
+  \or\textupsilon\textUpsilon
+  \or\textphi\textPhi
+  \or\textchi\textChi
+  \or\textpsi\textPsi
+  \or\textomega\textOmega
+  \or\textsampigreek\textSampigreek
+  \else
+    {}{}%
+  \fi
+  \HyPsd@GreekNumII#1#2#4#5%
+}
+\def\HyPsd@GreekNumIV#1#2#3#4#5{%
+  \HyPsd@GreekNumI\@firstofone#1#2%
+  \HyPsd@@GreekNum#1{#3#4#5}%
+}
+\def\HyPsd@GreekNumV#1#2#3#4#5#6{%
+  \HyPsd@GreekNumII\@firstofone#1#2#3%
+  \HyPsd@@GreekNum#1{#4#5#6}%
+}
+\def\HyPsd@GreekNumVI#1#2#3#4#5#6#7{%
+  \HyPsd@GreekNumIII\@firstofone#1#2#3#4%
+  \HyPsd@@GreekNum#1{#5#6#7}%
+}
+\def\HyPsd@SpanishPatch{%
+  \ltx@IfUndefined{es@save@dot}{%
+  }{%
+    \let\.\es@save@dot
+  }%
+}
+\def\HyPsd@RussianPatch{%
+  \ltx@IfUndefined{russian@sh@"@-@}{%
+  }{%
+    \@namedef{russian@sh@"@-@}{-}%
+  }%
+}
 \RequirePackage{intcalc}[2007/09/27]
 \def\HyPsd@CJKhook{%
   \ltx@ifpackageloaded{CJK}{%
@@ -1188,7 +1564,7 @@
     \expandafter\HyPsd@hspacetest
   \fi
 }
-\def\HyPsd@hspacetest#1{\ifdim\dimexpr#1\relax>\z@\space\fi}
+\def\HyPsd@hspacetest#1{\ifdim#1>\z@\space\fi}
 \ltx@IfUndefined{tocsection}{%
   \let\HyPsd@AMSclassfix\relax
 }{%
@@ -2167,11 +2543,7 @@
   \let\Hy@RestoreLastskip\relax
   \ifvmode
     \ifdim\lastskip=\z@
-      \ifnum\lastnodetype=11 %
-        \let\Hy@RestoreLastskip\nobreak
-      \else
-        \let\Hy@RestoreLastskip\relax
-      \fi
+      \let\Hy@RestoreLastskip\nobreak
     \else
       \begingroup
         \skip@=-\lastskip
@@ -2496,8 +2868,7 @@
 \def\HyPsd@pdfencoding@auto{auto}
 \def\HyPsd@pdfencoding@pdfdoc{pdfdoc}
 \def\HyPsd@pdfencoding@unicode{unicode}
-\let\HyPsd@pdfencoding\HyPsd@pdfencoding@unicode
-\HyPsd@LoadUnicode
+\let\HyPsd@pdfencoding\Hy@pdfencoding@pdfdoc
 \def\HyPsd@LoadStringEnc{%
   \RequirePackage{stringenc}[2009/12/15]%
   \let\HyPsd@LoadStringEnc\relax
@@ -2877,13 +3248,13 @@
   \def\pageautorefname{page}%
 }
 \def\HyLang@french{%
-  \def\equationautorefname{\'equation}%
+  \def\equationautorefname{\'Equation}%
   \def\footnoteautorefname{note}%
   \def\itemautorefname{item}%
-  \def\figureautorefname{figure}%
-  \def\tableautorefname{tableau}%
-  \def\partautorefname{partie}%
-  \def\appendixautorefname{annexe}%
+  \def\figureautorefname{Figure}%
+  \def\tableautorefname{Tableau}%
+  \def\partautorefname{Partie}%
+  \def\appendixautorefname{Appendice}%
   \def\chapterautorefname{chapitre}%
   \def\sectionautorefname{section}%
   \def\subsectionautorefname{sous-section}%
@@ -2891,7 +3262,7 @@
   \def\paragraphautorefname{paragraphe}%
   \def\subparagraphautorefname{sous-paragraphe}%
   \def\FancyVerbLineautorefname{ligne}%
-  \def\theoremautorefname{th\'eor\`eme}%
+  \def\theoremautorefname{Th\'eor\`eme}%
   \def\pageautorefname{page}%
 }
 \def\HyLang@german{%
@@ -3076,42 +3447,6 @@
     \def\theoremautorefname{Stelling}%
     \def\pageautorefname{pagina}%
 }
-\def\HyLang@norsk{%
-    \def\equationautorefname{Ligning}%
-    \def\footnoteautorefname{fotnote}%
-    \def\itemautorefname{element}%
-    \def\figureautorefname{Figur}%
-    \def\tableautorefname{Tabell}%
-    \def\partautorefname{Del}%
-    \def\appendixautorefname{Tillegg}%
-    \def\chapterautorefname{kapittel}%
-    \def\sectionautorefname{seksjon}%
-    \def\subsectionautorefname{underseksjon}%
-    \def\subsubsectionautorefname{under-underseksjon}%
-    \def\paragraphautorefname{avsnitt}%
-    \def\subparagraphautorefname{underavsnitt}%
-    \def\FancyVerbLineautorefname{Linje}%
-    \def\theoremautorefname{Teorem}%
-    \def\pageautorefname{side}%
-}
-\def\HyLang@danish{%
-  \def\equationautorefname{Ligning}%
-  \def\footnoteautorefname{fodnote}%
-  \def\itemautorefname{element}%
-  \def\figureautorefname{Figur}%
-  \def\tableautorefname{Tabel}%
-  \def\partautorefname{Del}%
-  \def\appendixautorefname{Bilag}%
-  \def\chapterautorefname{kapitel}%
-  \def\sectionautorefname{sektion}%
-  \def\subsectionautorefname{under-sektion}%
-  \def\subsubsectionautorefname{under-under-sektion}%
-  \def\paragraphautorefname{afsnit}%
-  \def\subparagraphautorefname{underafsnit}%
-  \def\FancyVerbLineautorefname{linje}%
-  \def\theoremautorefname{Teorem}%
-  \def\pageautorefname{side}%
-}
 \def\HyLang@addto#1#2{%
   #2%
   \@temptokena{#2}%
@@ -3181,9 +3516,6 @@
 \HyLang@DeclareLang{hungarian}{magyar}{}
 \HyLang@DeclareLang{greek}{greek}{}
 \HyLang@DeclareLang{dutch}{dutch}{}
-\HyLang@DeclareLang{norsk}{norsk}{}
-\HyLang@DeclareLang{norwegian}{norsk}{}
-\HyLang@DeclareLang{danish}{danish}{}
 \DeclareVoidOption{vietnamese}{%
   \HyLang@addto\extrasvietnamese\HyLang@vietnamese
   \Hy@AtEndOfPackage{%
@@ -3363,6 +3695,14 @@
     }%
     \let\@pdfpageduration\ltx@empty
   }%
+}
+\newif\ifHy@useHidKey
+\Hy@useHidKeyfalse
+\define@key{Hyp}{pdfpagehidden}[true]{%
+  \Hy@boolkey{pdfpagehidden}{#1}%
+  \ifHy@pdfpagehidden
+    \global\Hy@useHidKeytrue
+  \fi
 }
 \def\Hy@ColorList{cite,file,link,menu,run,url}
 \@for\Hy@temp:=\Hy@ColorList\do{%
@@ -3556,26 +3896,31 @@
 }
 \define@key{Hyp}{pdftitle}{%
   \HyXeTeX@CheckUnicode
+  \HyPsd@XeTeXBigCharstrue
   \HyPsd@PrerenderUnicode{#1}%
   \pdfstringdef\@pdftitle{#1}%
 }
 \define@key{Hyp}{pdfauthor}{%
   \HyXeTeX@CheckUnicode
+  \HyPsd@XeTeXBigCharstrue
   \HyPsd@PrerenderUnicode{#1}%
   \pdfstringdef\@pdfauthor{#1}%
 }
 \define@key{Hyp}{pdfproducer}{%
   \HyXeTeX@CheckUnicode
+  \HyPsd@XeTeXBigCharstrue
   \HyPsd@PrerenderUnicode{#1}%
   \pdfstringdef\@pdfproducer{#1}%
 }
 \define@key{Hyp}{pdfcreator}{%
   \HyXeTeX@CheckUnicode
+  \HyPsd@XeTeXBigCharstrue
   \HyPsd@PrerenderUnicode{#1}%
   \pdfstringdef\@pdfcreator{#1}%
 }
 \define@key{Hyp}{addtopdfcreator}{%
  \HyXeTeX@CheckUnicode
+ \HyPsd@XeTeXBigCharstrue
  \HyPsd@PrerenderUnicode{#1}%
  \pdfstringdef\@pdfcreator{\@pdfcreator, #1}%
 }
@@ -3593,11 +3938,13 @@
 }
 \define@key{Hyp}{pdfsubject}{%
   \HyXeTeX@CheckUnicode
+  \HyPsd@XeTeXBigCharstrue
   \HyPsd@PrerenderUnicode{#1}%
   \pdfstringdef\@pdfsubject{#1}%
 }
 \define@key{Hyp}{pdfkeywords}{%
   \HyXeTeX@CheckUnicode
+  \HyPsd@XeTeXBigCharstrue
   \HyPsd@PrerenderUnicode{#1}%
   \pdfstringdef\@pdfkeywords{#1}%
 }
@@ -3678,6 +4025,7 @@
         \def\HyInfo@tmp##1{%
           \kv@define@key{pdfinfo}{##1}{%
             \HyXeTeX@CheckUnicode
+            \HyPsd@XeTeXBigCharstrue
             \HyPsd@PrerenderUnicode{####1}%
             \pdfstringdef\HyInfo@Value{####1}%
             \global\expandafter
@@ -4162,6 +4510,13 @@
   \Hy@temp{LastPage}%
 \else
   \def\Hy@Acrobatmenu#1#2{\leavevmode}%
+\fi
+\Hy@nextfalse
+\ltx@IfUndefined{spanish@sh@"@sel}{}{\Hy@nexttrue}
+\ltx@IfUndefined{galician@sh@"@sel}{}{\Hy@nexttrue}
+\ltx@IfUndefined{estonian@sh@"@sel}{}{\Hy@nexttrue}
+\ifHy@next
+  \let\texttilde\~%
 \fi
 \def\Hy@wrapper@babel#1#2{%
   \begingroup
@@ -6757,6 +7112,15 @@
   \Hy@MakeCurrentHref{#1.\the\Hy@linkcounter}%
 }
 \def\@currentHlabel{\@currentHref}
+\@ifpackageloaded{fancyvrb}{%
+  \@ifpackagelater{fancyvrb}{1998/05/20}{}{%
+    \def\FV@StepLineNo{%
+      \FV@SetLineNo
+      \def\FV@StepLineNo{\H@refstepcounter{FancyVerbLine}}%
+      \FV@StepLineNo
+    }%
+  }%
+}{}
 \Hy@AtBeginDocument{%
   \@ifclassloaded{revtex4}{%
     \@namedef{ver@lastpage.sty}{1994/06/25}%
@@ -8352,7 +8716,7 @@
       Reference `#3' on page \thepage \space undefined%
     }%
   \else
-    \expandafter\Hy@setref@link#1\@empty\@empty\@nil{#2}%
+    \expandafter\Hy@setref@link#1\@empty\@empty\@empty\@nil{#2}%
   \fi
 }
 \def\Hy@setref@link#1#2#3#4#5#6\@nil#7{%

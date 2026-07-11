@@ -8,7 +8,7 @@ import { base } from '$app/paths';
 const FLAG = 'texbrain-texlive-warmed';
 // matches BUNDLE_VERSION in sw.js: when the bundle changes, the warm set
 // is evicted and needs one fresh run
-const WARMED_VERSION = '3';
+const WARMED_VERSION = '4';
 const CONCURRENCY = 2;
 const PAUSE_MS = 50;
 const IDLE_MS = 15000;

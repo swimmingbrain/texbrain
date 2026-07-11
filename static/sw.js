@@ -7,7 +7,7 @@ const BUNDLE_VERSION_URL = '/__texbrain-bundle-version';
 // bump whenever files under static/texlive/cache change, so users with
 // older copies in their cache pick up the new ones (keep the offline
 // warmer flag in offline-cache.ts in sync)
-const BUNDLE_VERSION = 3;
+const BUNDLE_VERSION = 4;
 
 // texlive 2020 texmf-dist mirror on jsdelivr, pinned to a commit. same era
 // as the engine's format and the bundled subset, so versions stay coherent.

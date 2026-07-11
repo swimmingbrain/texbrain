@@ -50,6 +50,7 @@ const latexStreamParser = {
 
     if (state.inMath) {
       if (stream.match(/^\\[a-zA-Z@]+/)) return 'atom';
+      if (stream.match(/^\\./)) return 'atom'; // \% \{ \, etc., not a comment
       if (stream.match(/^[{}]/)) return 'bracket';
       if (stream.match(/^[0-9]+(\.[0-9]+)?/)) return 'number';
       stream.next();

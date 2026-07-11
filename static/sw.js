@@ -2,6 +2,11 @@ const CACHE_NAME = 'texbrain-v1';
 const TEXLIVE_CACHE = 'texbrain-texlive-v1';
 const CONFIG_CACHE = 'texbrain-config-v1';
 const CONFIG_URL = '/__texbrain-config';
+const BUNDLE_VERSION_URL = '/__texbrain-bundle-version';
+
+// bump whenever files under static/texlive/cache change, so users with
+// older copies in their cache pick up the new ones
+const BUNDLE_VERSION = 2;
 
 // texlive 2020 texmf-dist mirror on jsdelivr, pinned to a commit. same era
 // as the engine's format and the bundled subset, so versions stay coherent.
@@ -40,6 +45,27 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
+// cached copies of bundled files go stale when a deploy changes the bundle,
+// evict them (files fetched from remote mirrors are left alone)
+async function evictStaleBundledFiles() {
+  try {
+    const cfg = await caches.open(CONFIG_CACHE);
+    const marker = await cfg.match(BUNDLE_VERSION_URL);
+    if (marker && Number(await marker.text()) === BUNDLE_VERSION) return;
+
+    const names = await loadManifest();
+    if (names.size > 0) {
+      const cache = await caches.open(TEXLIVE_CACHE);
+      for (const req of await cache.keys()) {
+        const resp = await cache.match(req);
+        const id = resp && (resp.headers.get('fileid') || resp.headers.get('pkid'));
+        if (id && names.has(id)) await cache.delete(req);
+      }
+      await cfg.put(BUNDLE_VERSION_URL, new Response(String(BUNDLE_VERSION)));
+    }
+  } catch { /* retried on next activation */ }
+}
+
 // clean old caches on activate
 self.addEventListener('activate', (event) => {
   const keep = [CACHE_NAME, TEXLIVE_CACHE, CONFIG_CACHE];
@@ -48,7 +74,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         names.filter((name) => !keep.includes(name)).map((name) => caches.delete(name))
       );
-    })
+    }).then(() => evictStaleBundledFiles())
   );
   self.clients.claim();
 });

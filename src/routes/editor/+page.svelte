@@ -374,7 +374,10 @@
         new Promise<never>((_, reject) => setTimeout(() => reject(new Error('compilation timed out after 180s')), 180_000))
       ]);
 
-      const { errors: parsedErrors, cleanedLines } = parseLog(result.log || '');
+      const { problems, cleanedLines } = parseLog(result.log || '');
+      const parsedErrors = problems
+        .filter(p => p.severity !== 'info')
+        .map(p => ({ type: p.severity as 'error' | 'warning', message: p.title, line: p.line, file: p.file }));
       compileErrors.set(parsedErrors);
       compileRawLog.set(result.log || '');
 

@@ -5,7 +5,7 @@
   import { get } from 'svelte/store';
   import { sidebarOpen, previewOpen, snippetPickerOpen, commandPaletteOpen, cloneDialogOpen, compileStatus, compileLog, compileErrors, previewTab, addToast } from '$lib/stores/app';
   import { files, activeFile, activeFileId, updateFileContent, projectHandle, entryPoint, openFileTab, closeFileTab } from '$lib/project/store';
-  import { handleOpenFile, handleSaveFile, handleSaveFileAs, handleDroppedFiles, handleOpenDirectory, handleNewProject, cloneProject, reopenEntryPointPicker, supportsFileSystemAccess } from '$lib/project/manager';
+  import { handleOpenFile, handleSaveFile, handleSaveFileAs, handleDroppedFiles, handleOpenDirectory, handleNewProject, cloneProject, reopenEntryPointPicker, refreshProjectTree, supportsFileSystemAccess } from '$lib/project/manager';
   import { insertAtCursor, createEditor, replaceEditorContent } from '$lib/editor/setup';
   import type { EditorView } from '@codemirror/view';
   import type { Snippet as SnippetDef } from '$lib/snippets/index';
@@ -18,9 +18,8 @@
   import { collabRoom } from '$lib/collab/store';
   import { gitPanelOpen, gitEnabled, gitChangeCount } from '$lib/git/store';
   import {
-    initFs as gitInitFs, initRepo as gitInitRepo, syncFilesToGit,
-    writeFileToGit, checkAndLoadGit, refreshGitState,
-    readAllFilesFromGit, stageAll as gitStageAll, commit as gitCommit
+    openRepo as gitOpenRepo, initRepo as gitInitRepo, refreshGitState,
+    stageAll as gitStageAll, commit as gitCommit
   } from '$lib/git/engine';
 
   import Logo from '$lib/ui/Logo.svelte';
@@ -723,7 +722,6 @@
       const text = editorView.state.doc.toString();
       wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
     }
-    scheduleSyncToGit();
   }
 
   // double-click in editor jumps pdf to approximate cursor position
@@ -850,39 +848,15 @@
   }
 
   async function handleGitInit() {
-    let projectFiles = new Map<string, string>();
-    try {
-      const collected = await collectProjectFiles();
-      projectFiles = collected.projectFiles;
-    } catch {
-      for (const tab of get(files)) {
-        if (tab.content) projectFiles.set(tab.path, tab.content);
-      }
-    }
-
-    const handle = get(projectHandle);
-    const projectId = handle?.name || 'default';
-    gitInitFs(projectId);
-
-    await syncFilesToGit(projectFiles);
     await gitInitRepo();
     await gitStageAll();
     await gitCommit('initial commit');
     await refreshGitState();
   }
 
+  // checkouts write to the folder, so the tree has to be read again
   async function handleGitBranchSwitch() {
-    const gitFiles = await readAllFilesFromGit();
-    const currentFiles = get(files);
-
-    for (const tab of currentFiles) {
-      const newContent = gitFiles.get(tab.path);
-      if (newContent !== undefined) {
-        updateFileContent(tab.id, newContent);
-      }
-    }
-
-    buildEditor();
+    await refreshProjectTree();
   }
 
   function handleShowCloneForm() {
@@ -928,24 +902,6 @@
     } finally {
       cloning = false;
     }
-  }
-
-  // sync editor content to lightning-fs for git operations
-  async function syncEditorToGit() {
-    if (!get(gitEnabled)) return;
-    for (const tab of get(files)) {
-      if (tab.content) {
-        await writeFileToGit(tab.path, tab.content);
-      }
-    }
-    await refreshGitState();
-  }
-
-  let gitSyncTimer: ReturnType<typeof setTimeout> | null = null;
-  function scheduleSyncToGit() {
-    if (!get(gitEnabled)) return;
-    if (gitSyncTimer) clearTimeout(gitSyncTimer);
-    gitSyncTimer = setTimeout(() => syncEditorToGit(), 1000);
   }
 
   // observe collab compile state for host/peer coordination
@@ -1008,28 +964,11 @@
     unobserveCompile = null;
   }
 
-  // detect git repo when project handle changes
+  // a folder that already has a .git directory is picked up as is
   let lastGitProjectHandle: FileSystemDirectoryHandle | null = null;
   $: if (browser && $projectHandle && $projectHandle !== lastGitProjectHandle) {
     lastGitProjectHandle = $projectHandle;
-    gitInitFs($projectHandle.name);
-    (async () => {
-      try {
-        let projectFiles = new Map<string, string>();
-        try {
-          const collected = await collectProjectFiles();
-          projectFiles = collected.projectFiles;
-        } catch {
-          for (const tab of get(files)) {
-            if (tab.content) projectFiles.set(tab.path, tab.content);
-          }
-        }
-        await syncFilesToGit(projectFiles);
-        await checkAndLoadGit();
-      } catch (err) {
-        console.error('git init check:', err);
-      }
-    })();
+    gitOpenRepo($projectHandle).catch((err) => console.error('git open:', err));
   }
 
   // an empty editor is a poor first impression, so a small document is opened
@@ -1061,7 +1000,6 @@
 
     return () => {
       unobserveCompile?.();
-      if (gitSyncTimer) clearTimeout(gitSyncTimer);
       window.removeEventListener('beforeunload', onBeforeUnload);
     };
   });

@@ -6,10 +6,10 @@
     gitAuthorName, gitAuthorEmail, gitAuthToken, gitCorsProxy, gitDiffFile, gitFileStatuses
   } from '$lib/git/store';
   import {
-    initRepo, syncFilesToGit, stageFile, unstageFile, stageAll, unstageAll,
-    commit, getLog, createBranch, switchBranch, deleteBranch, merge,
+    stageFile, unstageFile, stageAll, unstageAll,
+    commit, createBranch, switchBranch, deleteBranch, merge,
     addRemote, listRemotes, removeRemote, push, pull,
-    refreshGitState, getFileDiff, readAllFilesFromGit, writeFileToGit, checkAndLoadGit,
+    refreshGitState, getFileDiff,
     getBranchTips, getCommitChangedFiles, getCommitFileDiff
   } from '$lib/git/engine';
   import type { GitFileDiff, GitCommitInfo } from '$lib/git/types';

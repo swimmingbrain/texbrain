@@ -4,7 +4,8 @@
   import { browser } from '$app/environment';
   import { get } from 'svelte/store';
   import { sidebarOpen, previewOpen, snippetPickerOpen, commandPaletteOpen, cloneDialogOpen, compileStatus, compileLog, compileErrors, previewTab, addToast } from '$lib/stores/app';
-  import { files, activeFile, activeFileId, updateFileContent, projectHandle, entryPoint, openFileTab, closeFileTab } from '$lib/project/store';
+  import { files, activeFile, activeFileId, updateFileContent, markFileSaved, projectHandle, entryPoint, openFileTab, closeFileTab } from '$lib/project/store';
+  import { readFileFromHandle } from '$lib/fs/local-fs';
   import { handleOpenFile, handleSaveFile, handleSaveFileAs, handleDroppedFiles, handleOpenDirectory, handleNewProject, cloneProject, reopenEntryPointPicker, refreshProjectTree, supportsFileSystemAccess } from '$lib/project/manager';
   import { insertAtCursor, createEditor, replaceEditorContent } from '$lib/editor/setup';
   import type { EditorView } from '@codemirror/view';
@@ -854,9 +855,28 @@
     await refreshGitState();
   }
 
-  // checkouts write to the folder, so the tree has to be read again
+  // checkouts, pulls and merges write to the folder, so the tree and the
+  // open tabs are read again. tabs with unsaved edits keep them
   async function handleGitBranchSwitch() {
     await refreshProjectTree();
+    const kept: string[] = [];
+    for (const tab of get(files)) {
+      if (!tab.handle) continue;
+      if (tab.dirty) { kept.push(tab.name); continue; }
+      try {
+        const content = await readFileFromHandle(tab.handle);
+        if (content !== tab.content) {
+          markFileSaved(tab.id, content);
+          if (tab.id === get(activeFileId) && editorView) replaceEditorContent(editorView, content);
+        }
+      } catch {
+        // the file does not exist on this branch
+        closeFileTab(tab.id);
+      }
+    }
+    if (kept.length > 0) {
+      addToast(`Kept your unsaved changes in ${kept.join(', ')}. Save or discard them to see the checked out version.`, 'warning', 8000);
+    }
   }
 
   function handleShowCloneForm() {

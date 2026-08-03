@@ -19,7 +19,7 @@
   import { collabRoom } from '$lib/collab/store';
   import { gitPanelOpen, gitEnabled, gitChangeCount } from '$lib/git/store';
   import {
-    openRepo as gitOpenRepo, initRepo as gitInitRepo, refreshGitState,
+    openRepo as gitOpenRepo, initRepo as gitInitRepo, refreshGitState, notifyFilesChanged,
     stageAll as gitStageAll, commit as gitCommit
   } from '$lib/git/engine';
 
@@ -87,6 +87,7 @@
         await writable.write(data);
       }
       await writable.close();
+      notifyFilesChanged();
       addToast(`Exported ${exportName}`, 'success', 1500);
     } catch (err: any) {
       addToast(`Export failed: ${err.message}`, 'error');
@@ -1018,9 +1019,14 @@
     }
     window.addEventListener('beforeunload', onBeforeUnload);
 
+    // a terminal or another editor may have touched the folder meanwhile
+    function onFocus() { notifyFilesChanged(0); }
+    window.addEventListener('focus', onFocus);
+
     return () => {
       unobserveCompile?.();
       window.removeEventListener('beforeunload', onBeforeUnload);
+      window.removeEventListener('focus', onFocus);
     };
   });
 </script>

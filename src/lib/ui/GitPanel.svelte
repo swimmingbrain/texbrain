@@ -39,6 +39,11 @@
     loadRemotes();
   }
 
+  // opening the panel is a natural moment to look at the folder again
+  $: if ($gitPanelOpen && $gitEnabled) {
+    refreshGitState();
+  }
+
   async function loadRemotes() {
     remotes = await listRemotes();
   }

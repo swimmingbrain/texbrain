@@ -4,7 +4,7 @@ import { openLocalFile, saveLocalFile, saveLocalFileAs, openDirectory, readFileF
 import { openFileFallback, saveFileFallback } from '../fs/fallback-fs';
 import { getVirtualRoot, supportsVirtualProjects } from '../fs/virtual-fs';
 import { addToast } from '../stores/app';
-import { cloneInto } from '../git/engine';
+import { cloneInto, notifyFilesChanged } from '../git/engine';
 import type { TreeEntry } from './types';
 
 export function supportsFileSystemAccess(): boolean {
@@ -309,6 +309,7 @@ export async function handleSaveFile() {
     if (file.handle) {
       await saveLocalFile(file.handle, file.content);
       markFileSaved(file.id);
+      notifyFilesChanged();
       addToast('File saved', 'success', 1500);
     } else if (supportsFileSystemAccess()) {
       const handle = await saveLocalFileAs(file.content, file.name);
@@ -457,6 +458,7 @@ export async function refreshProjectTree() {
   if (!handle) return;
   const tree = await readTreeFromHandle(handle);
   projectTree.set(tree);
+  notifyFilesChanged();
 }
 
 async function readTreeFromHandle(dirHandle: FileSystemDirectoryHandle): Promise<TreeEntry[]> {

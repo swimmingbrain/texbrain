@@ -558,6 +558,18 @@ export async function getCommitFileDiff(sha: string, filepath: string): Promise<
   return { path: filepath, lines, additions, deletions };
 }
 
+// the editor and the file tree call this after writing to the folder, and
+// the window when it regains focus, so the status keeps up without polling
+let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+export function notifyFilesChanged(delay = 400) {
+  if (!repo || !get(gitEnabled)) return;
+  if (refreshTimer) clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(() => {
+    refreshTimer = null;
+    refreshGitState();
+  }, delay);
+}
+
 export async function refreshGitState(): Promise<void> {
   if (!repo) return;
   await ensureBuffer();

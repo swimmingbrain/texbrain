@@ -164,6 +164,17 @@ export async function unstageFile(filepath: string): Promise<void> {
   }
 }
 
+// throw away the local edits to one file: tracked files go back to what is
+// committed, files git never saw are deleted
+export async function discardChanges(filepath: string, status: string): Promise<void> {
+  if (status === 'untracked') {
+    await getFs().unlink(DIR + filepath);
+  } else {
+    await git.checkout({ ...base(), ref: await getCurrentBranch(), filepaths: [filepath], force: true });
+  }
+  cache = {};
+}
+
 export async function stageAll(): Promise<void> {
   const { unstaged } = await getStatus();
   for (const file of unstaged) {

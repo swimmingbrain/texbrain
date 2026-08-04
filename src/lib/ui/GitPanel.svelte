@@ -6,7 +6,7 @@
     gitAuthorName, gitAuthorEmail, gitAuthToken, gitCorsProxy, gitDiffFile, gitFileStatuses
   } from '$lib/git/store';
   import {
-    stageFile, unstageFile, stageAll, unstageAll,
+    stageFile, unstageFile, stageAll, unstageAll, discardChanges,
     commit, createBranch, switchBranch, deleteBranch, merge,
     addRemote, listRemotes, removeRemote, push, pull,
     refreshGitState, getFileDiff,
@@ -94,6 +94,22 @@
   async function handleStageAll() {
     await stageAll();
     await refreshGitState();
+  }
+
+  async function handleDiscard(path: string, status: string) {
+    const what = status === 'untracked' ? `Delete ${path}?` : `Throw away your changes to ${path}?`;
+    if (!confirm(`${what} This can't be undone.`)) return;
+    operating = true;
+    try {
+      await discardChanges(path, status);
+      await onBranchSwitch();
+      await refreshGitState();
+      addToast(status === 'untracked' ? `Deleted ${path}` : `Restored ${path}`, 'success', 2000);
+    } catch (err: any) {
+      addToast('Discard failed: ' + (err?.message || err), 'error');
+    } finally {
+      operating = false;
+    }
   }
 
   async function handleUnstageAll() {
@@ -546,7 +562,8 @@
                     <button class="file-name" on:click={() => handleViewDiff(file.path)} title="View diff">
                       <span class="fname-dir">{fileDir(file.path)}</span><span class="fname-name">{fileName(file.path)}</span>
                     </button>
-                    <button class="file-action add" on:click={() => handleStage(file.path)} title="Stage">+</button>
+                    <button class="file-action discard" on:click={() => handleDiscard(file.path, file.status)} title="Discard changes" aria-label="Discard changes to {file.path}" disabled={operating}>&#x21A9;</button>
+                    <button class="file-action add" on:click={() => handleStage(file.path)} title="Stage" aria-label="Stage {file.path}">+</button>
                   </div>
                 {/each}
               </div>
@@ -972,6 +989,8 @@
     flex-shrink: 0;
   }
   .file-action:hover { background: var(--bg-hover); }
+  .file-action.discard { font-size: 11px; }
+  .file-action.discard:hover { color: var(--error); }
   .file-action.add { color: var(--success); }
 
   .commit-form {

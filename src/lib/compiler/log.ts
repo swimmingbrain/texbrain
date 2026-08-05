@@ -162,10 +162,11 @@ export function parseLog(rawLog: string): ParsedLog {
     return { text: u.text.replace(/^\([\w.-]+\)\s{2,}/, ''), end: u.end };
   }
 
+  // the same complaint about the same spot, from a second pass or a
+  // second token on the line, becomes one card with a count
   function push(p: Omit<Problem, 'count'>) {
     const same = problems.find(q =>
-      q.severity === p.severity && q.title === p.title && q.message === p.message &&
-      q.file === p.file && q.line === p.line
+      q.severity === p.severity && q.title === p.title && q.file === p.file && q.line === p.line
     );
     if (same) { same.count++; return; }
     problems.push({ ...p, count: 1 });

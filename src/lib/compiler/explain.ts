@@ -43,6 +43,35 @@ function lastCommand(before?: string): string | undefined {
   return m ? m[1] : undefined;
 }
 
+const IMAGE = /\.(png|jpe?g|pdf|eps|gif|bmp|tiff?|svg)$/i;
+
+function fileNotFound(name: string): Explanation {
+  const base = name.replace(/\.[^.]+$/, '');
+  if (/\.(sty|cls)$/.test(name)) {
+    const isClass = name.endsWith('.cls');
+    return {
+      title: `${isClass ? 'Class' : 'Package'} ${base} not found`,
+      explain: `${name} isn't bundled with the app and the TeX Live mirror doesn't have it either, or the name is misspelled.`,
+      fix: `Check the spelling in \\${isClass ? 'documentclass' : 'usepackage'}. If it exists on CTAN and still fails here, open an issue with the name.`,
+      needle: base
+    };
+  }
+  if (IMAGE.test(name)) {
+    return {
+      title: `Image ${name} not found`,
+      explain: 'The file isn\'t in the project, at least not under that name and path.',
+      fix: 'Check the name, the extension and the folder. Open the whole project folder so every file reaches the compiler.',
+      needle: name
+    };
+  }
+  return {
+    title: `File ${name} not found`,
+    explain: 'Nothing with that name is in the project.',
+    fix: 'Check the name and the path. Open the whole project folder so every file reaches the compiler.',
+    needle: base
+  };
+}
+
 const ENV_PACKAGES: Record<string, string> = {
   'align': 'amsmath', 'align*': 'amsmath', 'gather': 'amsmath', 'gather*': 'amsmath', 'multline': 'amsmath',
   'split': 'amsmath', 'cases': 'amsmath', 'subequations': 'amsmath', 'alignat': 'amsmath',
@@ -339,10 +368,266 @@ const RULES: Rule[] = [
       fix: 'Check the full log for the last thing that happened before the stop.'
     })
   },
+  // ---- files, packages, images, fonts -------------------------------------
+  {
+    kind: 'error',
+    test: /^LaTeX Error: File `([^']+)' not found/,
+    make: (m) => fileNotFound(m[1])
+  },
+  {
+    kind: 'error',
+    test: /^Package pdftex\.def Error: File `([^']+)' not found/,
+    make: (m) => fileNotFound(m[1])
+  },
+  {
+    kind: 'error',
+    test: /^LaTeX Error: Unknown graphics extension: (\S+)/,
+    make: (m) => ({
+      title: `Image format ${m[1]} isn't supported`,
+      explain: 'pdfTeX reads PNG, JPG and PDF, nothing else.',
+      fix: `Convert the ${m[1]} file to PNG or PDF and include that.`
+    })
+  },
+  {
+    kind: 'error',
+    test: /^LaTeX Error: Cannot determine size of graphic in (\S+)/,
+    make: (m) => ({
+      title: `Can't read the size of ${m[1]}`,
+      explain: 'The image is broken, or in a format pdfTeX can\'t measure.',
+      fix: 'Export it again as PNG or PDF, or give width and height explicitly.',
+      needle: m[1]
+    })
+  },
+  {
+    kind: 'error',
+    test: /^LaTeX Error: Option clash for package (\S+)/,
+    make: (m) => ({
+      title: `Package ${m[1]} loaded twice with different options`,
+      explain: 'Another package already loaded it, with other options, and LaTeX can\'t load a package twice.',
+      fix: `Put \\PassOptionsToPackage{...}{${m[1]}} before the first \\usepackage, or move the options into \\documentclass.`,
+      needle: m[1]
+    })
+  },
+  {
+    kind: 'error',
+    test: /^Package babel Error: Unknown option `([^']+)'/,
+    make: (m) => ({
+      title: `babel doesn't know the language ${m[1]}`,
+      explain: 'The option isn\'t a language this babel ships, or its name changed between versions.',
+      fix: 'Check the spelling in \\usepackage[...]{babel}. brazil and brazilian are the same language, ngerman is the modern german.',
+      needle: m[1]
+    })
+  },
+  {
+    kind: 'error',
+    test: /^Package inputenc Error: (?:Invalid UTF-8 byte|Unicode character)/,
+    make: () => ({
+      title: 'The file isn\'t valid UTF-8',
+      explain: 'A character on this line can\'t be read as UTF-8, often after a copy from another program.',
+      fix: 'Delete and retype the character, or save the file as UTF-8.'
+    })
+  },
+  {
+    kind: 'error',
+    test: /^LaTeX Error: Unicode character (.+?) (?:\(U\+\w+\) )?not set up for use with LaTeX/,
+    make: (m) => ({
+      title: `The character ${m[1]} isn't available`,
+      explain: 'The font encoding in use has no glyph for it.',
+      fix: 'Use the LaTeX command for it, or add \\usepackage[T1]{fontenc} for accented letters.'
+    })
+  },
+  {
+    kind: 'error',
+    test: /^Font \S+=(\S+) .*not loadable: (?:Bad metric \(TFM\) file|Metric \(TFM\) file not found)/,
+    make: (m) => ({
+      title: `Font ${m[1]} couldn't be loaded`,
+      explain: 'The metric file for this font is missing or broken. In TeXbrain that usually means a download went wrong and got cached.',
+      fix: 'Reload the page and compile again. If it keeps happening, clear the site data for tex.swimmingbrain.dev and open an issue with the full log.'
+    })
+  },
+  {
+    kind: 'error',
+    test: /^Package ([\w.-]+) Error: (.*)/,
+    make: (m) => ({
+      title: `${m[1]}: ${tidy(m[2])}`,
+      explain: `This comes from the ${m[1]} package, in its own words.`,
+      fix: 'The package documentation explains its messages. Search for the sentence above together with the package name.'
+    })
+  },
   {
     kind: 'error',
     test: /^LaTeX Error: (.*)/,
     make: (m) => ({ title: tidy(m[1]) })
+  },
+
+  // ---- warnings ----------------------------------------------------------
+  {
+    kind: 'warning',
+    test: /Reference `([^']+)' on page \d+ undefined/,
+    make: (m) => ({
+      title: `No label ${m[1]}`,
+      explain: `Nothing has \\label{${m[1]}}, or it was added after the last run.`,
+      fix: 'Check the spelling, or compile once more so the references settle.',
+      needle: `{${m[1]}}`
+    })
+  },
+  {
+    kind: 'warning',
+    test: /Citation `([^']+)' on page \d+ undefined/,
+    make: (m) => ({
+      title: `No bibliography entry ${m[1]}`,
+      explain: 'No entry with this key was found, or the bibliography wasn\'t processed.',
+      fix: 'Check the key in the .bib file. TeXbrain has no bibtex yet: biblatex documents get a simple bibliography built from the .bib file, classic bibtex needs a .bbl file in the project.',
+      needle: m[1]
+    })
+  },
+  {
+    kind: 'warning',
+    test: /There were undefined (references|citations)/,
+    make: (m) => ({
+      title: `Some ${m[1]} are undefined`,
+      fix: 'Compile once more. If it stays, a \\ref or \\cite points to something that doesn\'t exist.',
+      severity: 'info'
+    })
+  },
+  {
+    kind: 'warning',
+    test: /Label\(s\) may have changed/,
+    make: () => ({
+      title: 'Compile once more',
+      explain: 'Page numbers or references moved during this run, so the numbers in the text are one step behind.',
+      fix: 'Compile again and this goes away.',
+      severity: 'info'
+    })
+  },
+  {
+    kind: 'warning',
+    test: /Label `([^']+)' multiply defined/,
+    make: (m) => ({
+      title: `Label ${m[1]} used twice`,
+      fix: 'Labels have to be unique. Rename one of them.',
+      needle: `\\label{${m[1]}}`
+    })
+  },
+  {
+    kind: 'warning',
+    test: /Font shape `([^']+)' undefined/,
+    make: (m) => ({
+      title: `Font shape ${m[1]} isn't available, a substitute was used`,
+      explain: 'The font family, series or shape doesn\'t exist in this encoding, so LaTeX picked the closest thing.',
+      fix: 'Harmless most of the time. Load the package that provides the font, or use another one.',
+      severity: 'info'
+    })
+  },
+  {
+    kind: 'warning',
+    test: /Some font shapes were not available/,
+    make: () => ({ title: 'Some font shapes were substituted', severity: 'info' })
+  },
+  {
+    kind: 'warning',
+    test: /Token not allowed in a PDF string.*removing `([^']+)'/,
+    make: (m) => ({
+      title: 'A heading has something the PDF bookmarks can\'t show',
+      explain: `hyperref copies headings into the PDF outline, where only plain text works. It dropped the ${m[1]}.`,
+      fix: 'Wrap it: \\texorpdfstring{$x^2$}{x squared}. The first part goes into the document, the second into the bookmarks.'
+    })
+  },
+  {
+    kind: 'warning',
+    test: /File `([^']+)' not found/,
+    make: (m) => fileNotFound(m[1])
+  },
+  {
+    kind: 'warning',
+    test: /Float too large for page/,
+    make: () => ({ title: 'A figure or table is taller than the page', fix: 'Scale it down, or split it.', severity: 'info' })
+  },
+  {
+    kind: 'warning',
+    test: /`!?h' float specifier changed to `!?ht'/,
+    make: () => ({
+      title: 'Float placement relaxed',
+      explain: 'LaTeX couldn\'t put it exactly here and will use the top of a page when it has to.',
+      fix: 'Fine as it is. Use [H] from the float package to force the spot.',
+      severity: 'info'
+    })
+  },
+  {
+    kind: 'warning',
+    test: /Unused global option\(s\):\s*\[([^\]]+)\]/,
+    make: (m) => ({
+      title: `Option ${m[1]} unknown to the class and every package`,
+      fix: 'Check the spelling in \\documentclass[...]. Options are case sensitive.'
+    })
+  },
+  {
+    kind: 'warning',
+    test: /Command (\\\S+) invalid in math mode/,
+    make: (m) => ({
+      title: `${m[1]} doesn't work in math mode`,
+      fix: 'Use the math version, \\mathbf instead of \\bf for example, or leave math mode first.'
+    })
+  },
+  {
+    kind: 'warning',
+    test: /destination with the same identifier \(name\{([^}]+)\}\) has been already used/,
+    make: (m) => ({
+      title: `Two places share the link target ${m[1]}`,
+      explain: 'hyperref links point at identifiers, and this one exists twice, usually a page number that restarts.',
+      fix: 'Use \\frontmatter and \\mainmatter so page numbers don\'t repeat, or \\hypersetup{pageanchor=false} for the pages before the main text.',
+      severity: 'info'
+    })
+  },
+
+  // ---- typesetting notes -------------------------------------------------
+  {
+    kind: 'info',
+    test: /^Overfull \\hbox \(([\d.]+)pt too wide\) in paragraph at lines (\d+)--(\d+)/,
+    make: (m) => ({
+      title: `Text sticks ${Math.round(parseFloat(m[1]))}pt into the margin`,
+      explain: `A word, formula or url on lines ${m[2]} to ${m[3]} is too long to fit and LaTeX found no place to break it.`,
+      fix: 'Add a break hint with \\-, reword the sentence, or wrap urls in \\url. \\sloppy before the paragraph lets LaTeX stretch spaces instead.'
+    })
+  },
+  {
+    kind: 'info',
+    test: /^Overfull \\hbox \(([\d.]+)pt too wide\)/,
+    make: (m) => ({
+      title: `Something sticks ${Math.round(parseFloat(m[1]))}pt into the margin`,
+      fix: 'Usually a table or an image wider than the text. Scale it, or give it a smaller width.'
+    })
+  },
+  {
+    kind: 'info',
+    test: /^Underfull \\hbox \(badness \d+\) in paragraph at lines (\d+)--(\d+)/,
+    make: (m) => ({
+      title: 'A line with stretched spaces',
+      explain: `LaTeX had to pull the spaces on lines ${m[1]} to ${m[2]} apart more than it likes, usually because of a forced line break or a very long word.`,
+      fix: 'Remove a \\\\ or \\newline, or let it be, it only looks a little airy.'
+    })
+  },
+  {
+    kind: 'info',
+    test: /^Underfull \\hbox/,
+    make: () => ({ title: 'A line with stretched spaces', fix: 'Usually a \\\\ in a line that isn\'t full. Harmless.' })
+  },
+  {
+    kind: 'info',
+    test: /^Overfull \\vbox \(([\d.]+)pt too high\)/,
+    make: (m) => ({
+      title: `Content ${Math.round(parseFloat(m[1]))}pt taller than the page`,
+      fix: 'A figure, table or minipage doesn\'t fit the page height. Scale it, or let it float.'
+    })
+  },
+  {
+    kind: 'info',
+    test: /^Underfull \\vbox/,
+    make: () => ({
+      title: 'A page with stretched space',
+      explain: 'LaTeX spread the content of a page to fill it, usually before a forced page break or a large float.',
+      fix: 'Harmless. \\raggedbottom in the preamble stops the stretching.'
+    })
   }
 ];
 

@@ -2,13 +2,13 @@
   import { get } from 'svelte/store';
   import {
     gitPanelOpen, gitPanelTab, gitEnabled, gitCurrentBranch, gitBranches,
-    gitStagedFiles, gitUnstagedFiles, gitCommitLog, gitLoading, gitChangeCount,
+    gitStagedFiles, gitUnstagedFiles, gitCommitLog, gitLoading, gitChangeCount, gitSync,
     gitAuthorName, gitAuthorEmail, gitAuthToken, gitCorsProxy, gitDiffFile, gitFileStatuses
   } from '$lib/git/store';
   import {
     stageFile, unstageFile, stageAll, unstageAll, discardChanges,
     commit, createBranch, switchBranch, deleteBranch, merge,
-    addRemote, listRemotes, removeRemote, push, pull,
+    addRemote, listRemotes, removeRemote, push, pull, fetchRemote,
     refreshGitState, getFileDiff,
     getBranchTips, getCommitChangedFiles, getCommitFileDiff
   } from '$lib/git/engine';
@@ -245,6 +245,19 @@
       } else {
         addToast('Push failed: ' + msg, 'error');
       }
+    } finally {
+      operating = false;
+    }
+  }
+
+  async function handleFetch() {
+    operating = true;
+    try {
+      await fetchRemote();
+      const s = get(gitSync);
+      addToast(s.behind > 0 ? `${s.behind} new commit${s.behind === 1 ? '' : 's'} on the remote, pull to get them` : 'Nothing new on the remote', 'info', 4000);
+    } catch (err: any) {
+      addToast('Fetch failed: ' + (err?.message || err), 'error');
     } finally {
       operating = false;
     }
@@ -807,7 +820,20 @@
               <p class="hint">Required for browser-based push/pull. Leave empty if self-hosting.</p>
             </div>
 
+            {#if remotes.length > 0}
+              <p class="sync-line">
+                {#if $gitSync.remoteBranch}
+                  {$gitCurrentBranch} is {$gitSync.ahead} ahead and {$gitSync.behind} behind {$gitSync.remoteBranch}
+                {:else}
+                  Not fetched yet, so nothing is known about the remote
+                {/if}
+              </p>
+            {/if}
+
             <div class="push-pull-row">
+              <button class="btn secondary" on:click={handleFetch} disabled={operating || remotes.length === 0}>
+                {operating ? 'Working...' : 'Fetch'}
+              </button>
               <button class="btn primary" on:click={handlePush} disabled={operating || remotes.length === 0}>
                 <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style="margin-right:4px"><path d="M8 12V3M4 7l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 {operating ? 'Pushing...' : 'Push'}
@@ -989,6 +1015,7 @@
     flex-shrink: 0;
   }
   .file-action:hover { background: var(--bg-hover); }
+  .sync-line { font-size: 11px; color: var(--text-secondary); font-family: var(--font-editor); margin: 6px 0 0; }
   .file-action.discard { font-size: 11px; }
   .file-action.discard:hover { color: var(--error); }
   .file-action.add { color: var(--success); }

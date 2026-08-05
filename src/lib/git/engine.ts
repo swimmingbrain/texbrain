@@ -5,7 +5,7 @@ import { HandleFs } from './handle-fs';
 import {
   gitEnabled, gitCurrentBranch, gitBranches,
   gitStagedFiles, gitUnstagedFiles, gitFileStatuses,
-  gitCommitLog, gitLoading,
+  gitCommitLog, gitLoading, gitSync,
   gitAuthorName, gitAuthorEmail, gitAuthToken, gitCorsProxy
 } from './store';
 import type { GitFileChange, GitCommitInfo, GitFileDiff, GitDiffLine, GitAuth, MergeResult } from './types';
@@ -51,6 +51,7 @@ function resetStores() {
   gitUnstagedFiles.set([]);
   gitFileStatuses.set(new Map());
   gitCommitLog.set([]);
+  gitSync.set({ remoteBranch: null, ahead: 0, behind: 0, fetchedAt: null });
 }
 
 // bind git to a project folder. returns whether it already is a repository
@@ -376,6 +377,49 @@ export async function push(remoteName: string = 'origin', branch?: string): Prom
   cache = {};
 }
 
+export async function fetchRemote(remoteName: string = 'origin'): Promise<void> {
+  await ensureBuffer();
+  const auth = getAuth();
+  await git.fetch({
+    ...base(),
+    http,
+    remote: remoteName,
+    corsProxy: getCorsProxy(),
+    onAuth: () => auth,
+    prune: true
+  });
+  cache = {};
+  gitSync.update(s => ({ ...s, fetchedAt: Date.now() }));
+  await getSyncStatus(remoteName);
+}
+
+// where the branch stands compared to its copy on the remote. the counts
+// stop at 100 either way, enough to say "you are behind"
+export async function getSyncStatus(remoteName: string = 'origin'): Promise<void> {
+  const branch = await getCurrentBranch();
+  const remoteRef = `refs/remotes/${remoteName}/${branch}`;
+  let local: Array<{ oid: string }> = [];
+  let remote: Array<{ oid: string }> = [];
+  try {
+    remote = await git.log({ ...base(), ref: remoteRef, depth: 100 });
+  } catch {
+    gitSync.update(s => ({ ...s, remoteBranch: null, ahead: 0, behind: 0 }));
+    return;
+  }
+  try {
+    local = await git.log({ ...base(), ref: branch, depth: 100 });
+  } catch { /* branch without commits */ }
+
+  const localSet = new Set(local.map(c => c.oid));
+  const remoteSet = new Set(remote.map(c => c.oid));
+  gitSync.update(s => ({
+    ...s,
+    remoteBranch: `${remoteName}/${branch}`,
+    ahead: local.filter(c => !remoteSet.has(c.oid)).length,
+    behind: remote.filter(c => !localSet.has(c.oid)).length
+  }));
+}
+
 export async function pull(remoteName: string = 'origin', branch?: string): Promise<void> {
   await ensureBuffer();
   const ref = branch || await getCurrentBranch();
@@ -599,6 +643,8 @@ export async function refreshGitState(): Promise<void> {
 
     const log = await getLog();
     gitCommitLog.set(log);
+
+    await getSyncStatus();
   } catch (err) {
     console.error('refreshGitState:', err);
   } finally {

@@ -18,6 +18,16 @@ export const gitDiffFile = writable<string | null>(null);
 
 export const gitLoading = writable(false);
 
+// where the current branch stands compared to its copy on the remote,
+// null remoteBranch means the remote has never been fetched
+export interface GitSyncState {
+  remoteBranch: string | null;
+  ahead: number;
+  behind: number;
+  fetchedAt: number | null;
+}
+export const gitSync = writable<GitSyncState>({ remoteBranch: null, ahead: 0, behind: 0, fetchedAt: null });
+
 export const gitChangeCount = derived(
   [gitStagedFiles, gitUnstagedFiles],
   ([$staged, $unstaged]) => $staged.length + $unstaged.length

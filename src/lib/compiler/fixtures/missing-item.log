@@ -1,0 +1,19 @@
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (SwiftLaTeX PDFTeX 0.3.0) (preloaded format=swiftlatexpdftex)
+entering extended mode
+(welcome.tex
+LaTeX2e <2020-02-02> patch level 2
+L3 programming layer <2020-02-14> (/tex/article.cls
+Document Class: article 2020/04/10 v1.4m Standard LaTeX document class
+(/tex/size10.clo)) (/tex/l3backend-pdfmode.def)
+No file welcome.aux.
+
+! LaTeX Error: Something's wrong--perhaps a missing \item.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.4 \begin{itemize} text \end{itemize}
+                                      
+!  ==> Fatal error occurred, no output PDF file produced!
+Transcript written on welcome.log.

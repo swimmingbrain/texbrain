@@ -1,0 +1,36 @@
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (SwiftLaTeX PDFTeX 0.3.0) (preloaded format=swiftlatexpdftex)
+entering extended mode
+(welcome.tex
+LaTeX2e <2020-02-02> patch level 2
+L3 programming layer <2020-02-14> (/tex/article.cls
+Document Class: article 2020/04/10 v1.4m Standard LaTeX document class
+(/tex/size10.clo)) (/tex/hyperref.sty (/tex/ltxcmds.sty) (/tex/iftex.sty)
+(/tex/pdftexcmds.sty (/tex/infwarerr.sty)) (/tex/keyval.sty)
+(/tex/kvsetkeys.sty) (/tex/kvdefinekeys.sty) (/tex/pdfescape.sty)
+(/tex/hycolor.sty) (/tex/letltxmacro.sty) (/tex/auxhook.sty)
+(/tex/kvoptions.sty) (/tex/pd1enc.def) (/tex/intcalc.sty) (/tex/etexcmds.sty)
+(/tex/url.sty) (/tex/bitset.sty (/tex/bigintcalc.sty)) (/tex/atbegshi.sty))
+(/tex/hpdftex.def (/tex/atveryend.sty) (/tex/rerunfilecheck.sty
+(/tex/uniquecounter.sty))) (/tex/l3backend-pdfmode.def) (welcome.aux)
+(/tex/nameref.sty (/tex/refcount.sty) (/tex/gettitlestring.sty)) (welcome.out)
+(welcome.out)
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `math shift' on input line 4.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `superscript' on input line 4.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `math shift' on input line 4.
+
+[1{/tex/pdftex.map}] (welcome.aux) )</tex/cmbx12.pfb></tex/cmmi12.pfb></tex/cmr
+10.pfb>
+Output written on welcome.pdf (1 page, 26366 bytes).
+Transcript written on welcome.log.
+I found no \citation commands---while reading file welcome.aux
+I found no \bibdata command---while reading file welcome.aux
+I found no \bibstyle command---while reading file welcome.aux
+(There were 3 error messages)

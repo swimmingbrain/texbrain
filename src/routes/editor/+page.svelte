@@ -18,6 +18,7 @@
   import { createRoom, joinRoom, leaveRoom, getYTextWithUndo, getAwareness, setCurrentFile, getSharedFileList, getSharedEntryPoint, isHost, requestCompile, setCompileStatus, setCompileResult, observeCompileState, readCompileState, collectFilesFromYjs } from '$lib/collab/provider';
   import { collabRoom } from '$lib/collab/store';
   import { gitPanelOpen, gitEnabled, gitChangeCount } from '$lib/git/store';
+  import { describeGitError, troubleText } from '$lib/git/errors';
   import {
     openRepo as gitOpenRepo, initRepo as gitInitRepo, refreshGitState, notifyFilesChanged,
     stageAll as gitStageAll, commit as gitCommit
@@ -913,12 +914,7 @@
       buildEditor();
     } catch (err: any) {
       if (err.name !== 'AbortError') {
-        const msg = err?.message || String(err);
-        if (msg.includes('CORS') || msg.includes('Failed to fetch')) {
-          addToast('clone failed: CORS error - check proxy in git > remote after cloning', 'error');
-        } else {
-          addToast('clone failed: ' + msg, 'error');
-        }
+        addToast(troubleText(describeGitError(err, 'Clone')), 'error', 8000);
       }
     } finally {
       cloning = false;

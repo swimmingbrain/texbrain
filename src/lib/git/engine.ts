@@ -362,32 +362,28 @@ function getCorsProxy(): string | undefined {
   return proxy || undefined;
 }
 
+// everything that talks to a remote shares these. a refused login is not
+// retried, it comes back as one clear error instead of a loop
+function remoteOptions() {
+  const auth = getAuth();
+  return {
+    http,
+    corsProxy: getCorsProxy(),
+    onAuth: () => auth,
+    onAuthFailure: () => ({ cancel: true })
+  };
+}
+
 export async function push(remoteName: string = 'origin', branch?: string): Promise<void> {
   await ensureBuffer();
   const ref = branch || await getCurrentBranch();
-  const auth = getAuth();
-  await git.push({
-    ...base(),
-    http,
-    remote: remoteName,
-    ref,
-    corsProxy: getCorsProxy(),
-    onAuth: () => auth
-  });
+  await git.push({ ...base(), ...remoteOptions(), remote: remoteName, ref });
   cache = {};
 }
 
 export async function fetchRemote(remoteName: string = 'origin'): Promise<void> {
   await ensureBuffer();
-  const auth = getAuth();
-  await git.fetch({
-    ...base(),
-    http,
-    remote: remoteName,
-    corsProxy: getCorsProxy(),
-    onAuth: () => auth,
-    prune: true
-  });
+  await git.fetch({ ...base(), ...remoteOptions(), remote: remoteName, prune: true });
   cache = {};
   gitSync.update(s => ({ ...s, fetchedAt: Date.now() }));
   await getSyncStatus(remoteName);
@@ -423,16 +419,7 @@ export async function getSyncStatus(remoteName: string = 'origin'): Promise<void
 export async function pull(remoteName: string = 'origin', branch?: string): Promise<void> {
   await ensureBuffer();
   const ref = branch || await getCurrentBranch();
-  const auth = getAuth();
-  await git.pull({
-    ...base(),
-    http,
-    remote: remoteName,
-    ref,
-    corsProxy: getCorsProxy(),
-    onAuth: () => auth,
-    author: author()
-  });
+  await git.pull({ ...base(), ...remoteOptions(), remote: remoteName, ref, author: author() });
   cache = {};
 }
 
@@ -444,16 +431,7 @@ export async function cloneInto(handle: FileSystemDirectoryHandle, url: string):
   if (entries.length > 0) {
     throw new Error('That folder is not empty. Pick a new name or an empty folder.');
   }
-  const auth = getAuth();
-  await git.clone({
-    fs,
-    http,
-    dir: DIR,
-    url,
-    corsProxy: getCorsProxy(),
-    onAuth: () => auth,
-    singleBranch: false
-  });
+  await git.clone({ fs, dir: DIR, ...remoteOptions(), url, singleBranch: false });
 }
 
 export async function getFileDiff(filepath: string): Promise<GitFileDiff> {

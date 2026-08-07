@@ -13,7 +13,12 @@
     getBranchTips, getCommitChangedFiles, getCommitFileDiff
   } from '$lib/git/engine';
   import type { GitFileDiff, GitCommitInfo } from '$lib/git/types';
+  import { describeGitError, troubleText } from '$lib/git/errors';
   import { addToast } from '$lib/stores/app';
+
+  function reportTrouble(err: any, action: string) {
+    addToast(troubleText(describeGitError(err, action)), 'error', 8000);
+  }
 
   export let onBranchSwitch: () => Promise<void> = async () => {};
   export let onInitRepo: () => Promise<void> = async () => {};
@@ -169,7 +174,7 @@
       await refreshGitState();
       addToast(`Switched to '${name}'`, 'success');
     } catch (err: any) {
-      addToast('Switch failed: ' + (err?.message || err), 'error');
+      reportTrouble(err, 'Switch');
     } finally {
       operating = false;
     }
@@ -200,10 +205,10 @@
         addToast(`Merged '${mergeBranch}' into '${$gitCurrentBranch}'`, 'success');
         mergeBranch = '';
       } else {
-        addToast('Merge conflicts: ' + result.conflicts.join(', '), 'error');
+        addToast(`Both branches changed the same lines in ${result.conflicts.join(', ')}. Nothing was touched, resolve it in a terminal or merge the other way round.`, 'error', 8000);
       }
     } catch (err: any) {
-      addToast('Merge failed: ' + (err?.message || err), 'error');
+      reportTrouble(err, 'Merge');
     } finally {
       operating = false;
     }
@@ -237,14 +242,10 @@
     operating = true;
     try {
       await push();
-      addToast('Pushed successfully', 'success');
+      await refreshGitState();
+      addToast('Pushed', 'success');
     } catch (err: any) {
-      const msg = err?.message || String(err);
-      if (msg.includes('CORS') || msg.includes('Failed to fetch')) {
-        addToast('Push failed: CORS error. Check your CORS proxy setting in the Remote tab', 'error');
-      } else {
-        addToast('Push failed: ' + msg, 'error');
-      }
+      reportTrouble(err, 'Push');
     } finally {
       operating = false;
     }
@@ -257,7 +258,7 @@
       const s = get(gitSync);
       addToast(s.behind > 0 ? `${s.behind} new commit${s.behind === 1 ? '' : 's'} on the remote, pull to get them` : 'Nothing new on the remote', 'info', 4000);
     } catch (err: any) {
-      addToast('Fetch failed: ' + (err?.message || err), 'error');
+      reportTrouble(err, 'Fetch');
     } finally {
       operating = false;
     }
@@ -269,14 +270,9 @@
       await pull();
       await onBranchSwitch();
       await refreshGitState();
-      addToast('Pulled successfully', 'success');
+      addToast('Pulled', 'success');
     } catch (err: any) {
-      const msg = err?.message || String(err);
-      if (msg.includes('CORS') || msg.includes('Failed to fetch')) {
-        addToast('Pull failed: CORS error. Check your CORS proxy setting in the Remote tab', 'error');
-      } else {
-        addToast('Pull failed: ' + msg, 'error');
-      }
+      reportTrouble(err, 'Pull');
     } finally {
       operating = false;
     }

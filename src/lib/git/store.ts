@@ -46,5 +46,8 @@ function persisted(key: string, fallback: string) {
 
 export const gitAuthorName = persisted('texbrain-git-name', '');
 export const gitAuthorEmail = persisted('texbrain-git-email', '');
+// github takes the token as the username, most other hosts want a real
+// username next to it, so it is optional
+export const gitAuthUsername = persisted('texbrain-git-username', '');
 export const gitAuthToken = persisted('texbrain-git-token', '');
 export const gitCorsProxy = persisted('texbrain-git-proxy', 'https://cors.isomorphic-git.org');

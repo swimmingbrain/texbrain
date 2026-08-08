@@ -3,7 +3,7 @@
   import {
     gitPanelOpen, gitPanelTab, gitEnabled, gitCurrentBranch, gitBranches,
     gitStagedFiles, gitUnstagedFiles, gitCommitLog, gitLoading, gitChangeCount, gitSync,
-    gitAuthorName, gitAuthorEmail, gitAuthToken, gitCorsProxy, gitDiffFile, gitFileStatuses
+    gitAuthorName, gitAuthorEmail, gitAuthUsername, gitAuthToken, gitCorsProxy, gitDiffFile, gitFileStatuses
   } from '$lib/git/store';
   import {
     stageFile, unstageFile, stageAll, unstageAll, discardChanges,
@@ -808,6 +808,11 @@
               <label for="git-token">Personal Access Token</label>
               <input id="git-token" type="password" bind:value={$gitAuthToken} placeholder="ghp_..." class="field-input" />
               <p class="hint">Required for push/pull to private repos</p>
+            </div>
+            <div class="field">
+              <label for="git-username">Username</label>
+              <input id="git-username" type="text" bind:value={$gitAuthUsername} placeholder="only for GitLab, Bitbucket, ..." class="field-input" autocomplete="off" />
+              <p class="hint">GitHub doesn't need one, leave it empty there.</p>
             </div>
 
             <div class="field">

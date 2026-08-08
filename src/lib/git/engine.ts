@@ -6,7 +6,7 @@ import {
   gitEnabled, gitCurrentBranch, gitBranches,
   gitStagedFiles, gitUnstagedFiles, gitFileStatuses,
   gitCommitLog, gitLoading, gitSync,
-  gitAuthorName, gitAuthorEmail, gitAuthToken, gitCorsProxy
+  gitAuthorName, gitAuthorEmail, gitAuthUsername, gitAuthToken, gitCorsProxy
 } from './store';
 import type { GitFileChange, GitCommitInfo, GitFileDiff, GitDiffLine, GitAuth, MergeResult } from './types';
 
@@ -351,10 +351,12 @@ export async function removeRemote(name: string): Promise<void> {
 
 function getAuth(): GitAuth {
   const token = get(gitAuthToken);
-  if (token) {
-    return { username: token, password: 'x-oauth-basic' };
-  }
-  return { username: '', password: '' };
+  const username = get(gitAuthUsername);
+  if (!token) return { username: '', password: '' };
+  // github accepts the token in the username slot, gitlab, bitbucket and
+  // friends want it as the password next to a username
+  if (username) return { username, password: token };
+  return { username: token, password: 'x-oauth-basic' };
 }
 
 function getCorsProxy(): string | undefined {

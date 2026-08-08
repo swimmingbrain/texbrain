@@ -3,7 +3,7 @@
   import { base } from '$app/paths';
   import { browser } from '$app/environment';
   import { get } from 'svelte/store';
-  import { sidebarOpen, previewOpen, snippetPickerOpen, commandPaletteOpen, cloneDialogOpen, compileStatus, compileLog, compileRawLog, compileErrors, previewTab, addToast } from '$lib/stores/app';
+  import { sidebarOpen, previewOpen, snippetPickerOpen, commandPaletteOpen, cloneDialogOpen, compileStatus, compileLog, compileRawLog, compileProblems, previewTab, addToast } from '$lib/stores/app';
   import { files, activeFile, activeFileId, updateFileContent, markFileSaved, projectHandle, entryPoint, openFileTab, closeFileTab } from '$lib/project/store';
   import { readFileFromHandle } from '$lib/fs/local-fs';
   import { handleOpenFile, handleSaveFile, handleSaveFileAs, handleDroppedFiles, handleOpenDirectory, handleNewProject, cloneProject, reopenEntryPointPicker, refreshProjectTree, supportsFileSystemAccess } from '$lib/project/manager';
@@ -35,6 +35,7 @@
   import SnippetPicker from '$lib/ui/SnippetPicker.svelte';
   import EntryPointPicker from '$lib/ui/EntryPointPicker.svelte';
   import PdfViewer from '$lib/ui/PdfViewer.svelte';
+  import ProblemsPanel from '$lib/ui/ProblemsPanel.svelte';
   import CollabPanel from '$lib/ui/CollabPanel.svelte';
   import GitPanel from '$lib/ui/GitPanel.svelte';
   import DrawioEditor from '$lib/ui/DrawioEditor.svelte';
@@ -375,10 +376,7 @@
       ]);
 
       const { problems, cleanedLines } = parseLog(result.log || '');
-      const parsedErrors = problems
-        .filter(p => p.severity !== 'info')
-        .map(p => ({ type: p.severity as 'error' | 'warning', message: p.title, line: p.line, file: p.file }));
-      compileErrors.set(parsedErrors);
+      compileProblems.set(problems);
       compileRawLog.set(result.log || '');
 
       if (result.status === 0 && result.pdf) {
@@ -392,20 +390,20 @@
         compileStatus.set('success');
         compileLog.set([`[${ts()}] compilation successful (${pdfPageCount} pages)`, ...capLogLines(cleanedLines)]);
 
-        if (parsedErrors.some(e => e.type === 'error')) {
-          previewTab.set('errors');
+        if (problems.some(p => p.severity === 'error')) {
+          previewTab.set('problems');
         }
 
         if (isCollabMode) {
-          setCompileResult({ status: 'success', pdf: pdfData, log: cleanedLines, errors: parsedErrors, pageCount: pdfPageCount });
+          setCompileResult({ status: 'success', pdf: pdfData, log: cleanedLines, errors: problems, pageCount: pdfPageCount });
         }
       } else {
         compileStatus.set('error');
         compileLog.set([`[${ts()}] compilation failed (status ${result.status})`, ...capLogLines(cleanedLines)]);
-        previewTab.set('errors');
+        previewTab.set('problems');
 
         if (isCollabMode) {
-          setCompileResult({ status: 'error', pdf: null, log: cleanedLines, errors: parsedErrors, pageCount: pdfPageCount });
+          setCompileResult({ status: 'error', pdf: null, log: cleanedLines, errors: problems, pageCount: pdfPageCount });
         }
       }
     } catch (err: any) {
@@ -413,7 +411,7 @@
       compileLog.update(log => [...log, `[error] ${err.message || String(err)}`]);
 
       if (isCollabMode) {
-        setCompileResult({ status: 'error', pdf: null, log: [`[error] ${err.message || String(err)}`], errors: [{ type: 'error', message: err.message || String(err) }], pageCount: 0 });
+        setCompileResult({ status: 'error', pdf: null, log: [`[error] ${err.message || String(err)}`], errors: [{ severity: 'error', title: err.message || String(err), message: err.message || String(err), inPackage: false, excerpt: [], count: 1 }], pageCount: 0 });
       }
     } finally {
       compiling = false;
@@ -424,10 +422,6 @@
   function compilePreview() { doCompile(); }
 
   function ts() { return new Date().toLocaleTimeString(); }
-
-  function errorLocation(e: { line?: number; file?: string }): string {
-    return [e.file, e.line ? `line ${e.line}` : ''].filter(Boolean).join(', ');
-  }
 
   async function saveAndCompile() {
     await handleSaveFile();
@@ -477,6 +471,9 @@
     const cw = windowWidth - ($sidebarOpen ? 260 : 0);
     editorWidth = Math.max(25, Math.min(75, editorWidth + (delta / cw) * 100));
   }
+
+  $: errorCount = $compileProblems.filter(p => p.severity === 'error').length;
+  $: warningCount = $compileProblems.filter(p => p.severity === 'warning').length;
 
   // the log tab shows a cleaned version by default. the full transcript is
   // what you want when something fails deep inside a package
@@ -716,12 +713,12 @@
               pdfViewer?.setPageCount(pdfPageCount);
               compileStatus.set('success');
               compileLog.set([`[${ts()}] compilation successful (${pdfPageCount} pages)`, ...log]);
-              compileErrors.set(errors);
+              compileProblems.set(errors);
             } else {
               compileStatus.set('error');
               compileLog.set([`[${ts()}] compilation failed`, ...log]);
-              compileErrors.set(errors);
-              previewTab.set('errors');
+              compileProblems.set(errors);
+              previewTab.set('problems');
             }
           } catch (err) {
             console.error('failed to read compile result:', err);
@@ -914,16 +911,12 @@
           <div class="preview-pane" style="width:{100 - editorWidth}%">
             <div class="preview-header">
               <button class="preview-tab" class:active={$previewTab === 'preview'} on:click={() => previewTab.set('preview')}>Preview</button>
-              <button class="preview-tab" class:active={$previewTab === 'errors'} on:click={() => previewTab.set('errors')}>
-                Errors
-                {#if $compileErrors.filter(e => e.type === 'error').length > 0}
-                  <span class="error-badge has-errors">{$compileErrors.filter(e => e.type === 'error').length}</span>
-                {/if}
-              </button>
-              <button class="preview-tab" class:active={$previewTab === 'warnings'} on:click={() => previewTab.set('warnings')}>
-                Warnings
-                {#if $compileErrors.filter(e => e.type === 'warning').length > 0}
-                  <span class="error-badge">{$compileErrors.filter(e => e.type === 'warning').length}</span>
+              <button class="preview-tab" class:active={$previewTab === 'problems'} on:click={() => previewTab.set('problems')}>
+                Problems
+                {#if errorCount > 0}
+                  <span class="error-badge has-errors">{errorCount}</span>
+                {:else if warningCount > 0}
+                  <span class="error-badge">{warningCount}</span>
                 {/if}
               </button>
               <button class="preview-tab" class:active={$previewTab === 'log'} on:click={() => previewTab.set('log')}>Log</button>
@@ -939,38 +932,8 @@
               <div class="preview-content">
                 <PdfViewer bind:this={pdfViewer} {pdfData} />
               </div>
-            {:else if $previewTab === 'errors'}
-              <div class="errors-content">
-                {#if $compileErrors.filter(e => e.type === 'error').length === 0}
-                  <div class="preview-empty"><p>No errors</p></div>
-                {:else}
-                  {#each $compileErrors.filter(e => e.type === 'error') as err}
-                    <div class="error-item is-error">
-                      <span class="error-type-badge err-badge">E</span>
-                      <span class="error-msg">{err.message}</span>
-                      {#if err.file || err.line}
-                        <span class="error-line">{errorLocation(err)}</span>
-                      {/if}
-                    </div>
-                  {/each}
-                {/if}
-              </div>
-            {:else if $previewTab === 'warnings'}
-              <div class="errors-content">
-                {#if $compileErrors.filter(e => e.type === 'warning').length === 0}
-                  <div class="preview-empty"><p>No warnings</p></div>
-                {:else}
-                  {#each $compileErrors.filter(e => e.type === 'warning') as warn}
-                    <div class="error-item is-warning">
-                      <span class="error-type-badge warn-badge">W</span>
-                      <span class="error-msg">{warn.message}</span>
-                      {#if warn.file || warn.line}
-                        <span class="error-line">{errorLocation(warn)}</span>
-                      {/if}
-                    </div>
-                  {/each}
-                {/if}
-              </div>
+            {:else if $previewTab === 'problems'}
+              <ProblemsPanel problems={$compileProblems} compiled={$compileStatus !== 'idle'} />
             {:else}
               <div class="log-content">
                 <div class="log-toolbar">
@@ -1203,39 +1166,6 @@
     color: white;
   }
 
-  .errors-content { flex: 1; overflow-y: auto; padding: 6px; }
-  .error-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 6px;
-    padding: 6px 8px;
-    margin-bottom: 2px;
-    font-size: 11.5px;
-    font-family: var(--font-editor);
-    line-height: 1.5;
-  }
-  .error-item.is-error { background: rgba(224, 108, 117, 0.06); }
-  .error-item.is-warning { background: rgba(229, 192, 123, 0.06); }
-  .error-type-badge {
-    flex-shrink: 0;
-    width: 16px;
-    height: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 9px;
-    font-weight: 700;
-  }
-  .err-badge { background: var(--error); color: white; }
-  .warn-badge { background: var(--warning); color: #000; }
-  .error-msg { flex: 1; color: var(--text-primary); word-break: break-word; }
-  .error-line {
-    flex-shrink: 0;
-    font-size: 10px;
-    color: var(--text-muted);
-    padding: 0 4px;
-    background: var(--bg-hover);
-  }
   .preview-empty { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); font-size: 12px; }
 
   @media (max-width: 600px) { .logo-text { display: none; } }

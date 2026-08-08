@@ -17,7 +17,7 @@
   import { collabActive, collabPanelOpen, collabPeers, collabConnected } from '$lib/collab/store';
   import { createRoom, joinRoom, leaveRoom, getYTextWithUndo, getAwareness, setCurrentFile, getSharedFileList, getSharedEntryPoint, isHost, requestCompile, setCompileStatus, setCompileResult, observeCompileState, readCompileState, collectFilesFromYjs } from '$lib/collab/provider';
   import { collabRoom } from '$lib/collab/store';
-  import { gitPanelOpen, gitEnabled, gitChangeCount } from '$lib/git/store';
+  import { gitPanelOpen, gitEnabled, gitChangeCount, gitAuthToken, gitAuthUsername } from '$lib/git/store';
   import { describeGitError, troubleText } from '$lib/git/errors';
   import {
     openRepo as gitOpenRepo, initRepo as gitInitRepo, refreshGitState, notifyFilesChanged,
@@ -1274,6 +1274,23 @@
             <label for="clone-name">Project Name</label>
             <input id="clone-name" type="text" bind:value={cloneName} placeholder="my-project" class="clone-input" />
           </div>
+          <details class="clone-private">
+            <summary>Private repository? Add a token</summary>
+            <p class="clone-hint left">
+              GitHub: Settings, Developer settings, Fine grained tokens, Generate new token. Pick the repository and give it
+              Contents: read and write. Copy the token, it only shows once.
+              <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Open the token page &#8599;</a>
+            </p>
+            <div class="clone-field">
+              <label for="clone-token">Token</label>
+              <input id="clone-token" type="password" bind:value={$gitAuthToken} placeholder="github_pat_..." class="clone-input" autocomplete="off" />
+            </div>
+            <div class="clone-field">
+              <label for="clone-username">Username (GitLab, Bitbucket, ...)</label>
+              <input id="clone-username" type="text" bind:value={$gitAuthUsername} placeholder="not needed for GitHub" class="clone-input" autocomplete="off" />
+            </div>
+            <p class="clone-hint left">Stored in this browser only, never on a server.</p>
+          </details>
           <div class="clone-actions">
             <button class="welcome-btn primary" on:click={handleClone} disabled={cloning || !cloneUrl.trim() || !cloneName.trim()}>
               {#if cloning}
@@ -1286,7 +1303,7 @@
             </button>
             <button class="welcome-btn secondary" on:click={handleCancelClone} disabled={cloning}>Cancel</button>
           </div>
-          <p class="clone-hint">{hasFolderAccess ? 'You\'ll pick a folder where the project will be saved.' : 'The project is stored inside your browser.'} Auth and CORS proxy can be configured in Git > Remote after cloning.</p>
+          <p class="clone-hint">{hasFolderAccess ? 'You\'ll pick a folder where the project will be saved.' : 'The project is stored inside your browser.'} The proxy can be changed in the git settings afterwards.</p>
         </div>
       </div>
     </div>
@@ -1376,6 +1393,12 @@
   .clone-actions { display: flex; gap: 6px; margin-top: 4px; }
   .clone-actions .welcome-btn { flex: 1; justify-content: center; }
   .clone-hint { font-size: 10.5px; color: var(--text-muted); line-height: 1.5; text-align: center; margin-top: 4px; }
+  .clone-hint.left { text-align: left; margin: 6px 0; }
+  .clone-hint a { color: var(--accent); text-decoration: none; }
+  .clone-hint a:hover { color: var(--accent-hover); }
+  .clone-private summary { cursor: pointer; font-size: 11.5px; color: var(--accent); }
+  .clone-private[open] summary { margin-bottom: 4px; }
+  .clone-private .clone-field { margin-bottom: 8px; }
   .save-pdf { display: flex; align-items: center; gap: 2px; }
 
   .error-badge {

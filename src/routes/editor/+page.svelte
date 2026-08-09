@@ -4,10 +4,12 @@
   import { browser } from '$app/environment';
   import { get } from 'svelte/store';
   import { sidebarOpen, previewOpen, snippetPickerOpen, commandPaletteOpen, cloneDialogOpen, compileStatus, compileLog, compileRawLog, compileProblems, previewTab, addToast } from '$lib/stores/app';
-  import { files, activeFile, activeFileId, updateFileContent, markFileSaved, projectHandle, entryPoint, openFileTab, closeFileTab } from '$lib/project/store';
+  import { files, activeFile, activeFileId, updateFileContent, markFileSaved, projectHandle, entryPoint, openFileTab, closeFileTab, setActiveTab } from '$lib/project/store';
   import { readFileFromHandle } from '$lib/fs/local-fs';
-  import { handleOpenFile, handleSaveFile, handleSaveFileAs, handleDroppedFiles, handleOpenDirectory, handleNewProject, cloneProject, reopenEntryPointPicker, refreshProjectTree, supportsFileSystemAccess } from '$lib/project/manager';
-  import { insertAtCursor, createEditor, replaceEditorContent } from '$lib/editor/setup';
+  import { handleOpenFile, handleSaveFile, handleSaveFileAs, handleDroppedFiles, handleOpenDirectory, handleNewProject, cloneProject, reopenEntryPointPicker, refreshProjectTree, supportsFileSystemAccess, findProjectFile, handleOpenFileFromTree } from '$lib/project/manager';
+  import { insertAtCursor, createEditor, replaceEditorContent, gotoLine } from '$lib/editor/setup';
+  import { tick } from 'svelte';
+  import { locateByNeedle, type Problem } from '$lib/compiler/log';
   import type { EditorView } from '@codemirror/view';
   import type { Snippet as SnippetDef } from '$lib/snippets/index';
   import { compileLaTeX, warmup } from '$lib/compiler/latex-engine';
@@ -376,6 +378,10 @@
       ]);
 
       const { problems, cleanedLines } = parseLog(result.log || '');
+      // tex gives no line for a missing package or a runaway argument, the
+      // sources usually do
+      locateByNeedle(problems, projectFiles);
+      for (const p of problems) if (!p.file) { p.file = mainFile; p.inPackage = false; }
       compileProblems.set(problems);
       compileRawLog.set(result.log || '');
 
@@ -470,6 +476,25 @@
   function handleResizeDelta(delta: number) {
     const cw = windowWidth - ($sidebarOpen ? 260 : 0);
     editorWidth = Math.max(25, Math.min(75, editorWidth + (delta / cw) * 100));
+  }
+
+  // a problem points at a file and a line, the editor goes there, opening
+  // the file from the project when it isn't open yet
+  async function jumpToProblem(p: Problem) {
+    if (!p.file || !p.line || p.inPackage) return;
+    const matches = (t: { path: string; name: string }) => t.path === p.file || t.name === p.file || t.path.endsWith('/' + p.file);
+    let tab = get(files).find(matches);
+    if (!tab) {
+      const entry = findProjectFile(p.file);
+      if (entry?.handle) {
+        await handleOpenFileFromTree(entry.handle, entry.path);
+        tab = get(files).find(matches);
+      }
+    }
+    if (!tab) { addToast(`${p.file} isn't open, and it isn't in the project folder either`, 'info', 4000); return; }
+    if (get(activeFileId) !== tab.id) setActiveTab(tab.id);
+    await tick();
+    if (editorView) gotoLine(editorView, p.line);
   }
 
   $: errorCount = $compileProblems.filter(p => p.severity === 'error').length;
@@ -933,7 +958,7 @@
                 <PdfViewer bind:this={pdfViewer} {pdfData} />
               </div>
             {:else if $previewTab === 'problems'}
-              <ProblemsPanel problems={$compileProblems} compiled={$compileStatus !== 'idle'} />
+              <ProblemsPanel problems={$compileProblems} compiled={$compileStatus !== 'idle'} onJump={jumpToProblem} />
             {:else}
               <div class="log-content">
                 <div class="log-toolbar">

@@ -4,6 +4,11 @@
   export let problems: Problem[] = [];
   // whether a compile happened at all, the empty state reads differently
   export let compiled = false;
+  export let onJump: (p: Problem) => void = () => {};
+
+  function canJump(p: Problem): boolean {
+    return !!p.file && !!p.line && !p.inPackage;
+  }
 
   const ORDER = { error: 0, warning: 1, info: 2 };
   const BADGE = { error: 'E', warning: 'W', info: 'N' };
@@ -42,9 +47,17 @@
       <article class="card {p.severity}">
         <header class="card-head">
           <span class="badge" aria-label={p.severity}>{BADGE[p.severity]}</span>
-          <h4 class="title">{p.title}</h4>
+          {#if canJump(p)}
+            <button class="title jump" on:click={() => onJump(p)} title="Go to {where(p)}">{p.title}</button>
+          {:else}
+            <h4 class="title">{p.title}</h4>
+          {/if}
           {#if p.count > 1}<span class="count" title="Reported {p.count} times">&times;{p.count}</span>{/if}
-          {#if where(p)}<span class="where">{where(p)}</span>{/if}
+          {#if canJump(p)}
+            <button class="where jump" on:click={() => onJump(p)}>{where(p)} &rarr;</button>
+          {:else if where(p)}
+            <span class="where">{where(p)}</span>
+          {/if}
         </header>
         {#if p.explain}
           <p class="explain">{p.explain}</p>
@@ -99,9 +112,14 @@
   }
   .error .badge { background: var(--error); color: #fff; }
   .warning .badge { background: var(--warning); }
-  .title { font-size: 12.5px; font-weight: 600; color: var(--text-primary); margin: 0; flex: 1; min-width: 0; }
+  .title { font-size: 12.5px; font-weight: 600; color: var(--text-primary); margin: 0; flex: 1; min-width: 0; text-align: left; }
   .count { font-size: 10px; font-family: var(--font-editor); color: var(--text-muted); }
   .where { font-size: 10.5px; font-family: var(--font-editor); color: var(--text-muted); white-space: nowrap; }
+  .jump { cursor: pointer; }
+  .title.jump:hover { text-decoration: underline; }
+  .where.jump { color: var(--accent); }
+  .where.jump:hover { color: var(--accent-hover); text-decoration: underline; }
+  .jump:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
   .explain { font-size: 12px; line-height: 1.5; color: var(--text-secondary); margin: 0; }
   .fix { font-size: 12px; line-height: 1.5; color: var(--text-secondary); margin: 0; display: flex; gap: 8px; align-items: baseline; }

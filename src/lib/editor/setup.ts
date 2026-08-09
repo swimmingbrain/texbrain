@@ -131,6 +131,17 @@ export function replaceEditorContent(view: EditorView, content: string) {
   });
 }
 
+// puts the cursor at the start of a line and scrolls it into the middle
+export function gotoLine(view: EditorView, line: number) {
+  const n = Math.max(1, Math.min(line, view.state.doc.lines));
+  const pos = view.state.doc.line(n).from;
+  view.dispatch({
+    selection: { anchor: pos },
+    effects: EditorView.scrollIntoView(pos, { y: 'center' })
+  });
+  view.focus();
+}
+
 export function insertAtCursor(view: EditorView, text: string) {
   const cursor = view.state.selection.main.head;
   const cursorPlaceholder = text.indexOf('|');

@@ -676,7 +676,7 @@
       'png', 'jpg', 'jpeg', 'pdf', 'eps', 'svg', 'gif', 'bmp',
       'tfm', 'pfb', 'vf', 'map', 'enc', 'otf', 'ttf'
     ]);
-    for await (const entry of (dirHandle as any).values()) {
+    for await (const entry of dirHandle.values()) {
       const path = prefix ? `${prefix}/${entry.name}` : entry.name;
       if (entry.kind === 'file') {
         const ext = entry.name.split('.').pop()?.toLowerCase() || '';

@@ -18,7 +18,7 @@ const VIRTUAL_PROJECT_KEY = 'texbrain-virtual-project';
 
 async function pickProjectRoot(): Promise<FileSystemDirectoryHandle> {
   if (supportsFileSystemAccess()) {
-    return (window as any).showDirectoryPicker({ mode: 'readwrite' });
+    return window.showDirectoryPicker({ mode: 'readwrite' });
   }
   if (!supportsVirtualProjects()) {
     throw new Error('Your browser can\'t store projects. Chrome, Edge or Firefox can.');
@@ -463,7 +463,7 @@ export async function refreshProjectTree() {
 
 async function readTreeFromHandle(dirHandle: FileSystemDirectoryHandle): Promise<TreeEntry[]> {
   const entries: TreeEntry[] = [];
-  for await (const entry of (dirHandle as any).values()) {
+  for await (const entry of dirHandle.values()) {
     const entryPath = entry.name;
     if (entry.kind === 'directory') {
       if (entry.name.startsWith('.') || entry.name === 'node_modules') continue;
@@ -480,7 +480,7 @@ async function readTreeFromHandle(dirHandle: FileSystemDirectoryHandle): Promise
 
 async function readSubTree(dirHandle: FileSystemDirectoryHandle, basePath: string): Promise<TreeEntry[]> {
   const entries: TreeEntry[] = [];
-  for await (const entry of (dirHandle as any).values()) {
+  for await (const entry of dirHandle.values()) {
     const entryPath = `${basePath}/${entry.name}`;
     if (entry.kind === 'directory') {
       if (entry.name.startsWith('.') || entry.name === 'node_modules') continue;

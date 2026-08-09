@@ -169,7 +169,7 @@ export class HandleFs {
   async readdir(path: string): Promise<string[]> {
     const dir = await this.getDir(normalize(path));
     const names: string[] = [];
-    for await (const name of (dir as any).keys()) names.push(name);
+    for await (const name of dir.keys()) names.push(name);
     return names;
   }
 

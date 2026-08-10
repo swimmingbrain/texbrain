@@ -5,7 +5,7 @@ import { HandleFs } from './handle-fs';
 import {
   gitEnabled, gitCurrentBranch, gitBranches,
   gitStagedFiles, gitUnstagedFiles, gitFileStatuses,
-  gitCommitLog, gitLoading, gitSync,
+  gitCommitLog, gitLoading, gitSync, gitProgress,
   gitAuthorName, gitAuthorEmail, gitAuthUsername, gitAuthToken, gitCorsProxy
 } from './store';
 import type { GitFileChange, GitCommitInfo, GitFileDiff, GitDiffLine, GitAuth, MergeResult } from './types';
@@ -372,20 +372,33 @@ function remoteOptions() {
     http,
     corsProxy: getCorsProxy(),
     onAuth: () => auth,
-    onAuthFailure: () => ({ cancel: true })
+    onAuthFailure: () => ({ cancel: true }),
+    onProgress: (p: { phase: string; loaded: number; total?: number }) => {
+      gitProgress.set({ phase: p.phase, loaded: p.loaded, total: p.total || 0 });
+    }
   };
+}
+
+// keeps the progress store honest around a remote operation
+async function withProgress<T>(phase: string, fn: () => Promise<T>): Promise<T> {
+  gitProgress.set({ phase, loaded: 0, total: 0 });
+  try {
+    return await fn();
+  } finally {
+    gitProgress.set(null);
+  }
 }
 
 export async function push(remoteName: string = 'origin', branch?: string): Promise<void> {
   await ensureBuffer();
   const ref = branch || await getCurrentBranch();
-  await git.push({ ...base(), ...remoteOptions(), remote: remoteName, ref });
+  await withProgress('Pushing', () => git.push({ ...base(), ...remoteOptions(), remote: remoteName, ref }));
   cache = {};
 }
 
 export async function fetchRemote(remoteName: string = 'origin'): Promise<void> {
   await ensureBuffer();
-  await git.fetch({ ...base(), ...remoteOptions(), remote: remoteName, prune: true });
+  await withProgress('Fetching', () => git.fetch({ ...base(), ...remoteOptions(), remote: remoteName, prune: true }));
   cache = {};
   gitSync.update(s => ({ ...s, fetchedAt: Date.now() }));
   await getSyncStatus(remoteName);
@@ -421,7 +434,7 @@ export async function getSyncStatus(remoteName: string = 'origin'): Promise<void
 export async function pull(remoteName: string = 'origin', branch?: string): Promise<void> {
   await ensureBuffer();
   const ref = branch || await getCurrentBranch();
-  await git.pull({ ...base(), ...remoteOptions(), remote: remoteName, ref, author: author() });
+  await withProgress('Pulling', () => git.pull({ ...base(), ...remoteOptions(), remote: remoteName, ref, author: author() }));
   cache = {};
 }
 
@@ -433,7 +446,7 @@ export async function cloneInto(handle: FileSystemDirectoryHandle, url: string):
   if (entries.length > 0) {
     throw new Error('That folder is not empty. Pick a new name or an empty folder.');
   }
-  await git.clone({ fs, dir: DIR, ...remoteOptions(), url, singleBranch: false });
+  await withProgress('Cloning', () => git.clone({ fs, dir: DIR, ...remoteOptions(), url, singleBranch: false }));
 }
 
 export async function getFileDiff(filepath: string): Promise<GitFileDiff> {

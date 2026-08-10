@@ -17,7 +17,7 @@
   import { collabActive, collabPanelOpen, collabPeers, collabConnected } from '$lib/collab/store';
   import { createRoom, joinRoom, leaveRoom, getYTextWithUndo, getAwareness, setCurrentFile, getSharedFileList, getSharedEntryPoint, isHost, requestCompile, setCompileStatus, setCompileResult, observeCompileState, readCompileState, collectFilesFromYjs } from '$lib/collab/provider';
   import { collabRoom } from '$lib/collab/store';
-  import { gitPanelOpen, gitEnabled, gitChangeCount, gitAuthToken, gitAuthUsername } from '$lib/git/store';
+  import { gitPanelOpen, gitEnabled, gitChangeCount, gitAuthToken, gitAuthUsername, gitProgress } from '$lib/git/store';
   import { describeGitError, troubleText } from '$lib/git/errors';
   import {
     openRepo as gitOpenRepo, initRepo as gitInitRepo, refreshGitState, notifyFilesChanged,
@@ -1295,7 +1295,7 @@
             <button class="welcome-btn primary" on:click={handleClone} disabled={cloning || !cloneUrl.trim() || !cloneName.trim()}>
               {#if cloning}
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3" stroke-dasharray="8 4" class="spin"/></svg>
-                Cloning...
+                {$gitProgress && $gitProgress.total > 0 ? `${$gitProgress.phase} ${Math.round(($gitProgress.loaded / $gitProgress.total) * 100)}%` : 'Cloning...'}
               {:else}
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 12V3M4 7l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 {hasFolderAccess ? 'Choose Location & Clone' : 'Clone'}

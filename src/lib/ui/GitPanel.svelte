@@ -2,7 +2,7 @@
   import { get } from 'svelte/store';
   import {
     gitPanelOpen, gitPanelTab, gitEnabled, gitCurrentBranch, gitBranches,
-    gitStagedFiles, gitUnstagedFiles, gitCommitLog, gitLoading, gitChangeCount, gitSync,
+    gitStagedFiles, gitUnstagedFiles, gitCommitLog, gitLoading, gitChangeCount, gitSync, gitProgress,
     gitAuthorName, gitAuthorEmail, gitAuthUsername, gitAuthToken, gitCorsProxy, gitDiffFile, gitFileStatuses
   } from '$lib/git/store';
   import {
@@ -847,7 +847,12 @@
           {/if}
         </div>
 
-        {#if $gitLoading}
+        {#if $gitProgress}
+          <div class="progress" role="status" aria-live="polite">
+            <span>{$gitProgress.phase}{$gitProgress.total > 0 ? ` ${Math.round(($gitProgress.loaded / $gitProgress.total) * 100)}%` : '...'}</span>
+            <div class="progress-track"><div class="progress-fill" style="width:{$gitProgress.total > 0 ? Math.round(($gitProgress.loaded / $gitProgress.total) * 100) : 100}%" class:indeterminate={$gitProgress.total === 0}></div></div>
+          </div>
+        {:else if $gitLoading}
           <div class="loading-bar"></div>
         {/if}
       {/if}
@@ -1017,6 +1022,21 @@
   }
   .file-action:hover { background: var(--bg-hover); }
   .sync-line { font-size: 11px; color: var(--text-secondary); font-family: var(--font-editor); margin: 6px 0 0; }
+  .progress {
+    padding: 6px 14px 8px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    font-family: var(--font-editor);
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .progress-track { height: 3px; background: var(--bg-hover); overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); transition: width 0.2s; }
+  .progress-fill.indeterminate { width: 40% !important; animation: slide 1.2s ease-in-out infinite; }
+  @keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
   .file-action.discard { font-size: 11px; }
   .file-action.discard:hover { color: var(--error); }
   .file-action.add { color: var(--success); }

@@ -28,6 +28,14 @@ export interface GitSyncState {
 }
 export const gitSync = writable<GitSyncState>({ remoteBranch: null, ahead: 0, behind: 0, fetchedAt: null });
 
+// what a clone, fetch, pull or push is doing right now, null when idle
+export interface GitProgress {
+  phase: string;
+  loaded: number;
+  total: number;
+}
+export const gitProgress = writable<GitProgress | null>(null);
+
 export const gitChangeCount = derived(
   [gitStagedFiles, gitUnstagedFiles],
   ([$staged, $unstaged]) => $staged.length + $unstaged.length

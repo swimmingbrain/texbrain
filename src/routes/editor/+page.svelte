@@ -21,7 +21,7 @@
   import { describeGitError, troubleText } from '$lib/git/errors';
   import {
     openRepo as gitOpenRepo, initRepo as gitInitRepo, refreshGitState, notifyFilesChanged,
-    stageAll as gitStageAll, commit as gitCommit
+    stageAll as gitStageAll, commit as gitCommit, hasAuthor as gitHasAuthor
   } from '$lib/git/engine';
 
   import Logo from '$lib/ui/Logo.svelte';
@@ -850,10 +850,14 @@
     buildEditor();
   }
 
+  // a first commit right away when we know who to sign it with, otherwise
+  // the files wait in the changes tab
   async function handleGitInit() {
     await gitInitRepo();
-    await gitStageAll();
-    await gitCommit('initial commit');
+    if (gitHasAuthor()) {
+      await gitStageAll();
+      await gitCommit('initial commit');
+    }
     await refreshGitState();
   }
 

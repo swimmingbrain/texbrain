@@ -122,6 +122,8 @@
     await refreshGitState();
   }
 
+  $: authorMissing = !$gitAuthorName.trim() || !$gitAuthorEmail.trim();
+
   async function handleCommit() {
     const msg = commitMsg.trim();
     if (!msg) { addToast('Enter a commit message', 'warning'); return; }
@@ -134,7 +136,7 @@
       await refreshGitState();
       addToast(`Committed ${sha.slice(0, 7)}`, 'success');
     } catch (err: any) {
-      addToast('Commit failed: ' + (err?.message || err), 'error');
+      reportTrouble(err, 'Commit');
     } finally {
       operating = false;
     }
@@ -580,15 +582,32 @@
               <p class="empty-msg">No unstaged changes</p>
             {/if}
 
+            {#if authorMissing}
+              <div class="author-prompt">
+                <p class="author-prompt-title">First, who are you?</p>
+                <p class="hint">Every commit is signed with a name and an email. They are saved in this browser, so this is a one time thing.</p>
+                <div class="field">
+                  <label for="author-name">Name</label>
+                  <input id="author-name" type="text" bind:value={$gitAuthorName} placeholder="Your name" class="field-input" />
+                </div>
+                <div class="field">
+                  <label for="author-email">Email</label>
+                  <input id="author-email" type="email" bind:value={$gitAuthorEmail} placeholder="your@email.com" class="field-input" />
+                </div>
+              </div>
+            {/if}
+
             <div class="commit-form">
+              <label for="commit-message" class="visually-hidden">Commit message</label>
               <textarea
+                id="commit-message"
                 class="commit-input"
                 bind:value={commitMsg}
-                placeholder="Commit message..."
+                placeholder="What did you change? (Ctrl+Enter to commit)"
                 rows="3"
                 on:keydown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); handleCommit(); } }}
               ></textarea>
-              <button class="btn primary commit-btn" on:click={handleCommit} disabled={operating || $gitStagedFiles.length === 0 || !commitMsg.trim()}>
+              <button class="btn primary commit-btn" on:click={handleCommit} disabled={operating || authorMissing || $gitStagedFiles.length === 0 || !commitMsg.trim()}>
                 {operating ? 'Committing...' : `Commit (${$gitStagedFiles.length} file${$gitStagedFiles.length !== 1 ? 's' : ''})`}
               </button>
             </div>
@@ -1022,6 +1041,16 @@
   }
   .file-action:hover { background: var(--bg-hover); }
   .sync-line { font-size: 11px; color: var(--text-secondary); font-family: var(--font-editor); margin: 6px 0 0; }
+  .author-prompt {
+    border: 1px solid var(--accent);
+    background: var(--accent-dim);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .author-prompt-title { font-size: 12.5px; font-weight: 600; color: var(--text-primary); margin: 0; }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .progress {
     padding: 6px 14px 8px;
     border-top: 1px solid var(--border);

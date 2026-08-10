@@ -190,11 +190,17 @@ export async function unstageAll(): Promise<void> {
   }
 }
 
+export function hasAuthor(): boolean {
+  return !!get(gitAuthorName).trim() && !!get(gitAuthorEmail).trim();
+}
+
+// every commit carries a name and an email, a made up placeholder would end
+// up in the history of every repository forever
 function author() {
-  return {
-    name: get(gitAuthorName) || 'TeXbrain User',
-    email: get(gitAuthorEmail) || 'user@texbrain.local'
-  };
+  if (!hasAuthor()) {
+    throw Object.assign(new Error('Git needs your name and email before it can commit'), { code: 'MissingNameError' });
+  }
+  return { name: get(gitAuthorName).trim(), email: get(gitAuthorEmail).trim() };
 }
 
 export async function commit(message: string): Promise<string> {

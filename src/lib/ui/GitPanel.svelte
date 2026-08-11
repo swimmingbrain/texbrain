@@ -21,7 +21,9 @@
   }
 
   export let onBranchSwitch: () => Promise<void> = async () => {};
-  export let onInitRepo: () => Promise<void> = async () => {};
+  export let onInitRepo: (options: { gitignore: boolean }) => Promise<void> = async () => {};
+
+  let initGitignore = true;
 
   let commitMsg = '';
   let newBranchName = '';
@@ -77,10 +79,10 @@
   async function handleInit() {
     operating = true;
     try {
-      await onInitRepo();
-      addToast('Git repository initialized', 'success');
+      await onInitRepo({ gitignore: initGitignore });
+      addToast(authorMissing ? 'Repository started. Stage your files and make the first commit.' : 'Repository started with a first commit', 'success', 4000);
     } catch (err: any) {
-      addToast('Failed to initialize: ' + (err?.message || err), 'error');
+      reportTrouble(err, 'Start');
     } finally {
       operating = false;
     }
@@ -486,14 +488,51 @@
       </div>
 
       {#if !$gitEnabled}
-        <div class="panel-body center-content">
+        <div class="panel-body">
           <div class="init-prompt">
-            <svg width="40" height="40" viewBox="0 0 16 16" fill="none" style="color:var(--text-muted);margin-bottom:12px"><path d="M15 5.5a3.5 3.5 0 01-5.55 2.83L6.83 11H5v1.5H3.5V14H1v-2.5l5.17-5.17A3.5 3.5 0 1115 5.5zm-2 0a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z" fill="currentColor"/></svg>
-            <p class="init-text">This project is not a Git repository.</p>
-            <p class="init-hint">Initialize version control to track changes, create branches, and sync with a remote.</p>
-            <button class="btn primary" on:click={handleInit} disabled={operating} style="width:100%">
-              {operating ? 'Initializing...' : 'Initialize Repository'}
-            </button>
+            <svg width="40" height="40" viewBox="0 0 16 16" fill="none" style="color:var(--text-muted);margin-bottom:4px" aria-hidden="true"><path d="M15 5.5a3.5 3.5 0 01-5.55 2.83L6.83 11H5v1.5H3.5V14H1v-2.5l5.17-5.17A3.5 3.5 0 1115 5.5zm-2 0a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z" fill="currentColor"/></svg>
+            <p class="init-text">This folder is not tracked by git yet</p>
+            <p class="init-hint">
+              Starting creates a hidden <code>.git</code> folder inside your project. From then on every change can be
+              saved as a commit, you can try things on a branch, and push everything to GitHub or another host.
+              Nothing leaves your machine until you push.
+            </p>
+
+            <div class="init-steps">
+              <div class="init-step">
+                <span class="step-no">1</span>
+                <div class="step-body">
+                  <p class="step-title">Who signs the commits?</p>
+                  <div class="field">
+                    <label for="init-name">Name</label>
+                    <input id="init-name" type="text" bind:value={$gitAuthorName} placeholder="Your name" class="field-input" />
+                  </div>
+                  <div class="field">
+                    <label for="init-email">Email</label>
+                    <input id="init-email" type="email" bind:value={$gitAuthorEmail} placeholder="your@email.com" class="field-input" />
+                  </div>
+                </div>
+              </div>
+              <div class="init-step">
+                <span class="step-no">2</span>
+                <div class="step-body">
+                  <p class="step-title">Keep build files out</p>
+                  <label class="check">
+                    <input type="checkbox" bind:checked={initGitignore} />
+                    Add a .gitignore for .aux, .log, .toc and the other files latex leaves behind
+                  </label>
+                </div>
+              </div>
+              <div class="init-step">
+                <span class="step-no">3</span>
+                <div class="step-body">
+                  <p class="step-title">Start</p>
+                  <button class="btn primary" on:click={handleInit} disabled={operating} style="width:100%">
+                    {operating ? 'Starting...' : authorMissing ? 'Start tracking' : 'Start tracking and make a first commit'}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       {:else}
@@ -977,6 +1016,28 @@
   }
   .init-text { font-size: 13px; color: var(--text-primary); margin: 0; font-weight: 500; }
   .init-hint { font-size: 11.5px; color: var(--text-muted); margin: 0; line-height: 1.5; }
+  .init-hint code { font-family: var(--font-editor); color: var(--text-secondary); }
+  .init-steps { display: flex; flex-direction: column; gap: 14px; margin-top: 14px; text-align: left; width: 100%; }
+  .init-step { display: flex; gap: 10px; align-items: flex-start; }
+  .step-no {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #111;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--font-editor);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+  }
+  .step-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .step-title { font-size: 12px; font-weight: 600; color: var(--text-primary); margin: 0; }
+  .check { display: flex; gap: 8px; align-items: flex-start; font-size: 11.5px; color: var(--text-secondary); line-height: 1.5; cursor: pointer; }
+  .check input { margin-top: 3px; accent-color: var(--accent); }
 
   .section-header {
     display: flex;

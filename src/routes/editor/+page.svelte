@@ -852,8 +852,9 @@
 
   // a first commit right away when we know who to sign it with, otherwise
   // the files wait in the changes tab
-  async function handleGitInit() {
-    await gitInitRepo();
+  async function handleGitInit(options: { gitignore: boolean }) {
+    await gitInitRepo(options);
+    await refreshProjectTree();
     if (gitHasAuthor()) {
       await gitStageAll();
       await gitCommit('initial commit');

@@ -84,9 +84,42 @@ export async function isGitRepo(): Promise<boolean> {
   }
 }
 
-export async function initRepo(): Promise<void> {
+// the files latex leaves behind while compiling. the pdf is left out on
+// purpose, plenty of people want it in the repository
+export const LATEX_GITIGNORE = `# latex build files
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lot
+*.nav
+*.out
+*.run.xml
+*.snm
+*.synctex.gz
+*.toc
+*.vrb
+*.xdv
+
+# uncomment to keep the pdf out as well
+# *.pdf
+`;
+
+export async function initRepo(options: { gitignore?: boolean } = {}): Promise<void> {
   await ensureBuffer();
   await git.init({ ...base(), defaultBranch: 'main' });
+  if (options.gitignore) {
+    const fs = getFs();
+    try {
+      await fs.stat('/.gitignore');
+    } catch {
+      await fs.writeFile('/.gitignore', LATEX_GITIGNORE);
+    }
+  }
   cache = {};
   gitEnabled.set(true);
   gitCurrentBranch.set('main');

@@ -65,8 +65,20 @@
         {#if p.fix}
           <p class="fix"><span class="fix-label">Try</span>{p.fix}</p>
         {/if}
+        {#if p.context && (p.context.before || p.context.after)}
+          <div class="spot">
+            <code class="spot-code"><span>{p.context.before}</span><span class="spot-mark" role="img" aria-label="TeX stopped reading here"></span><span class="spot-after">{p.context.after}</span></code>
+            <span class="spot-label">the line as TeX read it, the bar is where it stopped</span>
+          </div>
+        {/if}
         {#if p.message !== p.title}
           <p class="said"><span class="said-label">LaTeX said</span><code>{p.message}</code></p>
+        {/if}
+        {#if p.excerpt.length > 1}
+          <details class="raw">
+            <summary>What the log says</summary>
+            <pre>{p.excerpt.join('\n')}</pre>
+          </details>
         {/if}
       </article>
     {/each}
@@ -132,6 +144,44 @@
     letter-spacing: 0.04em;
     color: var(--accent);
     padding-top: 2px;
+  }
+  .spot { display: flex; flex-direction: column; gap: 3px; }
+  .spot-code {
+    display: block;
+    font-family: var(--font-editor);
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--text-primary);
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    padding: 5px 8px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .spot-mark {
+    display: inline-block;
+    width: 2px;
+    height: 1.1em;
+    margin: 0 1px;
+    vertical-align: text-bottom;
+    background: var(--error);
+  }
+  .warning .spot-mark { background: var(--warning); }
+  .spot-after { color: var(--text-muted); }
+  .spot-label { font-size: 9.5px; font-family: var(--font-editor); color: var(--text-muted); }
+  .raw summary { font-size: 10.5px; color: var(--accent); cursor: pointer; }
+  .raw summary:hover { color: var(--accent-hover); }
+  .raw pre {
+    margin: 4px 0 0;
+    padding: 6px 8px;
+    font-family: var(--font-editor);
+    font-size: 10.5px;
+    line-height: 1.45;
+    color: var(--text-muted);
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    white-space: pre-wrap;
+    word-break: break-word;
   }
   .said { font-size: 11px; color: var(--text-muted); margin: 0; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
   .said-label { font-size: 9.5px; font-family: var(--font-editor); text-transform: uppercase; letter-spacing: 0.04em; flex-shrink: 0; padding-top: 2px; }

@@ -13,10 +13,21 @@
   const ORDER = { error: 0, warning: 1, info: 2 };
   const BADGE = { error: 'E', warning: 'W', info: 'N' };
 
+  // notes are about margins and spacing, most people never want them in
+  // the way, so they start hidden
+  let showErrors = true;
+  let showWarnings = true;
+  let showNotes = false;
+
   $: sorted = [...problems].sort((a, b) => ORDER[a.severity] - ORDER[b.severity]);
   $: errors = problems.filter(p => p.severity === 'error').length;
   $: warnings = problems.filter(p => p.severity === 'warning').length;
   $: notes = problems.filter(p => p.severity === 'info').length;
+  $: visible = sorted.filter(p =>
+    (p.severity === 'error' && showErrors) ||
+    (p.severity === 'warning' && showWarnings) ||
+    (p.severity === 'info' && showNotes)
+  );
 
   function plural(n: number, word: string): string {
     return `${n} ${word}${n === 1 ? '' : 's'}`;
@@ -40,10 +51,23 @@
       {/if}
     </div>
   {:else}
-    <p class="summary">
-      {[errors > 0 ? plural(errors, 'error') : '', warnings > 0 ? plural(warnings, 'warning') : '', notes > 0 ? plural(notes, 'note') : ''].filter(Boolean).join(', ')}
-    </p>
-    {#each sorted as p, i (i)}
+    <div class="chips" role="group" aria-label="Which problems to show">
+      <button class="chip error" class:on={showErrors} aria-pressed={showErrors} on:click={() => (showErrors = !showErrors)} disabled={errors === 0}>{plural(errors, 'error')}</button>
+      <button class="chip warning" class:on={showWarnings} aria-pressed={showWarnings} on:click={() => (showWarnings = !showWarnings)} disabled={warnings === 0}>{plural(warnings, 'warning')}</button>
+      <button class="chip info" class:on={showNotes} aria-pressed={showNotes} on:click={() => (showNotes = !showNotes)} disabled={notes === 0} title="Overfull lines, stretched spaces, substituted fonts">{plural(notes, 'note')}</button>
+    </div>
+    {#if visible.length === 0}
+      <div class="empty">
+        {#if errors === 0 && warnings === 0}
+          <p class="empty-title">No errors, no warnings</p>
+          <p class="empty-hint">{plural(notes, 'note')} about margins and spacing {notes === 1 ? 'is' : 'are'} hidden. Turn them on above if the layout matters right now.</p>
+        {:else}
+          <p class="empty-title">Everything is filtered out</p>
+          <p class="empty-hint">Turn a kind back on above.</p>
+        {/if}
+      </div>
+    {/if}
+    {#each visible as p, i (i)}
       <article class="card {p.severity}">
         <header class="card-head">
           <span class="badge" aria-label={p.severity}>{BADGE[p.severity]}</span>
@@ -92,7 +116,23 @@
   .empty-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin: 0; }
   .empty-hint { font-size: 12px; color: var(--text-muted); margin: 0; max-width: 320px; line-height: 1.5; }
 
-  .summary { font-size: 10.5px; font-family: var(--font-editor); color: var(--text-muted); margin: 0 0 2px; padding: 0 2px; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 2px 2px; }
+  .chip {
+    font-size: 10.5px;
+    font-family: var(--font-editor);
+    padding: 2px 8px;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    background: transparent;
+    cursor: pointer;
+  }
+  .chip:hover:not(:disabled) { background: var(--bg-hover); }
+  .chip:disabled { opacity: 0.4; cursor: default; }
+  .chip.on { color: var(--text-primary); border-color: currentColor; }
+  .chip.error.on { color: var(--error); }
+  .chip.warning.on { color: var(--warning); }
+  .chip.info.on { color: var(--text-secondary); }
+  .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
   .card {
     border: 1px solid var(--border);

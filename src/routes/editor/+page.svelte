@@ -105,6 +105,7 @@
   let windowWidth = 1200;
   let lastActiveFileId: string | null = null;
   let editorContainer: HTMLDivElement | null = null;
+  const fileScrollPositions = new Map<string, number>();
 
   let showCloneForm = false;
   let cloneUrl = '';
@@ -152,6 +153,13 @@
       console.error('editor build:', err);
     }
 
+    if (editorView) {
+      const saved = fileScrollPositions.get(file.id);
+      if (saved !== undefined) {
+        editorView.scrollDOM.scrollTop = saved;
+      }
+    }
+
     lastActiveFileId = file.id;
   }
 
@@ -180,13 +188,30 @@
     };
   }
 
+  // clean up cursor positions when active files change (z.B. file closed)
+  $: {
+    const openIds = new Set($files.map((f) => f.id));
+    for (const id of fileScrollPositions.keys()) {
+      if (!openIds.has(id)) fileScrollPositions.delete(id);
+    }
+  }
+
   // rebuild editor when active file changes (skip drawio files)
   $: if ($activeFile && $activeFile.id !== lastActiveFileId && editorContainer && !isDrawioFile($activeFile.name)) {
+    if (editorView && lastActiveFileId) {
+      fileScrollPositions.set(lastActiveFileId, editorView.scrollDOM.scrollTop);
+    }
+
     if (get(collabActive)) {
       buildEditor();
     } else if (editorView) {
       lastActiveFileId = $activeFile.id;
       replaceEditorContent(editorView, $activeFile.content);
+
+      const saved = fileScrollPositions.get($activeFile.id);
+      if (saved !== undefined) {
+        editorView.scrollDOM.scrollTop = saved;
+      }
     }
   }
 

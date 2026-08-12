@@ -181,12 +181,18 @@
         const annotDiv = document.createElement('div');
         annotDiv.className = 'annotationLayer';
         pageDiv.appendChild(annotDiv);
+        // pdf.js wants the editor and accessibility hooks named even when
+        // they are not used, the links are all this layer is here for
         const al = new pdfjsLib.AnnotationLayer({
           div: annotDiv,
           page,
-          viewport
+          viewport,
+          accessibilityManager: null,
+          annotationCanvasMap: null,
+          annotationEditorUIManager: null,
+          structTreeLayer: null
         });
-        await al.render({ annotations, linkService: makeLinkService(doc) });
+        await al.render({ annotations, linkService: makeLinkService(doc), viewport, div: annotDiv, page, renderForms: false });
       }
 
       cacheTextEntry(num, textContent, viewport.height);

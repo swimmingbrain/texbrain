@@ -155,6 +155,13 @@ export async function handleOpenDirectory() {
   }
 }
 
+// show the picker again with all tex files, so the main file can be
+// changed at any time
+export function reopenEntryPointPicker() {
+  const texPaths = collectTexPaths(get(projectTree));
+  if (texPaths.length > 0) pendingTexFiles.set(texPaths);
+}
+
 export async function selectEntryPoint(path: string) {
   entryPoint.set(path);
   pendingTexFiles.set([]);

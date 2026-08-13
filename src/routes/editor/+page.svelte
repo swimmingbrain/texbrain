@@ -5,7 +5,7 @@
   import { get } from 'svelte/store';
   import { sidebarOpen, previewOpen, snippetPickerOpen, commandPaletteOpen, compileStatus, compileLog, compileErrors, previewTab, addToast } from '$lib/stores/app';
   import { files, activeFile, activeFileId, updateFileContent, projectHandle, entryPoint, openFileTab } from '$lib/project/store';
-  import { handleOpenFile, handleSaveFile, handleSaveFileAs, handleDroppedFiles, handleOpenDirectory, handleNewProject, cloneProject } from '$lib/project/manager';
+  import { handleOpenFile, handleSaveFile, handleSaveFileAs, handleDroppedFiles, handleOpenDirectory, handleNewProject, cloneProject, reopenEntryPointPicker } from '$lib/project/manager';
   import { insertAtCursor, createEditor, replaceEditorContent } from '$lib/editor/setup';
   import type { EditorView } from '@codemirror/view';
   import type { Snippet as SnippetDef } from '$lib/snippets/index';
@@ -1033,7 +1033,7 @@
         <span>{compiling ? 'Compiling...' : 'Compile'}</span>
       </button>
       {#if $entryPoint}
-        <span class="entry-point-label" title="Entry point for compilation">{$entryPoint}</span>
+        <button class="entry-point-label" title="Main file for compilation - click to change" on:click={reopenEntryPointPicker}>{$entryPoint}</button>
       {/if}
       <div class="separator"></div>
       <button class="action-btn" class:git-active={$gitEnabled} on:click={() => gitPanelOpen.update(v => !v)} title="Git (Ctrl+G)" disabled={!$projectHandle}>
@@ -1273,7 +1273,8 @@
   .action-btn.accent:hover:not(:disabled) { background: var(--accent-hover); color: #111; }
   .action-btn span { display: none; }
   @media (min-width: 768px) { .action-btn span { display: inline; } }
-  .entry-point-label { font-size: 10px; color: var(--text-muted); font-family: var(--font-editor); padding: 1px 5px; background: var(--bg-hover); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .entry-point-label { font-size: 10px; color: var(--text-muted); font-family: var(--font-editor); padding: 1px 5px; background: var(--bg-hover); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+  .entry-point-label:hover { color: var(--text-primary); }
   .separator { width: 1px; height: 16px; background: var(--border); margin: 0 3px; }
 
   .toolbar { height: var(--toolbar-h); background: var(--bg-surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 10px; flex-shrink: 0; gap: 6px; }

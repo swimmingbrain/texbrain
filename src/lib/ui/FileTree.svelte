@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { files, activeFileId, setActiveTab, projectTree, projectName, projectHandle } from '$lib/project/store';
-  import { handleOpenFileFromTree, handleOpenDirectory, handleNewFileInProject, handleDeleteFileInProject, handleRenameFileInProject, refreshProjectTree, moveFileInProject } from '$lib/project/manager';
+  import { files, activeFileId, setActiveTab, projectTree, projectName, projectHandle, entryPoint } from '$lib/project/store';
+  import { handleOpenFileFromTree, handleOpenDirectory, handleNewFileInProject, handleDeleteFileInProject, handleRenameFileInProject, refreshProjectTree, moveFileInProject, selectEntryPoint } from '$lib/project/manager';
   import type { TreeEntry } from '$lib/project/types';
   import { gitFileStatuses, gitEnabled } from '$lib/git/store';
 
@@ -132,6 +132,12 @@
   function handleContextRename() {
     if (!contextMenu?.entry) return;
     handleRenameFileInProject(contextMenu.entry);
+    closeContextMenu();
+  }
+
+  function handleContextSetMain() {
+    if (!contextMenu?.entry) return;
+    selectEntryPoint(contextMenu.entry.path);
     closeContextMenu();
   }
 
@@ -276,6 +282,9 @@
           >
             <span class="file-badge" style="color: {getFileColor(entry.name)}">{getFileIcon(entry.name)}</span>
             <span class="entry-name">{entry.name}</span>
+            {#if entry.path === $entryPoint}
+              <span class="main-badge" title="Main file for compilation">main</span>
+            {/if}
             {#if isFileDirty(entry.path)}
               <span class="dirty-dot"></span>
             {/if}
@@ -325,6 +334,12 @@
       New File
     </button>
     {#if contextMenu.entry}
+      {#if contextMenu.entry.type === 'file' && contextMenu.entry.name.endsWith('.tex') && contextMenu.entry.path !== $entryPoint}
+        <button class="ctx-item" on:click={handleContextSetMain}>
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 2l1.8 3.7 4 .6-2.9 2.8.7 4L8 11.2 4.4 13l.7-4L2.2 6.3l4-.6L8 2z" stroke="currentColor" stroke-width="1.2"/></svg>
+          Set as Main File
+        </button>
+      {/if}
       <button class="ctx-item" on:click={handleContextRename}>
         <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M11.5 1.5l3 3-9 9H2.5v-3l9-9z" stroke="currentColor" stroke-width="1.2"/></svg>
         Rename
@@ -481,6 +496,17 @@
     height: 5px;
     border-radius: 50%;
     background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .main-badge {
+    font-size: 8.5px;
+    font-weight: 600;
+    font-family: var(--font-editor);
+    color: var(--accent);
+    background: var(--accent-dim);
+    padding: 0 4px;
+    border-radius: var(--radius-sm);
     flex-shrink: 0;
   }
 

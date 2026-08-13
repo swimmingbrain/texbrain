@@ -1290,7 +1290,7 @@
   .save-dot.unsaved { background: var(--accent); }
 
   .topbar-actions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
-  .action-btn { display: flex; align-items: center; gap: 5px; padding: 5px 10px; font-size: 11.5px; font-weight: 500; color: var(--text-muted); }
+  .action-btn { display: flex; align-items: center; gap: 5px; padding: 5px 10px; font-size: 11.5px; font-weight: 500; color: var(--text-secondary); }
   .action-btn:hover:not(:disabled) { background: var(--bg-hover); color: var(--text-primary); }
   .action-btn:disabled { opacity: 0.35; cursor: default; }
   .action-btn.accent { background: var(--accent); color: #111; }
@@ -1303,7 +1303,7 @@
 
   .toolbar { height: var(--toolbar-h); background: var(--bg-surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 10px; flex-shrink: 0; gap: 6px; }
   .toolbar-group { display: flex; align-items: center; gap: 1px; }
-  .tool-btn { display: flex; align-items: center; gap: 3px; padding: 4px 7px; color: var(--text-muted); font-size: 11.5px; }
+  .tool-btn { display: flex; align-items: center; gap: 3px; padding: 4px 7px; color: var(--text-secondary); font-size: 11.5px; }
   .tool-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
   .tool-btn.active { background: var(--accent-dim); color: var(--accent); }
   .tool-sep { width: 1px; height: 14px; background: var(--border); margin: 0 3px; }

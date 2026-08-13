@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "type": "module",
   "devDependencies": {

@@ -1,0 +1,9 @@
+# line endings stay lf no matter which machine commits
+* text=auto eol=lf
+
+# the bundled tex live subset and the engine are vendored as they are
+static/texlive/** -text
+static/swiftlatex/** -text
+
+*.png binary
+*.wasm binary

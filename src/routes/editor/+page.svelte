@@ -105,6 +105,7 @@
   let windowWidth = 1200;
   let lastActiveFileId: string | null = null;
   let editorContainer: HTMLDivElement | null = null;
+  const fileScrollPositions = new Map<string, number>();
 
   let showCloneForm = false;
   let cloneUrl = '';
@@ -152,7 +153,17 @@
       console.error('editor build:', err);
     }
 
+    restoreScrollPosition(file.id);
+
     lastActiveFileId = file.id;
+  }
+
+  function restoreScrollPosition(fileId: string) {
+    if (!editorView) return;
+    const saved = fileScrollPositions.get(fileId);
+    if (saved !== undefined) {
+      editorView.scrollDOM.scrollTop = saved;
+    }
   }
 
   // svelte action: creates codemirror when the element enters the dom
@@ -180,13 +191,26 @@
     };
   }
 
+  // drop scroll positions of files that are no longer open
+  $: {
+    const openIds = new Set($files.map((f) => f.id));
+    for (const id of fileScrollPositions.keys()) {
+      if (!openIds.has(id)) fileScrollPositions.delete(id);
+    }
+  }
+
   // rebuild editor when active file changes (skip drawio files)
   $: if ($activeFile && $activeFile.id !== lastActiveFileId && editorContainer && !isDrawioFile($activeFile.name)) {
+    if (editorView && lastActiveFileId) {
+      fileScrollPositions.set(lastActiveFileId, editorView.scrollDOM.scrollTop);
+    }
+
     if (get(collabActive)) {
       buildEditor();
     } else if (editorView) {
       lastActiveFileId = $activeFile.id;
       replaceEditorContent(editorView, $activeFile.content);
+      restoreScrollPosition($activeFile.id);
     }
   }
 

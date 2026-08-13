@@ -153,14 +153,17 @@
       console.error('editor build:', err);
     }
 
-    if (editorView) {
-      const saved = fileScrollPositions.get(file.id);
-      if (saved !== undefined) {
-        editorView.scrollDOM.scrollTop = saved;
-      }
-    }
+    restoreScrollPosition(file.id);
 
     lastActiveFileId = file.id;
+  }
+
+  function restoreScrollPosition(fileId: string) {
+    if (!editorView) return;
+    const saved = fileScrollPositions.get(fileId);
+    if (saved !== undefined) {
+      editorView.scrollDOM.scrollTop = saved;
+    }
   }
 
   // svelte action: creates codemirror when the element enters the dom
@@ -188,7 +191,7 @@
     };
   }
 
-  // clean up cursor positions when active files change (z.B. file closed)
+  // drop scroll positions of files that are no longer open
   $: {
     const openIds = new Set($files.map((f) => f.id));
     for (const id of fileScrollPositions.keys()) {
@@ -207,11 +210,7 @@
     } else if (editorView) {
       lastActiveFileId = $activeFile.id;
       replaceEditorContent(editorView, $activeFile.content);
-
-      const saved = fileScrollPositions.get($activeFile.id);
-      if (saved !== undefined) {
-        editorView.scrollDOM.scrollTop = saved;
-      }
+      restoreScrollPosition($activeFile.id);
     }
   }
 

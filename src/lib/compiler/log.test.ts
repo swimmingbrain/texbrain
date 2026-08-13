@@ -3,7 +3,7 @@
 
 import { readFileSync } from 'node:fs';
 import { describe, expect, test } from 'vitest';
-import { parseLog, locateByNeedle } from './log';
+import { parseLog, locateByNeedle, problemText, problemsReport } from './log';
 
 function fixture(name: string): string {
   return readFileSync(new URL(`./fixtures/${name}.log`, import.meta.url), 'utf8');
@@ -126,6 +126,21 @@ describe('parseLog', () => {
   test('the unknown environment points at the package', () => {
     const [p] = problemsOf('undefined-environment');
     expect(p.fix).toContain('\\usepackage{tabularx}');
+  });
+
+  test('a problem as text has the headline, the advice, the spot and the log lines', () => {
+    const [p] = problemsOf('undefined-command');
+    const text = problemText(p);
+    expect(text.split('\n')[0]).toBe('ERROR  welcome.tex, line 4: Unknown command \\foo');
+    expect(text).toContain('Try: Check the spelling');
+    expect(text).toContain('> Hello \\foo|world.');
+    expect(text).toContain('! Undefined control sequence.');
+  });
+
+  test('the report counts what it contains', () => {
+    const report = problemsReport(problemsOf('undefined-reference'), 'main.tex');
+    expect(report.split('\n')[0]).toBe('TeXbrain problems for main.tex (2 warnings)');
+    expect(report).toContain('WARNING  welcome.tex, line 4: No label nope');
   });
 
   test('the cleaned log drops file noise but keeps the errors', () => {

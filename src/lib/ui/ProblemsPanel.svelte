@@ -1,10 +1,21 @@
 <script lang="ts">
-  import type { Problem } from '$lib/compiler/log';
+  import { problemText, problemsReport, type Problem } from '$lib/compiler/log';
+  import { addToast } from '$lib/stores/app';
 
   export let problems: Problem[] = [];
   // whether a compile happened at all, the empty state reads differently
   export let compiled = false;
+  export let mainFile = 'document';
   export let onJump: (p: Problem) => void = () => {};
+
+  async function copy(text: string, what: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      addToast(`${what} copied`, 'success', 1500);
+    } catch {
+      addToast('Could not copy. Select the text and copy it by hand.', 'error');
+    }
+  }
 
   function canJump(p: Problem): boolean {
     return !!p.file && !!p.line && !p.inPackage;
@@ -55,6 +66,8 @@
       <button class="chip error" class:on={showErrors} aria-pressed={showErrors} on:click={() => (showErrors = !showErrors)} disabled={errors === 0}>{plural(errors, 'error')}</button>
       <button class="chip warning" class:on={showWarnings} aria-pressed={showWarnings} on:click={() => (showWarnings = !showWarnings)} disabled={warnings === 0}>{plural(warnings, 'warning')}</button>
       <button class="chip info" class:on={showNotes} aria-pressed={showNotes} on:click={() => (showNotes = !showNotes)} disabled={notes === 0} title="Overfull lines, stretched spaces, substituted fonts">{plural(notes, 'note')}</button>
+      <div style="flex:1"></div>
+      <button class="chip" on:click={() => copy(problemsReport(visible, mainFile), 'All problems')} disabled={visible.length === 0} title="Everything shown here as plain text, ready to paste">Copy all</button>
     </div>
     {#if visible.length === 0}
       <div class="empty">
@@ -82,6 +95,9 @@
           {:else if where(p)}
             <span class="where">{where(p)}</span>
           {/if}
+          <button class="icon-btn" on:click={() => copy(problemText(p), 'Problem')} title="Copy this problem as text" aria-label="Copy this problem as text">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="5" y="5" width="9" height="9" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M11 5V3a1 1 0 00-1-1H3a1 1 0 00-1 1v7a1 1 0 001 1h2" stroke="currentColor" stroke-width="1.2"/></svg>
+          </button>
         </header>
         {#if p.explain}
           <p class="explain">{p.explain}</p>
@@ -167,6 +183,9 @@
   .title { font-size: 12.5px; font-weight: 600; color: var(--text-primary); margin: 0; flex: 1; min-width: 0; text-align: left; }
   .count { font-size: 10px; font-family: var(--font-editor); color: var(--text-muted); }
   .where { font-size: 10.5px; font-family: var(--font-editor); color: var(--text-muted); white-space: nowrap; }
+  .icon-btn { width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); align-self: center; flex-shrink: 0; }
+  .icon-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
+  .icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   .jump { cursor: pointer; }
   .title.jump:hover { text-decoration: underline; }
   .where.jump { color: var(--accent); }

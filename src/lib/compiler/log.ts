@@ -375,3 +375,26 @@ export function parseLog(rawLog: string): ParsedLog {
 export function isImageFile(name: string): boolean {
   return IMAGE_EXT.test(name);
 }
+
+const LABEL = { error: 'ERROR', warning: 'WARNING', info: 'NOTE' };
+
+// one problem as plain text, for pasting into an issue or a chat
+export function problemText(p: Problem): string {
+  const where = [p.file ? (p.inPackage ? `${p.file} (package)` : p.file) : '', p.line ? `line ${p.line}` : ''].filter(Boolean).join(', ');
+  const out = [`${LABEL[p.severity]}${where ? '  ' + where : ''}: ${p.title}${p.count > 1 ? ` (x${p.count})` : ''}`];
+  if (p.explain) out.push(`  ${p.explain}`);
+  if (p.fix) out.push(`  Try: ${p.fix}`);
+  if (p.context && (p.context.before || p.context.after)) out.push(`  > ${p.context.before}|${p.context.after}`);
+  if (p.excerpt.length > 0) out.push(...p.excerpt.map(l => `  ${l}`));
+  else if (p.message !== p.title) out.push(`  ${p.message}`);
+  return out.join('\n');
+}
+
+export function problemsReport(problems: Problem[], mainFile: string): string {
+  const count = (s: Severity, word: string) => {
+    const n = problems.filter(p => p.severity === s).length;
+    return n > 0 ? `${n} ${word}${n === 1 ? '' : 's'}` : '';
+  };
+  const summary = [count('error', 'error'), count('warning', 'warning'), count('info', 'note')].filter(Boolean).join(', ') || 'no problems';
+  return [`TeXbrain problems for ${mainFile} (${summary})`, '', ...problems.map(problemText)].join('\n\n').replace(/\n\n\n/g, '\n\n');
+}

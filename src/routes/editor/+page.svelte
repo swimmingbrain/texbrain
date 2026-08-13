@@ -958,7 +958,7 @@
                 <PdfViewer bind:this={pdfViewer} {pdfData} />
               </div>
             {:else if $previewTab === 'problems'}
-              <ProblemsPanel problems={$compileProblems} compiled={$compileStatus !== 'idle'} onJump={jumpToProblem} />
+              <ProblemsPanel problems={$compileProblems} compiled={$compileStatus !== 'idle'} mainFile={$entryPoint || $activeFile?.name || 'document'} onJump={jumpToProblem} />
             {:else}
               <div class="log-content">
                 <div class="log-toolbar">

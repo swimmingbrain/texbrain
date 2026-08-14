@@ -390,6 +390,41 @@ export function problemText(p: Problem): string {
   return out.join('\n');
 }
 
+// problems that point at the app rather than the document: a package the
+// mirror should have, a font that didn't load, or an error deep inside a
+// package with no obvious cause
+export function looksLikeOurs(p: Problem): boolean {
+  if (p.severity !== 'error') return false;
+  return p.inPackage || /^(Package|Class) \S+ not found|couldn't be loaded|^The compile stopped here|^TeX ran out of room/.test(p.title);
+}
+
+// a github issue with the compile template, the problem already filled in
+export function issueUrl(p: Problem, mainFile: string): string {
+  const body = [
+    '**What did you compile?**',
+    '',
+    `Main file: ${mainFile}. A minimal document that shows it:`,
+    '',
+    '```latex',
+    '',
+    '```',
+    '',
+    '**What did TeXbrain say?**',
+    '',
+    '```',
+    problemText(p),
+    '```',
+    '',
+    'Full log: Log tab, Download, attached here.',
+    '',
+    '**Browser, and how you opened the project**',
+    '',
+    typeof navigator !== 'undefined' ? navigator.userAgent : ''
+  ].join('\n');
+  const params = new URLSearchParams({ template: 'compile.md', labels: 'compile', title: p.title, body });
+  return `https://github.com/swimmingbrain/texbrain/issues/new?${params.toString()}`;
+}
+
 export function problemsReport(problems: Problem[], mainFile: string): string {
   const count = (s: Severity, word: string) => {
     const n = problems.filter(p => p.severity === s).length;

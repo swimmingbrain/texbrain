@@ -3,7 +3,7 @@
 
 import { readFileSync } from 'node:fs';
 import { describe, expect, test } from 'vitest';
-import { parseLog, locateByNeedle, problemText, problemsReport } from './log';
+import { parseLog, locateByNeedle, problemText, problemsReport, looksLikeOurs, issueUrl } from './log';
 
 function fixture(name: string): string {
   return readFileSync(new URL(`./fixtures/${name}.log`, import.meta.url), 'utf8');
@@ -141,6 +141,15 @@ describe('parseLog', () => {
     const report = problemsReport(problemsOf('undefined-reference'), 'main.tex');
     expect(report.split('\n')[0]).toBe('TeXbrain problems for main.tex (2 warnings)');
     expect(report).toContain('WARNING  welcome.tex, line 4: No label nope');
+  });
+
+  test('a missing package is worth an issue, a typo is not', () => {
+    expect(looksLikeOurs(problemsOf('missing-package')[0])).toBe(true);
+    expect(looksLikeOurs(problemsOf('babel-unknown-option')[0])).toBe(true);
+    expect(looksLikeOurs(problemsOf('undefined-command')[0])).toBe(false);
+    const url = new URL(issueUrl(problemsOf('missing-package')[0], 'main.tex'));
+    expect(url.searchParams.get('title')).toBe('Package doesnotexist not found');
+    expect(url.searchParams.get('body')).toContain('ERROR  welcome.tex: Package doesnotexist not found');
   });
 
   test('the cleaned log drops file noise but keeps the errors', () => {

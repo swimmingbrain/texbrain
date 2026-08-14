@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { problemText, problemsReport, type Problem } from '$lib/compiler/log';
+  import { problemText, problemsReport, looksLikeOurs, issueUrl, type Problem } from '$lib/compiler/log';
   import { addToast } from '$lib/stores/app';
 
   export let problems: Problem[] = [];
@@ -119,6 +119,12 @@
             <summary>What the log says</summary>
             <pre>{p.excerpt.join('\n')}</pre>
           </details>
+        {/if}
+        {#if looksLikeOurs(p)}
+          <p class="report">
+            This may be TeXbrain's doing rather than your document's.
+            <a href={issueUrl(p, mainFile)} target="_blank" rel="noopener">Report it, the details are filled in &#8599;</a>
+          </p>
         {/if}
       </article>
     {/each}
@@ -242,6 +248,9 @@
     white-space: pre-wrap;
     word-break: break-word;
   }
+  .report { font-size: 11px; color: var(--text-muted); margin: 0; line-height: 1.5; }
+  .report a { color: var(--accent); text-decoration: none; }
+  .report a:hover { color: var(--accent-hover); text-decoration: underline; }
   .said { font-size: 11px; color: var(--text-muted); margin: 0; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
   .said-label { font-size: 9.5px; font-family: var(--font-editor); text-transform: uppercase; letter-spacing: 0.04em; flex-shrink: 0; padding-top: 2px; }
   .said code { font-family: var(--font-editor); font-size: 10.5px; color: var(--text-secondary); word-break: break-word; }

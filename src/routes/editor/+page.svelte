@@ -38,6 +38,7 @@
   import EntryPointPicker from '$lib/ui/EntryPointPicker.svelte';
   import PdfViewer from '$lib/ui/PdfViewer.svelte';
   import ProblemsPanel from '$lib/ui/ProblemsPanel.svelte';
+  import LogPanel from '$lib/ui/LogPanel.svelte';
   import CollabPanel from '$lib/ui/CollabPanel.svelte';
   import GitPanel from '$lib/ui/GitPanel.svelte';
   import DrawioEditor from '$lib/ui/DrawioEditor.svelte';
@@ -500,32 +501,9 @@
   $: errorCount = $compileProblems.filter(p => p.severity === 'error').length;
   $: warningCount = $compileProblems.filter(p => p.severity === 'warning').length;
 
-  // the log tab shows a cleaned version by default. the full transcript is
-  // what you want when something fails deep inside a package
-  let fullLog = false;
-
   function logFileName(): string {
     const ep = get(entryPoint);
     return (ep ? ep.replace(/^.*[\\/]/, '').replace(/\.tex$/, '') : 'document') + '.log';
-  }
-
-  async function copyLog() {
-    try {
-      await navigator.clipboard.writeText(get(compileRawLog));
-      addToast('Log copied', 'success', 1500);
-    } catch {
-      addToast('Could not copy, use download instead', 'error');
-    }
-  }
-
-  function downloadLog() {
-    const blob = new Blob([get(compileRawLog)], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = logFileName();
-    a.click();
-    URL.revokeObjectURL(url);
   }
 
   function savePdf() {
@@ -960,30 +938,7 @@
             {:else if $previewTab === 'problems'}
               <ProblemsPanel problems={$compileProblems} compiled={$compileStatus !== 'idle'} mainFile={$entryPoint || $activeFile?.name || 'document'} onJump={jumpToProblem} />
             {:else}
-              <div class="log-content">
-                <div class="log-toolbar">
-                  <button class="log-btn" class:active={fullLog} on:click={() => (fullLog = !fullLog)} aria-pressed={fullLog} title="Everything the engine printed, nothing filtered">Full log</button>
-                  <div style="flex:1"></div>
-                  <button class="log-btn" on:click={copyLog} disabled={!$compileRawLog} title="Copy the full log to the clipboard">Copy</button>
-                  <button class="log-btn" on:click={downloadLog} disabled={!$compileRawLog} title="Download the full log as a file">Download</button>
-                </div>
-                {#if fullLog}
-                  {#if $compileRawLog}
-                    <pre class="log-raw">{$compileRawLog}</pre>
-                  {:else}
-                    <div class="preview-empty"><p>No compilation log yet</p></div>
-                  {/if}
-                {:else}
-                  <div class="log-entries">
-                    {#each $compileLog as entry}
-                      <div class="log-entry" class:error={entry.includes('[Error]') || entry.includes('!')} class:success={entry.includes('successful')}>{entry}</div>
-                    {/each}
-                  </div>
-                  {#if $compileLog.length === 0}
-                    <div class="preview-empty"><p>No compilation log yet</p></div>
-                  {/if}
-                {/if}
-              </div>
+              <LogPanel raw={$compileRawLog} cleaned={$compileLog} fileName={logFileName()} />
             {/if}
           </div>
         {/if}
@@ -1128,17 +1083,6 @@
   .preview-tab.active { color: var(--text-primary); background: var(--bg-hover); }
   .preview-content { flex: 1; overflow: hidden; display: flex; }
 
-  .log-content { flex: 1; overflow-y: auto; font-family: var(--font-editor); font-size: 11px; display: flex; flex-direction: column; }
-  .log-toolbar { display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg-elevated); flex-shrink: 0; }
-  .log-btn { font-size: 10.5px; padding: 2px 8px; color: var(--text-secondary); border: 1px solid var(--border); }
-  .log-btn:hover:not(:disabled) { background: var(--bg-hover); color: var(--text-primary); }
-  .log-btn:disabled { opacity: 0.4; cursor: default; }
-  .log-btn.active { color: var(--accent); border-color: var(--accent); }
-  .log-entries { padding: 8px; }
-  .log-raw { margin: 0; padding: 8px; white-space: pre-wrap; word-break: break-all; color: var(--text-secondary); line-height: 1.45; }
-  .log-entry { padding: 2px 6px; color: var(--text-secondary); margin-bottom: 1px; white-space: pre-wrap; word-break: break-all; }
-  .log-entry.error { color: var(--error); }
-  .log-entry.success { color: var(--success); }
 
   .welcome-state { flex: 1; display: flex; align-items: center; justify-content: center; overflow-y: auto; padding: 32px 20px; }
   .welcome-content { text-align: center; max-width: 560px; }

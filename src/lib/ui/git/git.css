@@ -1,0 +1,253 @@
+/* styles shared by the git panel and its tabs. everything is scoped under
+   .git-panel so nothing leaks into the rest of the editor */
+
+.git-panel .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 4px 0;
+  font-family: var(--font-editor);
+}
+
+/* file lists */
+.git-panel .file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.git-panel .file-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 5px;
+  font-size: 11.5px;
+  font-family: var(--font-editor);
+}
+.git-panel .file-item:hover { background: var(--bg-hover); }
+.git-panel .file-status {
+  font-weight: 700;
+  font-size: 10px;
+  width: 12px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.git-panel .file-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-primary);
+  text-align: left;
+  font-family: var(--font-editor);
+  font-size: 11.5px;
+  cursor: pointer;
+  display: flex;
+}
+.git-panel .file-name:hover { text-decoration: underline; }
+.git-panel .fname-dir { color: var(--text-muted); }
+.git-panel .fname-name { color: var(--text-primary); }
+.git-panel .file-action {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--error);
+  flex-shrink: 0;
+}
+.git-panel .file-action:hover { background: var(--bg-hover); }
+.git-panel .file-action.add { color: var(--success); }
+.git-panel .file-action.discard { font-size: 11px; color: var(--text-muted); }
+.git-panel .file-action.discard:hover { color: var(--error); }
+
+/* forms */
+.git-panel .field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.git-panel .field label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-family: var(--font-editor);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.git-panel .field-input {
+  padding: 6px 8px;
+  font-size: 12px;
+  font-family: var(--font-editor);
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  outline: none;
+  flex: 1;
+  min-width: 0;
+}
+.git-panel .field-input:focus { border-color: var(--accent); }
+.git-panel .field-input::placeholder { color: var(--text-muted); }
+.git-panel select.field-input { cursor: pointer; }
+.git-panel .hint {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.git-panel .hint a { color: var(--accent); text-decoration: none; }
+.git-panel .hint a:hover { color: var(--accent-hover); text-decoration: underline; }
+.git-panel .hint code { font-family: var(--font-editor); color: var(--text-secondary); }
+.git-panel .inline-form {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.git-panel .check {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  cursor: pointer;
+}
+.git-panel .check input { margin-top: 3px; accent-color: var(--accent); }
+
+.git-panel .btn {
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.git-panel .btn.primary { background: var(--accent); color: #111; }
+.git-panel .btn.primary:hover:not(:disabled) { background: var(--accent-hover); }
+.git-panel .btn.secondary { background: var(--bg-deep); color: var(--text-primary); border: 1px solid var(--border); }
+.git-panel .btn.secondary:hover:not(:disabled) { background: var(--bg-hover); }
+.git-panel .btn:disabled { opacity: 0.5; cursor: default; }
+.git-panel .btn.small { padding: 4px 8px; font-size: 10.5px; }
+.git-panel .btn.wide { width: 100%; }
+
+.git-panel .link-btn {
+  font-size: 10.5px;
+  color: var(--accent);
+  cursor: pointer;
+}
+.git-panel .link-btn:hover { color: var(--accent-hover); text-decoration: underline; }
+.git-panel .link-btn.small { font-size: 10px; }
+.git-panel .link-btn.danger { color: var(--error); }
+.git-panel .link-btn.danger:hover { color: var(--error); }
+
+.git-panel .empty-msg {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 4px 0;
+}
+
+/* numbered steps, used when starting a repository and when connecting one */
+.git-panel .steps { display: flex; flex-direction: column; gap: 14px; text-align: left; width: 100%; }
+.git-panel .step { display: flex; gap: 10px; align-items: flex-start; }
+.git-panel .step-no {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #111;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-editor);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+.git-panel .step.done .step-no { background: var(--success); }
+.git-panel .step-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.git-panel .step-title { font-size: 12px; font-weight: 600; color: var(--text-primary); margin: 0; }
+
+.git-panel .notice {
+  border: 1px solid var(--accent);
+  background: var(--accent-dim);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.git-panel .notice-title { font-size: 12.5px; font-weight: 600; color: var(--text-primary); margin: 0; }
+
+.git-panel .visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* diff viewer, used for working tree diffs and inside commit details */
+.git-panel .diff-content {
+  flex: 1;
+  overflow: auto;
+  font-family: var(--font-editor);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.git-panel .diff-content.compact { max-height: 300px; font-size: 10.5px; }
+.git-panel .diff-line {
+  display: flex;
+  white-space: pre;
+  min-height: 17px;
+}
+.git-panel .diff-line-add { background: rgba(115, 201, 145, 0.08); }
+.git-panel .diff-line-remove { background: rgba(224, 108, 117, 0.08); }
+.git-panel .diff-ln {
+  width: 28px;
+  text-align: right;
+  color: var(--text-muted);
+  padding-right: 4px;
+  flex-shrink: 0;
+  user-select: none;
+  opacity: 0.5;
+  font-size: 10px;
+}
+.git-panel .diff-sign {
+  width: 12px;
+  text-align: center;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+.git-panel .diff-line-add .diff-sign { color: var(--success); font-weight: 700; }
+.git-panel .diff-line-remove .diff-sign { color: var(--error); font-weight: 700; }
+.git-panel .diff-text {
+  flex: 1;
+  color: var(--text-primary);
+}
+.git-panel .diff-line-add .diff-text { color: var(--success); }
+.git-panel .diff-line-remove .diff-text { color: var(--error); opacity: 0.8; }
+.git-panel .diff-add { color: var(--success); }
+.git-panel .diff-del { color: var(--error); margin-left: 3px; }
+.git-panel .diff-stats { font-size: 10.5px; font-family: var(--font-editor); }
+
+/* keyboard users should always see where they are */
+.git-panel button:focus-visible,
+.git-panel input:focus-visible,
+.git-panel select:focus-visible,
+.git-panel textarea:focus-visible,
+.git-panel a:focus-visible,
+.git-panel summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}

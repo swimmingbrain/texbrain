@@ -2,7 +2,7 @@ import { writable, derived } from 'svelte/store';
 import type { GitFileChange, GitCommitInfo } from './types';
 
 export const gitPanelOpen = writable(false);
-export const gitPanelTab = writable<'changes' | 'history' | 'branches' | 'remote'>('changes');
+export const gitPanelTab = writable<'changes' | 'history' | 'branches' | 'sync' | 'settings'>('changes');
 
 export const gitEnabled = writable(false);
 export const gitCurrentBranch = writable<string>('main');

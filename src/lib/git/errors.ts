@@ -1,6 +1,8 @@
 // isomorphic-git throws precise but unfriendly errors. this turns them into
 // something a person can act on: what went wrong and what to do about it
 
+import { addToast } from '../stores/app';
+
 export type TroubleKind = 'auth' | 'notfound' | 'network' | 'conflict' | 'checkout' | 'rejected' | 'author' | 'other';
 
 export interface GitTrouble {
@@ -91,4 +93,8 @@ export function describeGitError(err: any, action: string): GitTrouble {
 export function troubleText(t: GitTrouble): string {
   const list = t.files.length > 0 ? ` (${t.files.slice(0, 3).join(', ')}${t.files.length > 3 ? ', ...' : ''})` : '';
   return `${t.title}${list}. ${t.hint}`;
+}
+
+export function reportGitError(err: any, action: string) {
+  addToast(troubleText(describeGitError(err, action)), 'error', 8000);
 }

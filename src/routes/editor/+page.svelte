@@ -1135,7 +1135,6 @@
     color: white;
   }
 
-  .preview-empty { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); font-size: 12px; }
 
   @media (max-width: 600px) { .logo-text { display: none; } }
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { compileStatus } from '$lib/stores/app';
+  import { compileStatus, compileProblems, previewTab, previewOpen } from '$lib/stores/app';
   import { activeFile } from '$lib/project/store';
   import { gitEnabled, gitCurrentBranch } from '$lib/git/store';
 
@@ -7,6 +7,20 @@
   export let cursorCol = 1;
   export let charCount = 0;
   export let wordCount = 0;
+
+  $: errors = $compileProblems.filter(p => p.severity === 'error').length;
+  $: warnings = $compileProblems.filter(p => p.severity === 'warning').length;
+
+  function plural(n: number, word: string): string {
+    return `${n} ${word}${n === 1 ? '' : 's'}`;
+  }
+
+  // one click from the status bar to the problems, even when the preview
+  // pane is closed
+  function showProblems() {
+    previewOpen.set(true);
+    previewTab.set('problems');
+  }
 </script>
 
 <div class="status-bar">
@@ -26,6 +40,12 @@
         Idle
       {/if}
     </span>
+    {#if $compileStatus !== 'compiling' && (errors > 0 || warnings > 0)}
+      <span class="sep"></span>
+      <button class="status-item problems" class:has-errors={errors > 0} on:click={showProblems} title="Show the problems">
+        {[errors > 0 ? plural(errors, 'error') : '', warnings > 0 ? plural(warnings, 'warning') : ''].filter(Boolean).join(', ')}
+      </button>
+    {/if}
     {#if $gitEnabled}
       <span class="sep"></span>
       <span class="status-item">
@@ -89,6 +109,10 @@
     background: var(--border);
     margin: 0 4px;
   }
+
+  .problems { color: var(--warning); cursor: pointer; font-family: inherit; font-size: inherit; padding: 0 2px; }
+  .problems.has-errors { color: var(--error); }
+  .problems:hover { text-decoration: underline; }
 
   .dot {
     width: 5px;

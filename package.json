@@ -35,7 +35,6 @@
     "buffer": "^6.0.3",
     "idb-keyval": "^6.2.1",
     "isomorphic-git": "^1.27.1",
-    "latex.js": "^0.12.6",
     "pdfjs-dist": "^4.9.155",
     "y-codemirror.next": "^0.3.5",
     "y-webrtc": "^10.3.0",

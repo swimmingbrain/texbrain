@@ -1,6 +1,7 @@
 <script lang="ts">
   import { gitPanelOpen, gitPanelTab, gitEnabled, gitCurrentBranch, gitChangeCount, gitLoading, gitProgress, gitSync } from '$lib/git/store';
   import { refreshGitState } from '$lib/git/engine';
+  import { tick } from 'svelte';
   import StartRepo from './git/StartRepo.svelte';
   import ChangesTab from './git/ChangesTab.svelte';
   import HistoryTab from './git/HistoryTab.svelte';
@@ -25,23 +26,59 @@
     refreshGitState();
   }
 
+  // keyboard users land inside the panel when it opens and get back to
+  // where they were when it closes
+  let panelEl: HTMLDivElement | null = null;
+  let opener: HTMLElement | null = null;
+
+  $: if ($gitPanelOpen) {
+    opener = document.activeElement as HTMLElement | null;
+    tick().then(() => {
+      panelEl?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"], input, button')?.focus();
+    });
+  }
+
   function close() {
     gitPanelOpen.set(false);
+    opener?.focus();
+    opener = null;
   }
 
   function handleOverlayClick(e: MouseEvent) {
     if (e.target === e.currentTarget) close();
   }
 
+  function focusable(): HTMLElement[] {
+    if (!panelEl) return [];
+    return [...panelEl.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], summary')]
+      .filter(el => el.offsetParent !== null);
+  }
+
   function handleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape') close();
+    if (e.key === 'Escape') { close(); return; }
+    if (e.key !== 'Tab') return;
+    const items = focusable();
+    if (items.length === 0) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+
+  // left and right move between tabs, like a native tab strip
+  function handleTabKeys(e: KeyboardEvent, index: number) {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    const next = (index + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length;
+    gitPanelTab.set(tabs[next].id);
+    tick().then(() => panelEl?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')?.focus());
   }
 </script>
 
 {#if $gitPanelOpen}
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="git-overlay" on:click={handleOverlayClick} on:keydown={handleKeydown}>
-    <div class="git-panel">
+    <div class="git-panel" role="dialog" aria-modal="true" aria-label="Git" bind:this={panelEl}>
       <div class="panel-header">
         <h3>
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="margin-right:6px;vertical-align:-2px" aria-hidden="true"><path d="M15 5.5a3.5 3.5 0 01-5.55 2.83L6.83 11H5v1.5H3.5V14H1v-2.5l5.17-5.17A3.5 3.5 0 1115 5.5zm-2 0a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z" fill="currentColor"/></svg>
@@ -67,13 +104,15 @@
         </div>
       {:else}
         <div class="tab-bar" role="tablist" aria-label="Git">
-          {#each tabs as tab (tab.id)}
+          {#each tabs as tab, i (tab.id)}
             <button
               class="tab"
               class:active={$gitPanelTab === tab.id}
               role="tab"
               aria-selected={$gitPanelTab === tab.id}
+              tabindex={$gitPanelTab === tab.id ? 0 : -1}
               on:click={() => gitPanelTab.set(tab.id)}
+              on:keydown={(e) => handleTabKeys(e, i)}
             >
               {tab.label}
               {#if tab.id === 'changes' && $gitChangeCount > 0}<span class="tab-badge">{$gitChangeCount}</span>{/if}

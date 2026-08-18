@@ -783,8 +783,14 @@
     { id: 'snippet', label: 'Insert Snippet', shortcut: 'Ctrl+/', action: () => snippetPickerOpen.set(true), category: 'edit' },
     { id: 'preview', label: 'Show Preview', shortcut: '', action: () => previewTab.set('preview'), category: 'view' },
     { id: 'log', label: 'Show Log', shortcut: '', action: () => previewTab.set('log'), category: 'view' },
-    { id: 'git', label: 'Toggle Git Panel', shortcut: 'Ctrl+G', action: () => gitPanelOpen.update(v => !v), category: 'view' },
+    { id: 'git', label: 'Toggle Git Panel', shortcut: 'Ctrl+G', action: toggleGitPanel, category: 'view' },
   ];
+
+  // git works on the project folder, single files have nothing to track
+  function toggleGitPanel() {
+    if (get(projectHandle)) gitPanelOpen.update(v => !v);
+    else addToast('Git needs a project folder. Open one, or create a new project, and the git button wakes up.', 'info', 5000);
+  }
 
   function handleGlobalKeydown(e: KeyboardEvent) {
     const mod = e.ctrlKey || e.metaKey;
@@ -795,7 +801,7 @@
     else if (mod && e.key === 'Enter') { e.preventDefault(); compilePreview(); }
     else if (mod && e.key === 'b') { e.preventDefault(); sidebarOpen.update(v => !v); }
     else if (mod && e.key === '/') { e.preventDefault(); snippetPickerOpen.update(v => !v); }
-    else if (mod && e.key === 'g') { e.preventDefault(); if (get(projectHandle)) gitPanelOpen.update(v => !v); }
+    else if (mod && e.key === 'g') { e.preventDefault(); toggleGitPanel(); }
     else if (mod && e.key === 'p') { e.preventDefault(); previewOpen.update(v => !v); }
     else if (e.key === 'Escape') { commandPaletteOpen.set(false); snippetPickerOpen.set(false); if (!cloning) cloneDialogOpen.set(false); }
   }
@@ -1082,7 +1088,7 @@
         <button class="entry-point-label" title="Main file for compilation - click to change" on:click={reopenEntryPointPicker}>{$entryPoint}</button>
       {/if}
       <div class="separator"></div>
-      <button class="action-btn" class:git-active={$gitEnabled} on:click={() => gitPanelOpen.update(v => !v)} title="Git (Ctrl+G)" disabled={!$projectHandle}>
+      <button class="action-btn" class:git-active={$gitEnabled} on:click={toggleGitPanel} title={$projectHandle ? ($gitEnabled ? 'Git (Ctrl+G)' : 'Git (Ctrl+G), this folder is not tracked yet') : 'Git needs a project folder, open one first'} aria-disabled={!$projectHandle}>
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15 5.5a3.5 3.5 0 01-5.55 2.83L6.83 11H5v1.5H3.5V14H1v-2.5l5.17-5.17A3.5 3.5 0 1115 5.5zm-2 0a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z" fill="currentColor"/></svg>
         <span>Git</span>
         {#if $gitChangeCount > 0}<span class="git-change-badge">{$gitChangeCount}</span>{/if}
@@ -1464,6 +1470,7 @@
 
   .action-btn.git-active { color: var(--accent); }
   .action-btn.git-active:hover { color: var(--accent); }
+  .action-btn[aria-disabled="true"] { opacity: 0.35; }
   .git-change-badge {
     font-size: 9px;
     font-weight: 700;

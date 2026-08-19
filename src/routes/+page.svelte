@@ -5,7 +5,7 @@
 
 <svelte:head>
   <title>TeXbrain | LaTeX Editor in Your Browser</title>
-  <meta name="description" content="Write and compile LaTeX to PDF entirely in your browser. No sign-up, no installs, no server. Local files, live preview, built-in git, and real-time collaboration." />
+  <meta name="description" content="Write and compile LaTeX to PDF entirely in your browser. No sign-up, no installs, no server. Local files, live preview, built-in git, and packages loaded on demand." />
   <link rel="canonical" href="https://tex.swimmingbrain.dev/" />
   <meta property="og:title" content="TeXbrain | LaTeX Editor in Your Browser" />
   <meta property="og:description" content="Write and compile LaTeX to PDF entirely in your browser. No sign-up, no installs, no server." />
@@ -23,7 +23,7 @@
     "description": "Online LaTeX editor that compiles to PDF entirely in your browser. No accounts, no installs, no servers.",
     "author": { "@type": "Person", "name": "Braian Plaku", "url": "https://swimmingbrain.dev" },
     "license": "https://opensource.org/licenses/MIT",
-    "featureList": ["Browser-based LaTeX compilation", "Live PDF preview", "Built-in git integration", "Real-time collaboration", "Works offline", "Local file system access"]
+    "featureList": ["Browser-based LaTeX compilation", "Live PDF preview", "Built-in git integration", "On-demand package loading", "Works offline", "Local file system access"]
   })}</script>`}
 </svelte:head>
 
@@ -63,9 +63,9 @@
         <div class="feature-pills">
           <span class="pill">local files</span>
           <span class="pill">live preview</span>
-          <span class="pill">collaboration</span>
           <span class="pill">built-in git</span>
           <span class="pill">works offline</span>
+          <span class="pill">no accounts</span>
         </div>
       </div>
 
@@ -136,8 +136,8 @@
           <p>Open project folders straight from your file system. Nothing gets uploaded anywhere unless you push it yourself.</p>
         </div>
         <div class="feature">
-          <h3>Collaborate live</h3>
-          <p>Send someone a link and write together in the same document. Peer to peer, no account needed on either side.</p>
+          <h3>Packages on demand</h3>
+          <p>Common packages ship with the app. Anything else is fetched from a TeX Live mirror the first time a document needs it and cached, so it works offline afterwards.</p>
         </div>
         <div class="feature">
           <h3>Works offline</h3>

@@ -2,7 +2,7 @@
   "name": "TeXbrain",
   "short_name": "TeXbrain",
   "author": "Braian Plaku",
-  "description": "LaTeX editor that runs in your browser. Compile to PDF with live preview, git integration, and real-time collaboration. No account needed.",
+  "description": "LaTeX editor that runs in your browser. Compile to PDF with live preview, git integration, and offline support. No account needed.",
   "start_url": "/editor",
   "display": "standalone",
   "background_color": "#0c0d12",

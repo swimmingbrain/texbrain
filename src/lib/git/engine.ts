@@ -109,6 +109,18 @@ export const LATEX_GITIGNORE = `# latex build files
 # *.pdf
 `;
 
+// creates the gitignore, or adds the latex block to the one that is there
+export async function addLatexGitignore(): Promise<void> {
+  const fs = getFs();
+  let existing = '';
+  try {
+    existing = await fs.readFile('/.gitignore', 'utf8') as string;
+  } catch { /* none yet */ }
+  if (existing.includes('*.aux')) return;
+  await fs.writeFile('/.gitignore', existing ? existing.replace(/\s*$/, '\n\n') + LATEX_GITIGNORE : LATEX_GITIGNORE);
+  cache = {};
+}
+
 export async function initRepo(options: { gitignore?: boolean } = {}): Promise<void> {
   await ensureBuffer();
   await git.init({ ...base(), defaultBranch: 'main' });

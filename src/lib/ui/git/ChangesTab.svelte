@@ -1,6 +1,6 @@
 <script lang="ts">
   import { gitStagedFiles, gitUnstagedFiles, gitCurrentBranch, gitAuthorName, gitAuthorEmail } from '$lib/git/store';
-  import { stageFile, unstageFile, stageAll, unstageAll, discardChanges, commit, refreshGitState, getFileDiff } from '$lib/git/engine';
+  import { stageFile, unstageFile, stageAll, unstageAll, discardChanges, commit, refreshGitState, getFileDiff, addLatexGitignore } from '$lib/git/engine';
   import { reportGitError } from '$lib/git/errors';
   import { addToast } from '$lib/stores/app';
   import type { GitFileDiff } from '$lib/git/types';
@@ -15,6 +15,25 @@
   let diff: GitFileDiff | null = null;
 
   $: authorMissing = !$gitAuthorName.trim() || !$gitAuthorEmail.trim();
+
+  // files latex writes on every compile. they show up as new files when a
+  // folder was compiled locally before, and nobody wants them in a repository
+  const BUILD_FILE = /\.(aux|log|toc|out|bbl|blg|bcf|fls|fdb_latexmk|synctex\.gz|lof|lot|nav|snm|vrb|run\.xml|xdv)$/i;
+  $: buildFiles = $gitUnstagedFiles.filter(f => f.status === 'untracked' && BUILD_FILE.test(f.path));
+
+  async function handleIgnoreBuildFiles() {
+    operating = true;
+    try {
+      await addLatexGitignore();
+      await onReload();
+      await refreshGitState();
+      addToast('Added a .gitignore, the build files are out of the way', 'success', 4000);
+    } catch (err) {
+      reportGitError(err, 'Gitignore');
+    } finally {
+      operating = false;
+    }
+  }
 
   async function handleStage(path: string) {
     await stageFile(path);
@@ -117,6 +136,14 @@
             <button class="file-action" on:click={() => handleUnstage(file.path)} title="Unstage" aria-label="Unstage {file.path}">&#x2212;</button>
           </div>
         {/each}
+      </div>
+    {/if}
+
+    {#if buildFiles.length > 0}
+      <div class="notice">
+        <p class="notice-title">Build files are showing up</p>
+        <p class="hint">{buildFiles.length} file{buildFiles.length === 1 ? '' : 's'} like {fileName(buildFiles[0].path)} change on every compile and don't belong in a repository.</p>
+        <button class="btn secondary small" on:click={handleIgnoreBuildFiles} disabled={operating}>Add a .gitignore for them</button>
       </div>
     {/if}
 

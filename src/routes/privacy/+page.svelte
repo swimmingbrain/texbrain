@@ -34,10 +34,10 @@
     <h2>Data Storage</h2>
     <p>
       TeXbrain uses your browser's storage (localStorage, IndexedDB, Cache Storage and the origin private
-      file system) to cache TeX Live packages, keep git repositories and your editor preferences, and to
-      hold projects created in browsers without direct folder access. Git credentials you enter are kept
-      in localStorage as well. None of this leaves your browser and all of it can be cleared at any time
-      through your browser settings.
+      file system) to cache TeX Live packages, keep your editor preferences, and to hold projects, including
+      their git history, created in browsers without direct folder access. For projects opened from a folder
+      on your disk, git keeps its data in that folder. Git credentials you enter are kept in localStorage.
+      None of this leaves your browser and all of it can be cleared at any time through your browser settings.
     </p>
 
     <h2>Files</h2>

@@ -18,7 +18,7 @@ Open `http://localhost:5173` in Chrome or Edge. Firefox and Safari work too, the
 - `src/lib/compiler` talks to the pdfTeX engine (SwiftLaTeX) and handles the bibliography fallback.
 - `src/lib/editor` is the CodeMirror setup: the LaTeX grammar, autocomplete, keybindings and theme.
 - `src/lib/fs` reads and writes files through the File System Access API, the origin private file system for browsers without it, and plain downloads as a last resort.
-- `src/lib/git` wraps isomorphic-git and LightningFS.
+- `src/lib/git` wraps isomorphic-git. `handle-fs.ts` is the file system adapter that lets it run on the project folder, `engine.ts` the operations, `errors.ts` turns its errors into something readable. The panel lives in `src/lib/ui/git`, one file per tab.
 - `src/lib/project` holds the open files, the project tree and everything the toolbar calls.
 - `src/lib/ui` are the Svelte components, `src/routes/editor` is the editor page itself.
 - `static/sw.js` is the service worker that resolves TeX Live files on demand: cache first, then the bundled subset, then the jsDelivr mirror, then the fallback server.

@@ -11,7 +11,8 @@
   import type { EditorView } from '@codemirror/view';
   import type { Snippet as SnippetDef } from '$lib/snippets/index';
   import { compileLaTeX, warmup } from '$lib/compiler/latex-engine';
-  import { placeholderImage } from '$lib/compiler/placeholder-image';
+  import { injectImagePlaceholders, findMissingIncludes, buildIncludeMap } from '$lib/compiler/scan';
+  import { readProjectFiles } from '$lib/fs/read-project';
   import { parseLog, capLogLines } from '$lib/compiler/log';
   import welcomeTex from '$lib/templates/welcome.tex?raw';
   import { yCollab } from 'y-codemirror.next';
@@ -225,14 +226,8 @@
     const projectFiles = new Map<string, string>();
     const binaryFiles = new Map<string, ArrayBuffer>();
     const handle = get(projectHandle);
-
-    if (handle !== fileReadCacheHandle) {
-      fileReadCache = new Map();
-      fileReadCacheHandle = handle;
-    }
-
     if (handle) {
-      await readDirRecursive(handle, '', projectFiles, binaryFiles);
+      await readProjectFiles(handle, projectFiles, binaryFiles);
     }
 
     // override with open tab contents (may have unsaved edits), skip non-tex files
@@ -248,98 +243,6 @@
     }
 
     return { projectFiles, binaryFiles };
-  }
-
-  // scan all tex files for \includegraphics targets no project file satisfies
-  // and inject a placeholder image so the compile behaves like overleaf:
-  // the pdf still builds, the missing image shows as a gray box
-  function injectImagePlaceholders(projectFiles: Map<string, string>, binaryFiles: Map<string, ArrayBuffer>): string[] {
-    const imageExts = ['.png', '.pdf', '.jpg', '.jpeg', '.eps'];
-    const known = [...projectFiles.keys(), ...binaryFiles.keys()];
-    const satisfied = (candidate: string) =>
-      known.some(k => k === candidate || k.endsWith('/' + candidate));
-
-    const missing: string[] = [];
-    const re = /^[^%\n]*?\\includegraphics\s*(?:\[[^\]]*\])?\s*\{([^}]+)\}/gm;
-    for (const [path, content] of projectFiles) {
-      if (!path.toLowerCase().endsWith('.tex')) continue;
-      let m;
-      while ((m = re.exec(content)) !== null) {
-        const name = m[1].trim().replace(/^\.\//, '');
-        if (!name || name.includes('\\')) continue; // built from a macro
-        const hasExt = imageExts.some(e => name.toLowerCase().endsWith(e));
-        const candidates = hasExt ? [name] : imageExts.map(e => name + e);
-        if (candidates.some(satisfied)) continue;
-        if (!missing.includes(name)) missing.push(name);
-        // pdftex picks the decoder by extension, so the png placeholder can
-        // only stand in for png and extension-less references
-        const target = hasExt ? name : `${name}.png`;
-        if (target.toLowerCase().endsWith('.png') && !binaryFiles.has(target)) {
-          binaryFiles.set(target, placeholderImage());
-        }
-      }
-    }
-    return missing;
-  }
-
-  // \include/\input targets in the entry file that no project file satisfies
-  function findMissingIncludes(projectFiles: Map<string, string>, entryPointPath: string): string[] {
-    const epContent = projectFiles.get(entryPointPath);
-    if (!epContent) return [];
-
-    const missing: string[] = [];
-    const re = /^[^%\n]*?\\(?:input|include)\{([^}]+)\}/gm;
-    let m;
-    while ((m = re.exec(epContent)) !== null) {
-      let name = m[1].trim();
-      if (name.includes('\\')) continue; // built from a macro, can't check statically
-      if (!name.toLowerCase().endsWith('.tex')) name += '.tex';
-      name = name.replace(/^\.\//, '');
-      if (!projectFiles.has(name) && !missing.includes(name)) missing.push(name);
-    }
-    return missing;
-  }
-
-  // build a flattened include map for multi-file fraction calculation
-  function updateIncludeMap(projectFiles: Map<string, string>, entryPointPath: string) {
-    const epContent = projectFiles.get(entryPointPath);
-    if (!epContent) { includeOrder = []; totalDocLines = 0; return; }
-
-    const docStart = epContent.indexOf('\\begin{document}');
-    const contentPart = docStart >= 0 ? epContent.substring(docStart) : epContent;
-
-    includeOrder = [];
-    const visited = new Set<string>();
-    const re = /\\(?:input|include)\{([^}]+)\}/g;
-    let m;
-    while ((m = re.exec(contentPart)) !== null) {
-      let name = m[1];
-      if (!name.endsWith('.tex')) name += '.tex';
-      collectLeafFiles(name, projectFiles, visited);
-    }
-    totalDocLines = includeOrder.reduce((s, f) => s + f.lines, 0);
-  }
-
-  function collectLeafFiles(filePath: string, projectFiles: Map<string, string>, visited: Set<string>) {
-    if (visited.has(filePath)) return;
-    visited.add(filePath);
-
-    const content = projectFiles.get(filePath);
-    if (!content) { includeOrder.push({ path: filePath, lines: 100 }); return; }
-
-    const re = /\\(?:input|include)\{([^}]+)\}/g;
-    let m;
-    let hasIncludes = false;
-    while ((m = re.exec(content)) !== null) {
-      hasIncludes = true;
-      let name = m[1];
-      if (!name.endsWith('.tex')) name += '.tex';
-      collectLeafFiles(name, projectFiles, visited);
-    }
-
-    if (!hasIncludes) {
-      includeOrder.push({ path: filePath, lines: content.split('\n').length });
-    }
   }
 
   // map cursor position to a fraction of the overall document (0-1) for pdf scrolling
@@ -423,7 +326,7 @@
         const handle = get(projectHandle);
         if (handle) {
           try {
-            await readDirRecursive(handle, '', new Map(), binaryFiles);
+            await readProjectFiles(handle, new Map(), binaryFiles);
           } catch {}
         }
       } else {
@@ -434,7 +337,9 @@
 
       const mainFile = get(entryPoint) || af.path || af.name;
 
-      updateIncludeMap(projectFiles, mainFile);
+      const includeMap = buildIncludeMap(projectFiles, mainFile);
+      includeOrder = includeMap.order;
+      totalDocLines = includeMap.totalLines;
 
       // included files that aren't part of the project would silently drop
       // content (or worse, resolve against texlive), so warn upfront
@@ -523,64 +428,6 @@
   async function saveAndCompile() {
     await handleSaveFile();
     doCompile();
-  }
-
-  // re-reading every file from disk on each compile is wasteful, especially
-  // for images. metadata (mtime + size) decides whether the cached copy is
-  // still current. reusing the same objects also lets the compiler skip
-  // re-uploading unchanged files to the engine.
-  let fileReadCache = new Map<string, { lastModified: number; size: number; text?: string; buffer?: ArrayBuffer }>();
-  let fileReadCacheHandle: FileSystemDirectoryHandle | null = null;
-
-  async function readDirRecursive(
-    dirHandle: FileSystemDirectoryHandle,
-    prefix: string,
-    fileMap: Map<string, string>,
-    binaryMap?: Map<string, ArrayBuffer>
-  ): Promise<void> {
-    const textExts = new Set([
-      'tex', 'sty', 'cls', 'bib', 'bst', 'def', 'cfg', 'fd',
-      'dtx', 'ins', 'ltx', 'txt', 'bbx', 'cbx', 'lbx'
-    ]);
-    const binaryExts = new Set([
-      'png', 'jpg', 'jpeg', 'pdf', 'eps', 'svg', 'gif', 'bmp',
-      'tfm', 'pfb', 'vf', 'map', 'enc', 'otf', 'ttf'
-    ]);
-    for await (const entry of dirHandle.values()) {
-      const path = prefix ? `${prefix}/${entry.name}` : entry.name;
-      if (entry.kind === 'file') {
-        const ext = entry.name.split('.').pop()?.toLowerCase() || '';
-        if (textExts.has(ext)) {
-          try {
-            const file = await entry.getFile();
-            const cached = fileReadCache.get(path);
-            if (cached && cached.lastModified === file.lastModified && cached.size === file.size && cached.text !== undefined) {
-              fileMap.set(path, cached.text);
-            } else {
-              const content = await file.text();
-              fileReadCache.set(path, { lastModified: file.lastModified, size: file.size, text: content });
-              fileMap.set(path, content);
-            }
-          } catch {}
-        } else if (binaryMap && binaryExts.has(ext)) {
-          try {
-            const file = await entry.getFile();
-            const cached = fileReadCache.get(path);
-            if (cached && cached.lastModified === file.lastModified && cached.size === file.size && cached.buffer !== undefined) {
-              binaryMap.set(path, cached.buffer);
-            } else {
-              const data = await file.arrayBuffer();
-              fileReadCache.set(path, { lastModified: file.lastModified, size: file.size, buffer: data });
-              binaryMap.set(path, data);
-            }
-          } catch {}
-        }
-      } else if (entry.kind === 'directory') {
-        if (!entry.name.startsWith('.') && entry.name !== 'node_modules' && entry.name !== '__pycache__') {
-          await readDirRecursive(entry, path, fileMap, binaryMap);
-        }
-      }
-    }
   }
 
   function handleEditorUpdate(content: string) {

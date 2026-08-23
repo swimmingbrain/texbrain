@@ -26,7 +26,7 @@ You can open a local project folder, edit your files, see the PDF update, commit
 ## Features
 
 - **LaTeX compilation in the browser.** Uses a WebAssembly port of pdfTeX (SwiftLaTeX). Your `.tex` files are compiled to PDF without ever leaving your machine. Packages are loaded on demand and cached locally, so the first compile only downloads what your document actually uses. Recompilations take 1 to 5 seconds depending on project complexity.
-- **Full package and document class support.** Common packages ship with the app. Anything else (`memoir`, `abntex2`, KOMA-Script, you name it) is resolved automatically from a TeX Live mirror the first time a document needs it, then cached locally for offline use.
+- **Most of CTAN, loaded on demand.** Common packages ship with the app. Anything else (`memoir`, `abntex2`, KOMA-Script, you name it) is resolved automatically from a TeX Live mirror the first time a document needs it, then cached locally for offline use.
 - **Live PDF preview.** Rendered with pdf.js. Multi-page, zoomable, with text selection.
 - **Full git integration.** Clone repos, create branches, stage files, commit, push, pull, merge. All powered by isomorphic-git running in the browser. No CLI needed.
 - **Local file system access.** Uses the File System Access API to read and write directly to your project folder on disk (Chrome/Edge).
@@ -52,6 +52,14 @@ There's no magic and no backend.
 **File system.** The app uses the [File System Access API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API) to read/write your actual files on disk. This requires a Chromium-based browser (Chrome, Edge, Arc, Brave). For other browsers, there's a fallback using the Origin Private File System (OPFS).
 
 **Frontend.** [SvelteKit](https://kit.svelte.dev/) with the static adapter. The entire app is pre-built to static HTML/CSS/JS and deployed to GitHub Pages. No SSR, no API routes, no server. [Tailwind CSS](https://tailwindcss.com/) handles styling.
+
+## Known limitations
+
+- **pdfTeX only.** No XeTeX or LuaTeX, so `fontspec`, `polyglossia` and anything else that needs them won't compile.
+- **No bibtex or biber.** The engine doesn't ship either. Documents using `biblatex` get a plain `thebibliography` generated from the `.bib` file, so references show up but the citation style is ignored. Classic `bibtex` workflows need a `.bbl` in the project. A real bibtex in WASM is next on the list.
+- **TeX Live 2020 era.** Packages are pinned to the same era as the engine's format file, so newer package versions aren't available.
+- **Git remotes need a CORS proxy.** Browsers can't speak the git protocol directly. The default proxy is configurable, see below.
+- **Direct folder access is Chromium only.** Firefox and Safari fall back to a virtual filesystem, see [Browser support](#browser-support).
 
 ## Security and privacy
 

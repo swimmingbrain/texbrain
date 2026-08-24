@@ -7,7 +7,10 @@ const defaultKeymap = _defaultKeymap.filter(k => k.key !== 'Mod-/');
 
 import { foldGutter, foldKeymap, bracketMatching, indentOnInput } from '@codemirror/language';
 import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
-import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
+import { searchKeymap as _searchKeymap, highlightSelectionMatches } from '@codemirror/search';
+
+// Mod-g is "find next" in codemirror and the git panel in the app, the app wins
+const searchKeymap = _searchKeymap.filter(k => k.key !== 'Mod-g');
 import { latexLanguage } from './latex-language';
 import { darkEditorTheme, lightEditorTheme, darkHighlight, lightHighlight } from './theme';
 import { tabKeymap } from './keybindings';

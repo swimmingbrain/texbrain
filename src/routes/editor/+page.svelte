@@ -1004,7 +1004,7 @@
   // unless it was edited
   let welcomeId: string | null = null;
 
-  $: if (welcomeId && $files.length > 1) {
+  $: if (welcomeId && ($files.length > 1 || $projectHandle)) {
     const welcome = $files.find(f => f.id === welcomeId);
     if (welcome && !welcome.dirty) closeFileTab(welcomeId);
     welcomeId = null;

@@ -224,7 +224,7 @@
 
 <svelte:window on:click={closeContextMenu} />
 
-<div class="file-tree" on:contextmenu={handleRootContextMenu}>
+<div class="file-tree" on:contextmenu={handleRootContextMenu} role="region" aria-label="Project files">
   {#if $projectTree.length > 0}
     <div class="tree-header">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
@@ -249,6 +249,7 @@
             class:drop-target={dropTargetPath === entry.path}
             style="padding-left: {8 + depth * 16}px"
             on:click={() => toggleDir(entry.path)}
+            on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleDir(entry.path); } }}
             on:contextmenu|stopPropagation={(e) => handleContextMenu(e, entry)}
             on:dragover={(e) => handleDirDragOver(e, entry)}
             on:dragleave={(e) => handleDirDragLeave(e, entry)}
@@ -274,6 +275,7 @@
             style="padding-left: {22 + depth * 16}px"
             draggable="true"
             on:click={() => handleFileClick(entry)}
+            on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFileClick(entry); } }}
             on:contextmenu|stopPropagation={(e) => handleContextMenu(e, entry)}
             on:dragstart={(e) => handleDragStart(e, entry)}
             on:dragend={handleDragEnd}

@@ -121,7 +121,7 @@ Full functionality requires the File System Access API, which is available in Ch
 
 ## Contributing
 
-There is no formal process. Fork, change, open a pull request. [CONTRIBUTING.md](CONTRIBUTING.md) has the layout of the code and what kind of help matters most right now.
+There is no formal process. Fork, change, open a pull request. [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) has the layout of the code and what kind of help matters most right now.
 
 ## License
 

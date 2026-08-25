@@ -33,9 +33,15 @@
 
   $: if ($gitPanelOpen) {
     opener = document.activeElement as HTMLElement | null;
-    tick().then(() => {
-      panelEl?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"], input, button')?.focus();
-    });
+    tick().then(focusInside);
+  }
+
+  function focusInside() {
+    if (!panelEl) return;
+    const target = panelEl.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')
+      || panelEl.querySelector<HTMLElement>('.panel-body input, .panel-body button')
+      || panelEl.querySelector<HTMLElement>('button');
+    target?.focus();
   }
 
   function close() {
@@ -54,14 +60,19 @@
       .filter(el => el.offsetParent !== null);
   }
 
+  // listens on the window, so escape works even when focus slipped out of
+  // the panel, and tab brings it back in
   function handleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape') { close(); return; }
+    if (!$gitPanelOpen || !panelEl || e.defaultPrevented) return;
+    if (e.key === 'Escape') { e.preventDefault(); close(); return; }
     if (e.key !== 'Tab') return;
     const items = focusable();
     if (items.length === 0) return;
     const first = items[0];
     const last = items[items.length - 1];
-    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    const inside = panelEl.contains(document.activeElement);
+    if (!inside) { e.preventDefault(); first.focus(); }
+    else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   }
 
@@ -75,9 +86,11 @@
   }
 </script>
 
+<svelte:window on:keydown={handleKeydown} />
+
 {#if $gitPanelOpen}
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div class="git-overlay" on:click={handleOverlayClick} on:keydown={handleKeydown}>
+  <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+  <div class="git-overlay" on:click={handleOverlayClick}>
     <div class="git-panel" role="dialog" aria-modal="true" aria-label="Git" bind:this={panelEl}>
       <div class="panel-header">
         <h3>

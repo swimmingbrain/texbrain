@@ -11,13 +11,13 @@ pnpm dev
 
 Open `http://localhost:5173` in Chrome or Edge. Firefox and Safari work too, they just don't get direct folder access and keep projects inside the browser instead.
 
-`pnpm build` produces the static site in `build/`, which is exactly what gets deployed to GitHub Pages.
+`pnpm check` runs the type checker, `pnpm build` produces the static site in `build/`, which is exactly what gets deployed to GitHub Pages. Both run on every pull request.
 
 ## Where things live
 
-- `src/lib/compiler` talks to the pdfTeX engine (SwiftLaTeX) and handles the bibliography fallback.
+- `src/lib/compiler` talks to the pdfTeX engine (SwiftLaTeX), parses its log (`log.ts`), scans the sources for includes and missing images (`scan.ts`) and handles the bibliography fallback.
 - `src/lib/editor` is the CodeMirror setup: the LaTeX grammar, autocomplete, keybindings and theme.
-- `src/lib/fs` reads and writes files through the File System Access API, the origin private file system for browsers without it, and plain downloads as a last resort.
+- `src/lib/fs` reads and writes files through the File System Access API, the origin private file system for browsers without it, and plain downloads as a last resort. `read-project.ts` reads a whole folder for the compiler and remembers what it read.
 - `src/lib/git` wraps isomorphic-git. `handle-fs.ts` is the file system adapter that lets it run on the project folder, `engine.ts` the operations, `errors.ts` turns its errors into something readable. The panel lives in `src/lib/ui/git`, one file per tab.
 - `src/lib/project` holds the open files, the project tree and everything the toolbar calls.
 - `src/lib/ui` are the Svelte components, `src/routes/editor` is the editor page itself.

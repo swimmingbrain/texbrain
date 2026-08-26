@@ -23,7 +23,7 @@
 
   <div class="content">
     <h1>Privacy Policy</h1>
-    <p class="updated">Last updated: March 24, 2026</p>
+    <p class="updated">Last updated: August 26, 2026</p>
 
     <h2>Overview</h2>
     <p>
@@ -33,21 +33,17 @@
 
     <h2>Data Storage</h2>
     <p>
-      TeXbrain uses your browser's local storage mechanisms (localStorage and IndexedDB) to cache
-      TeX Live packages for faster compilation. This data never leaves your browser and can be cleared
-      at any time through your browser settings.
+      TeXbrain uses your browser's storage (localStorage, IndexedDB, Cache Storage and the origin private
+      file system) to cache TeX Live packages, keep git repositories and your editor preferences, and to
+      hold projects created in browsers without direct folder access. Git credentials you enter are kept
+      in localStorage as well. None of this leaves your browser and all of it can be cleared at any time
+      through your browser settings.
     </p>
 
     <h2>Files</h2>
     <p>
       When you open a project folder, TeXbrain accesses files through the browser's File System Access API.
       Files are read into memory for editing and compilation. No file data is uploaded to external servers.
-    </p>
-
-    <h2>Collaboration</h2>
-    <p>
-      The real-time collaboration feature uses peer-to-peer WebRTC connections. Document content
-      is transmitted directly between collaborators' browsers. No document data passes through our infrastructure.
     </p>
 
     <h2>Analytics</h2>
@@ -57,8 +53,29 @@
 
     <h2>Third-Party Services</h2>
     <p>
-      TeXbrain loads fonts from Google Fonts during page load. Google's privacy policy applies to
-      that request. No other third-party services are used.
+      A few things do involve other servers. None of them receive your documents.
+    </p>
+    <p>
+      <strong>Fonts.</strong> The interface loads fonts from Google Fonts during page load. Google's privacy
+      policy applies to that request.
+    </p>
+    <p>
+      <strong>TeX Live packages.</strong> Packages that aren't bundled with the app are fetched from public
+      mirrors the first time a document needs them: a TeX Live tree on jsDelivr and, as a fallback, a community
+      TeX Live server. Only the file names of the packages are requested, never your document content. Fetched
+      files are cached locally, so this happens once per package. The fallback server can be changed or disabled
+      through the texliveMirror preference.
+    </p>
+    <p>
+      <strong>Git remotes.</strong> Browsers can't talk to git servers directly, so clone, push and pull go
+      through a CORS proxy (cors.isomorphic-git.org by default). Repository data and the credentials you enter
+      pass through that proxy on their way to your git host. You can point TeXbrain at your own proxy in the
+      git panel.
+    </p>
+    <p>
+      <strong>Diagrams.</strong> Opening a .drawio file embeds the diagrams.net editor from embed.diagrams.net.
+      The diagram is handed to that editor inside your browser and diagrams.net's privacy policy applies to the
+      embed. Nothing is loaded from there unless you open such a file.
     </p>
 
     <h2>Cookies</h2>

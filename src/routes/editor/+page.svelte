@@ -3,7 +3,7 @@
   import { base } from '$app/paths';
   import { browser } from '$app/environment';
   import { get } from 'svelte/store';
-  import { sidebarOpen, previewOpen, snippetPickerOpen, commandPaletteOpen, compileStatus, compileLog, compileErrors, previewTab, addToast } from '$lib/stores/app';
+  import { sidebarOpen, previewOpen, snippetPickerOpen, commandPaletteOpen, cloneDialogOpen, compileStatus, compileLog, compileErrors, previewTab, addToast } from '$lib/stores/app';
   import { files, activeFile, activeFileId, updateFileContent, projectHandle, entryPoint, openFileTab } from '$lib/project/store';
   import { handleOpenFile, handleSaveFile, handleSaveFileAs, handleDroppedFiles, handleOpenDirectory, handleNewProject, cloneProject, reopenEntryPointPicker, supportsFileSystemAccess } from '$lib/project/manager';
   import { insertAtCursor, createEditor, replaceEditorContent } from '$lib/editor/setup';
@@ -107,7 +107,6 @@
   let editorContainer: HTMLDivElement | null = null;
   const fileScrollPositions = new Map<string, number>();
 
-  let showCloneForm = false;
   let cloneUrl = '';
   let cloneName = '';
   let cloning = false;
@@ -737,6 +736,7 @@
   let commands = [
     { id: 'newproject', label: 'New Project', shortcut: '', action: handleNewProject, category: 'file' },
     { id: 'opendir', label: 'Open Folder', shortcut: '', action: handleOpenDirectory, category: 'file' },
+    { id: 'clone', label: 'Clone Repository', shortcut: '', action: handleShowCloneForm, category: 'file' },
     { id: 'open', label: 'Open File', shortcut: 'Ctrl+O', action: handleOpenFile, category: 'file' },
     { id: 'save', label: 'Save + Compile', shortcut: 'Ctrl+S', action: saveAndCompile, category: 'file' },
     { id: 'saveas', label: 'Save As...', shortcut: 'Ctrl+Shift+S', action: handleSaveFileAs, category: 'file' },
@@ -760,7 +760,7 @@
     else if (mod && e.key === '/') { e.preventDefault(); snippetPickerOpen.update(v => !v); }
     else if (mod && e.key === 'g') { e.preventDefault(); if (get(projectHandle)) gitPanelOpen.update(v => !v); }
     else if (mod && e.key === 'p') { e.preventDefault(); previewOpen.update(v => !v); }
-    else if (e.key === 'Escape') { commandPaletteOpen.set(false); snippetPickerOpen.set(false); }
+    else if (e.key === 'Escape') { commandPaletteOpen.set(false); snippetPickerOpen.set(false); if (!cloning) cloneDialogOpen.set(false); }
   }
 
   function handleDragOver(e: DragEvent) { e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'; }
@@ -850,13 +850,14 @@
   }
 
   function handleShowCloneForm() {
-    showCloneForm = true;
+    cloneDialogOpen.set(true);
     cloneUrl = '';
     cloneName = '';
   }
 
   function handleCancelClone() {
-    showCloneForm = false;
+    if (cloning) return;
+    cloneDialogOpen.set(false);
     cloneUrl = '';
     cloneName = '';
   }
@@ -875,7 +876,7 @@
     cloning = true;
     try {
       await cloneProject(url, name);
-      showCloneForm = false;
+      cloneDialogOpen.set(false);
       cloneUrl = '';
       cloneName = '';
       buildEditor();
@@ -1215,52 +1216,23 @@
         {#if !$activeFile}
           <div class="welcome-state">
             <div class="welcome-content">
-              {#if showCloneForm}
-                <div class="welcome-icon"><Logo size={44} /></div>
-                <h2 class="welcome-title">Clone Repository</h2>
-                <p class="welcome-desc">Clone a Git repository and open it as a project</p>
-                <div class="clone-form">
-                  <div class="clone-field">
-                    <label for="clone-url">Repository URL</label>
-                    <input id="clone-url" type="text" bind:value={cloneUrl} on:input={onCloneUrlInput} placeholder="https://github.com/user/repo" class="clone-input" />
-                  </div>
-                  <div class="clone-field">
-                    <label for="clone-name">Project Name</label>
-                    <input id="clone-name" type="text" bind:value={cloneName} placeholder="my-project" class="clone-input" />
-                  </div>
-                  <div class="clone-actions">
-                    <button class="welcome-btn primary" on:click={handleClone} disabled={cloning || !cloneUrl.trim() || !cloneName.trim()}>
-                      {#if cloning}
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3" stroke-dasharray="8 4" class="spin"/></svg>
-                        Cloning...
-                      {:else}
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 12V3M4 7l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        Choose Location & Clone
-                      {/if}
-                    </button>
-                    <button class="welcome-btn secondary" on:click={handleCancelClone} disabled={cloning}>Back</button>
-                  </div>
-                  <p class="clone-hint">{hasFolderAccess ? 'You\'ll pick a folder where the project will be saved.' : 'The project is stored inside your browser.'} Auth and CORS proxy can be configured in Git > Remote after cloning.</p>
-                </div>
-              {:else}
-                <div class="welcome-icon"><Logo size={44} /></div>
-                <h2 class="welcome-title">Welcome to TeXbrain</h2>
-                <p class="welcome-desc">Open a project folder or create a new one to get started</p>
-                <div class="welcome-actions">
-                  <button class="welcome-btn primary" on:click={handleNewProject}>
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                    New Project
-                  </button>
-                  <button class="welcome-btn secondary" on:click={handleOpenDirectory}>
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 13V3a1 1 0 011-1h4l2 2h4a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1z" stroke="currentColor" stroke-width="1.3"/></svg>
-                    Open Folder
-                  </button>
-                  <button class="welcome-btn secondary" on:click={handleShowCloneForm}>
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15 5.5a3.5 3.5 0 01-5.55 2.83L6.83 11H5v1.5H3.5V14H1v-2.5l5.17-5.17A3.5 3.5 0 1115 5.5zm-2 0a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z" fill="currentColor"/></svg>
-                    Clone Repository
-                  </button>
-                </div>
-              {/if}
+              <div class="welcome-icon"><Logo size={44} /></div>
+              <h2 class="welcome-title">Welcome to TeXbrain</h2>
+              <p class="welcome-desc">Open a project folder or create a new one to get started</p>
+              <div class="welcome-actions">
+                <button class="welcome-btn primary" on:click={handleNewProject}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                  New Project
+                </button>
+                <button class="welcome-btn secondary" on:click={handleOpenDirectory}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 13V3a1 1 0 011-1h4l2 2h4a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1z" stroke="currentColor" stroke-width="1.3"/></svg>
+                  Open Folder
+                </button>
+                <button class="welcome-btn secondary" on:click={handleShowCloneForm}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15 5.5a3.5 3.5 0 01-5.55 2.83L6.83 11H5v1.5H3.5V14H1v-2.5l5.17-5.17A3.5 3.5 0 1115 5.5zm-2 0a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z" fill="currentColor"/></svg>
+                  Clone Repository
+                </button>
+              </div>
             </div>
           </div>
         {/if}
@@ -1269,6 +1241,41 @@
   </div>
 
   <StatusBar {cursorLine} {cursorCol} {charCount} {wordCount} />
+
+  {#if $cloneDialogOpen}
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div class="dialog-backdrop" on:click={handleCancelClone}>
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div class="dialog" on:click|stopPropagation>
+        <h2 class="dialog-title">Clone Repository</h2>
+        <p class="dialog-desc">Clone a git repository and open it as a project</p>
+        <div class="clone-form">
+          <div class="clone-field">
+            <label for="clone-url">Repository URL</label>
+            <input id="clone-url" type="text" bind:value={cloneUrl} on:input={onCloneUrlInput} placeholder="https://github.com/user/repo" class="clone-input" />
+          </div>
+          <div class="clone-field">
+            <label for="clone-name">Project Name</label>
+            <input id="clone-name" type="text" bind:value={cloneName} placeholder="my-project" class="clone-input" />
+          </div>
+          <div class="clone-actions">
+            <button class="welcome-btn primary" on:click={handleClone} disabled={cloning || !cloneUrl.trim() || !cloneName.trim()}>
+              {#if cloning}
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3" stroke-dasharray="8 4" class="spin"/></svg>
+                Cloning...
+              {:else}
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 12V3M4 7l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                {hasFolderAccess ? 'Choose Location & Clone' : 'Clone'}
+              {/if}
+            </button>
+            <button class="welcome-btn secondary" on:click={handleCancelClone} disabled={cloning}>Cancel</button>
+          </div>
+          <p class="clone-hint">{hasFolderAccess ? 'You\'ll pick a folder where the project will be saved.' : 'The project is stored inside your browser.'} Auth and CORS proxy can be configured in Git > Remote after cloning.</p>
+        </div>
+      </div>
+    </div>
+  {/if}
 
   <CommandPalette {commands} />
   <SnippetPicker onInsert={handleSnippetInsert} />
@@ -1342,7 +1349,11 @@
   .welcome-btn.secondary { background: var(--bg-surface); color: var(--text-secondary); border: 1px solid var(--border); }
   .welcome-btn.secondary:hover { background: var(--bg-hover); color: var(--text-primary); }
 
-  .clone-form { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 10px; text-align: left; }
+  .dialog-backdrop { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0, 0, 0, 0.5); }
+  .dialog { width: 420px; max-width: 100%; padding: 20px; background: var(--bg-surface); border: 1px solid var(--border); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4); }
+  .dialog-title { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+  .dialog-desc { font-size: 12px; color: var(--text-secondary); margin-bottom: 16px; }
+  .clone-form { width: 100%; display: flex; flex-direction: column; gap: 10px; text-align: left; }
   .clone-field { display: flex; flex-direction: column; gap: 3px; }
   .clone-field label { font-size: 11px; font-weight: 500; color: var(--text-secondary); font-family: var(--font-editor); }
   .clone-input { width: 100%; padding: 7px 10px; font-size: 12.5px; font-family: var(--font-editor); background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border); outline: none; }

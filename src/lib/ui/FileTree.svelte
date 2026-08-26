@@ -1,6 +1,7 @@
 <script lang="ts">
   import { files, activeFileId, setActiveTab, projectTree, projectName, projectHandle, entryPoint } from '$lib/project/store';
-  import { handleOpenFileFromTree, handleOpenDirectory, handleNewFileInProject, handleDeleteFileInProject, handleRenameFileInProject, refreshProjectTree, moveFileInProject, selectEntryPoint } from '$lib/project/manager';
+  import { handleOpenFileFromTree, handleOpenDirectory, handleNewProject, handleNewFileInProject, handleDeleteFileInProject, handleRenameFileInProject, refreshProjectTree, moveFileInProject, selectEntryPoint } from '$lib/project/manager';
+  import { cloneDialogOpen } from '$lib/stores/app';
   import type { TreeEntry } from '$lib/project/types';
   import { gitFileStatuses, gitEnabled } from '$lib/git/store';
 
@@ -296,18 +297,29 @@
       {/each}
     </div>
   {:else}
-    <div class="section-label">FILES</div>
-    {#if $files.length === 0}
-      <div class="empty">
-        <span class="empty-text">No project open</span>
-        <button class="open-folder-btn" on:click={handleOpenDirectory}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-            <path d="M2 13V3a1 1 0 011-1h4l2 2h4a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1z" stroke="currentColor" stroke-width="1.2"/>
-          </svg>
-          Open Folder
-        </button>
-      </div>
-    {:else}
+    <div class="empty">
+      <span class="empty-text">No project open</span>
+      <button class="empty-btn" on:click={handleNewProject}>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        New Project
+      </button>
+      <button class="empty-btn" on:click={handleOpenDirectory}>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <path d="M2 13V3a1 1 0 011-1h4l2 2h4a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1z" stroke="currentColor" stroke-width="1.2"/>
+        </svg>
+        Open Folder
+      </button>
+      <button class="empty-btn" on:click={() => cloneDialogOpen.set(true)}>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <path d="M15 5.5a3.5 3.5 0 01-5.55 2.83L6.83 11H5v1.5H3.5V14H1v-2.5l5.17-5.17A3.5 3.5 0 1115 5.5zm-2 0a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z" fill="currentColor"/>
+        </svg>
+        Clone Repository
+      </button>
+    </div>
+    {#if $files.length > 0}
+      <div class="section-label">FILES</div>
       {#each $files as file (file.id)}
         <button
           class="tree-item file"
@@ -533,17 +545,18 @@
     opacity: 0.7;
   }
 
-  .open-folder-btn {
+  .empty-btn {
     display: flex;
     align-items: center;
     gap: 5px;
+    width: 100%;
     padding: 5px 12px;
     font-size: 12px;
     color: var(--text-secondary);
     border: 1px solid var(--border);
   }
 
-  .open-folder-btn:hover {
+  .empty-btn:hover {
     background: var(--bg-hover);
     color: var(--text-primary);
     border-color: var(--accent);

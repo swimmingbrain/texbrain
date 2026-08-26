@@ -14,8 +14,6 @@ export function supportsFileSystemAccess(): boolean {
 // browsers without the file system access api keep their projects in the
 // origin private file system. the handles behave like the real ones, the
 // files just live inside the browser instead of a folder on disk
-const VIRTUAL_PROJECT_KEY = 'texbrain-virtual-project';
-
 async function pickProjectRoot(): Promise<FileSystemDirectoryHandle> {
   if (supportsFileSystemAccess()) {
     return window.showDirectoryPicker({ mode: 'readwrite' });
@@ -65,7 +63,6 @@ export async function handleNewProject() {
     projectHandle.set(projectDir);
     entryPoint.set('main.tex');
     await handleOpenFileFromTree(mainFile, 'main.tex');
-    rememberVirtualProject(name);
     addToast(`Created project: ${name}`, 'success', 2000);
   } catch (e: any) {
     if (e.name !== 'AbortError') {
@@ -89,7 +86,6 @@ export async function cloneProject(url: string, name: string): Promise<void> {
   projectHandle.set(projectDir);
 
   await pickEntryPoint(tree);
-  rememberVirtualProject(name);
 
   addToast(`Cloned: ${name}`, 'success', 2000);
 }
@@ -108,18 +104,8 @@ async function pickEntryPoint(tree: TreeEntry[]) {
   }
 }
 
-function rememberVirtualProject(name: string) {
-  if (!supportsFileSystemAccess()) localStorage.setItem(VIRTUAL_PROJECT_KEY, name);
-}
-
-// without folder access the only place a project can be is the origin
-// private file system, so open folder brings the last one back
-async function openVirtualProject() {
-  const name = localStorage.getItem(VIRTUAL_PROJECT_KEY);
-  if (!name || !supportsVirtualProjects()) {
-    addToast('Opening folders needs Chrome or Edge. New Project creates a project inside the browser instead.', 'info', 6000);
-    return;
-  }
+// a project that lives inside the browser, by name
+export async function openBrowserProject(name: string) {
   try {
     const root = await getVirtualRoot();
     const projectDir = await root.getDirectoryHandle(name);
@@ -130,8 +116,73 @@ async function openVirtualProject() {
     addToast(`Opened project: ${name}`, 'success', 2000);
     await pickEntryPoint(tree);
   } catch (e: any) {
-    if (e.name === 'NotFoundError') localStorage.removeItem(VIRTUAL_PROJECT_KEY);
     addToast(`Failed to open project: ${e.message}`, 'error');
+  }
+}
+
+// browsers without a directory handle api still have the folder upload
+// picker. it hands out plain files, so the folder is copied into a project
+// inside the browser and edits stay there until they are downloaded or pushed
+function pickFolderFiles(): Promise<{ name: string; files: File[] } | null> {
+  return new Promise((resolve) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    (input as HTMLInputElement & { webkitdirectory: boolean }).webkitdirectory = true;
+    input.onchange = () => {
+      const files = Array.from(input.files || []);
+      if (files.length === 0) { resolve(null); return; }
+      const first = (files[0] as File & { webkitRelativePath: string }).webkitRelativePath;
+      resolve({ name: first.split('/')[0] || 'project', files });
+    };
+    input.oncancel = () => resolve(null);
+    input.click();
+  });
+}
+
+const SKIPPED_DIRS = ['node_modules', '.git', '__pycache__'];
+const MAX_IMPORT_BYTES = 50 * 1024 * 1024;
+
+async function importFolderIntoBrowser(name: string, files: File[]): Promise<FileSystemDirectoryHandle> {
+  const root = await getVirtualRoot();
+  const projectDir = await root.getDirectoryHandle(name, { create: true });
+  for (const file of files) {
+    const rel = (file as File & { webkitRelativePath: string }).webkitRelativePath.split('/').slice(1);
+    const fileName = rel.pop();
+    if (!fileName || rel.some(part => SKIPPED_DIRS.includes(part)) || file.size > MAX_IMPORT_BYTES) continue;
+    let dir = projectDir;
+    for (const part of rel) dir = await dir.getDirectoryHandle(part, { create: true });
+    const handle = await dir.getFileHandle(fileName, { create: true });
+    const writable = await handle.createWritable();
+    await writable.write(await file.arrayBuffer());
+    await writable.close();
+  }
+  return projectDir;
+}
+
+async function openFolderWithoutHandles() {
+  if (!supportsVirtualProjects()) {
+    // nowhere to copy to, the tex files at least can be opened as tabs
+    const picked = await pickFolderFiles();
+    if (!picked) return;
+    for (const file of picked.files) {
+      if (/\.(tex|bib|sty|cls)$/i.test(file.name)) openFileTab(file.name, await file.text(), null);
+    }
+    addToast('Your browser can\'t store projects, the files were opened as tabs instead', 'warning', 6000);
+    return;
+  }
+  const picked = await pickFolderFiles();
+  if (!picked) return;
+  addToast(`Copying ${picked.files.length} files into the browser...`, 'info', 3000);
+  try {
+    const projectDir = await importFolderIntoBrowser(picked.name, picked.files);
+    const tree = await readTreeFromHandle(projectDir);
+    projectTree.set(tree);
+    projectName.set(picked.name);
+    projectHandle.set(projectDir);
+    addToast(`Opened ${picked.name}. It is a copy inside the browser, download or push to get changes out.`, 'success', 6000);
+    await pickEntryPoint(tree);
+  } catch (e: any) {
+    addToast(`Failed to open folder: ${e.message}`, 'error');
   }
 }
 
@@ -157,7 +208,7 @@ export async function handleOpenFile() {
 
 export async function handleOpenDirectory() {
   if (!supportsFileSystemAccess()) {
-    await openVirtualProject();
+    await openFolderWithoutHandles();
     return;
   }
   try {

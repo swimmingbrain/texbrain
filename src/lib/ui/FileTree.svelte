@@ -1,8 +1,16 @@
 <script lang="ts">
   import { files, activeFileId, setActiveTab, projectTree, projectName, projectHandle, entryPoint } from '$lib/project/store';
-  import { handleOpenFileFromTree, handleOpenDirectory, handleNewProject, handleNewFileInProject, handleDeleteFileInProject, handleRenameFileInProject, refreshProjectTree, moveFileInProject, selectEntryPoint } from '$lib/project/manager';
+  import { handleOpenFileFromTree, handleOpenDirectory, handleNewProject, handleNewFileInProject, handleDeleteFileInProject, handleRenameFileInProject, refreshProjectTree, moveFileInProject, selectEntryPoint, openBrowserProject, supportsFileSystemAccess } from '$lib/project/manager';
+  import { listVirtualProjects } from '$lib/fs/virtual-fs';
   import { cloneDialogOpen } from '$lib/stores/app';
+  import { browser } from '$app/environment';
   import type { TreeEntry } from '$lib/project/types';
+
+  // projects that live inside the browser, only a thing where folders on
+  // disk are out of reach
+  const inBrowser = browser && !supportsFileSystemAccess();
+  let browserProjects: string[] = [];
+  $: if (inBrowser && $projectHandle !== undefined) listVirtualProjects().then(names => { browserProjects = names; });
   import { gitFileStatuses, gitEnabled } from '$lib/git/store';
 
   function gitStatusLetter(path: string): string | null {
@@ -319,6 +327,17 @@
         </svg>
         Clone Repository
       </button>
+      {#if browserProjects.length > 0}
+        <span class="empty-text">In this browser</span>
+        {#each browserProjects as name (name)}
+          <button class="empty-btn" on:click={() => openBrowserProject(name)} title="A project stored inside the browser">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <path d="M2 13V3a1 1 0 011-1h4l2 2h4a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1z" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+            {name}
+          </button>
+        {/each}
+      {/if}
     </div>
     {#if $files.length > 0}
       <div class="section-label">FILES</div>

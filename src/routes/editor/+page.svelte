@@ -3,11 +3,13 @@
   import { base } from '$app/paths';
   import { browser } from '$app/environment';
   import { get } from 'svelte/store';
-  import { sidebarOpen, previewOpen, snippetPickerOpen, commandPaletteOpen, cloneDialogOpen, compileStatus, compileLog, compileRawLog, compileErrors, previewTab, addToast } from '$lib/stores/app';
-  import { files, activeFile, activeFileId, updateFileContent, markFileSaved, projectHandle, entryPoint, openFileTab, closeFileTab } from '$lib/project/store';
+  import { sidebarOpen, previewOpen, snippetPickerOpen, commandPaletteOpen, cloneDialogOpen, compileStatus, compileLog, compileRawLog, compileProblems, previewTab, addToast } from '$lib/stores/app';
+  import { files, activeFile, activeFileId, updateFileContent, markFileSaved, projectHandle, entryPoint, openFileTab, closeFileTab, setActiveTab } from '$lib/project/store';
   import { readFileFromHandle } from '$lib/fs/local-fs';
-  import { handleOpenFile, handleSaveFile, handleSaveFileAs, handleDroppedFiles, handleOpenDirectory, handleNewProject, cloneProject, reopenEntryPointPicker, refreshProjectTree, supportsFileSystemAccess } from '$lib/project/manager';
-  import { insertAtCursor, createEditor, replaceEditorContent } from '$lib/editor/setup';
+  import { handleOpenFile, handleSaveFile, handleSaveFileAs, handleDroppedFiles, handleOpenDirectory, handleNewProject, cloneProject, reopenEntryPointPicker, refreshProjectTree, supportsFileSystemAccess, findProjectFile, handleOpenFileFromTree } from '$lib/project/manager';
+  import { insertAtCursor, createEditor, replaceEditorContent, gotoLine } from '$lib/editor/setup';
+  import { tick } from 'svelte';
+  import { locateByNeedle, type Problem } from '$lib/compiler/log';
   import type { EditorView } from '@codemirror/view';
   import type { Snippet as SnippetDef } from '$lib/snippets/index';
   import { compileLaTeX, warmup } from '$lib/compiler/latex-engine';
@@ -35,6 +37,8 @@
   import SnippetPicker from '$lib/ui/SnippetPicker.svelte';
   import EntryPointPicker from '$lib/ui/EntryPointPicker.svelte';
   import PdfViewer from '$lib/ui/PdfViewer.svelte';
+  import ProblemsPanel from '$lib/ui/ProblemsPanel.svelte';
+  import LogPanel from '$lib/ui/LogPanel.svelte';
   import CollabPanel from '$lib/ui/CollabPanel.svelte';
   import GitPanel from '$lib/ui/GitPanel.svelte';
   import DrawioEditor from '$lib/ui/DrawioEditor.svelte';
@@ -142,6 +146,7 @@
             parent: editorContainer,
             dark: true,
             onUpdate: handleEditorUpdate,
+            onCursor: handleCursor,
             collab: yCollab(data.ytext, awareness, { undoManager: data.undoManager })
           });
           setCurrentFile(file.path);
@@ -151,7 +156,8 @@
           doc: file.content,
           parent: editorContainer,
           dark: true,
-          onUpdate: handleEditorUpdate
+          onUpdate: handleEditorUpdate,
+          onCursor: handleCursor
         });
       }
     } catch (err) {
@@ -374,8 +380,12 @@
         new Promise<never>((_, reject) => setTimeout(() => reject(new Error('compilation timed out after 180s')), 180_000))
       ]);
 
-      const { errors: parsedErrors, cleanedLines } = parseLog(result.log || '');
-      compileErrors.set(parsedErrors);
+      const { problems, cleanedLines } = parseLog(result.log || '');
+      // tex gives no line for a missing package or a runaway argument, the
+      // sources usually do
+      locateByNeedle(problems, projectFiles);
+      for (const p of problems) if (!p.file) { p.file = mainFile; p.inPackage = false; }
+      compileProblems.set(problems);
       compileRawLog.set(result.log || '');
 
       if (result.status === 0 && result.pdf) {
@@ -389,20 +399,20 @@
         compileStatus.set('success');
         compileLog.set([`[${ts()}] compilation successful (${pdfPageCount} pages)`, ...capLogLines(cleanedLines)]);
 
-        if (parsedErrors.some(e => e.type === 'error')) {
-          previewTab.set('errors');
+        if (problems.some(p => p.severity === 'error')) {
+          previewTab.set('problems');
         }
 
         if (isCollabMode) {
-          setCompileResult({ status: 'success', pdf: pdfData, log: cleanedLines, errors: parsedErrors, pageCount: pdfPageCount });
+          setCompileResult({ status: 'success', pdf: pdfData, log: cleanedLines, errors: problems, pageCount: pdfPageCount });
         }
       } else {
         compileStatus.set('error');
         compileLog.set([`[${ts()}] compilation failed (status ${result.status})`, ...capLogLines(cleanedLines)]);
-        previewTab.set('errors');
+        previewTab.set('problems');
 
         if (isCollabMode) {
-          setCompileResult({ status: 'error', pdf: null, log: cleanedLines, errors: parsedErrors, pageCount: pdfPageCount });
+          setCompileResult({ status: 'error', pdf: null, log: cleanedLines, errors: problems, pageCount: pdfPageCount });
         }
       }
     } catch (err: any) {
@@ -410,7 +420,7 @@
       compileLog.update(log => [...log, `[error] ${err.message || String(err)}`]);
 
       if (isCollabMode) {
-        setCompileResult({ status: 'error', pdf: null, log: [`[error] ${err.message || String(err)}`], errors: [{ type: 'error', message: err.message || String(err) }], pageCount: 0 });
+        setCompileResult({ status: 'error', pdf: null, log: [`[error] ${err.message || String(err)}`], errors: [{ severity: 'error', title: err.message || String(err), message: err.message || String(err), inPackage: false, excerpt: [], count: 1 }], pageCount: 0 });
       }
     } finally {
       compiling = false;
@@ -422,10 +432,6 @@
 
   function ts() { return new Date().toLocaleTimeString(); }
 
-  function errorLocation(e: { line?: number; file?: string }): string {
-    return [e.file, e.line ? `line ${e.line}` : ''].filter(Boolean).join(', ');
-  }
-
   async function saveAndCompile() {
     await handleSaveFile();
     doCompile();
@@ -434,15 +440,14 @@
   function handleEditorUpdate(content: string) {
     if (!$activeFile) return;
     updateFileContent($activeFile.id, content);
-    if (editorView) {
-      const pos = editorView.state.selection.main.head;
-      const line = editorView.state.doc.lineAt(pos);
-      cursorLine = line.number;
-      cursorCol = pos - line.from + 1;
-      charCount = editorView.state.doc.length;
-      const text = editorView.state.doc.toString();
-      wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
-    }
+    charCount = content.length;
+    wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
+  }
+
+  // the status bar follows the cursor, not only the edits
+  function handleCursor(line: number, col: number) {
+    cursorLine = line;
+    cursorCol = col;
   }
 
   // double-click in editor jumps pdf to approximate cursor position
@@ -475,32 +480,31 @@
     editorWidth = Math.max(25, Math.min(75, editorWidth + (delta / cw) * 100));
   }
 
-  // the log tab shows a cleaned version by default. the full transcript is
-  // what you want when something fails deep inside a package
-  let fullLog = false;
+  // a problem points at a file and a line, the editor goes there, opening
+  // the file from the project when it isn't open yet
+  async function jumpToProblem(p: Problem) {
+    if (!p.file || !p.line || p.inPackage) return;
+    const matches = (t: { path: string; name: string }) => t.path === p.file || t.name === p.file || t.path.endsWith('/' + p.file);
+    let tab = get(files).find(matches);
+    if (!tab) {
+      const entry = findProjectFile(p.file);
+      if (entry?.handle) {
+        await handleOpenFileFromTree(entry.handle, entry.path);
+        tab = get(files).find(matches);
+      }
+    }
+    if (!tab) { addToast(`${p.file} isn't open, and it isn't in the project folder either`, 'info', 4000); return; }
+    if (get(activeFileId) !== tab.id) setActiveTab(tab.id);
+    await tick();
+    if (editorView) gotoLine(editorView, p.line);
+  }
+
+  $: errorCount = $compileProblems.filter(p => p.severity === 'error').length;
+  $: warningCount = $compileProblems.filter(p => p.severity === 'warning').length;
 
   function logFileName(): string {
     const ep = get(entryPoint);
     return (ep ? ep.replace(/^.*[\\/]/, '').replace(/\.tex$/, '') : 'document') + '.log';
-  }
-
-  async function copyLog() {
-    try {
-      await navigator.clipboard.writeText(get(compileRawLog));
-      addToast('Log copied', 'success', 1500);
-    } catch {
-      addToast('Could not copy, use download instead', 'error');
-    }
-  }
-
-  function downloadLog() {
-    const blob = new Blob([get(compileRawLog)], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = logFileName();
-    a.click();
-    URL.revokeObjectURL(url);
   }
 
   function savePdf() {
@@ -713,12 +717,12 @@
               pdfViewer?.setPageCount(pdfPageCount);
               compileStatus.set('success');
               compileLog.set([`[${ts()}] compilation successful (${pdfPageCount} pages)`, ...log]);
-              compileErrors.set(errors);
+              compileProblems.set(errors);
             } else {
               compileStatus.set('error');
               compileLog.set([`[${ts()}] compilation failed`, ...log]);
-              compileErrors.set(errors);
-              previewTab.set('errors');
+              compileProblems.set(errors);
+              previewTab.set('problems');
             }
           } catch (err) {
             console.error('failed to read compile result:', err);
@@ -911,16 +915,12 @@
           <div class="preview-pane" style="width:{100 - editorWidth}%">
             <div class="preview-header">
               <button class="preview-tab" class:active={$previewTab === 'preview'} on:click={() => previewTab.set('preview')}>Preview</button>
-              <button class="preview-tab" class:active={$previewTab === 'errors'} on:click={() => previewTab.set('errors')}>
-                Errors
-                {#if $compileErrors.filter(e => e.type === 'error').length > 0}
-                  <span class="error-badge has-errors">{$compileErrors.filter(e => e.type === 'error').length}</span>
-                {/if}
-              </button>
-              <button class="preview-tab" class:active={$previewTab === 'warnings'} on:click={() => previewTab.set('warnings')}>
-                Warnings
-                {#if $compileErrors.filter(e => e.type === 'warning').length > 0}
-                  <span class="error-badge">{$compileErrors.filter(e => e.type === 'warning').length}</span>
+              <button class="preview-tab" class:active={$previewTab === 'problems'} on:click={() => previewTab.set('problems')}>
+                Problems
+                {#if errorCount > 0}
+                  <span class="error-badge has-errors">{errorCount}</span>
+                {:else if warningCount > 0}
+                  <span class="error-badge">{warningCount}</span>
                 {/if}
               </button>
               <button class="preview-tab" class:active={$previewTab === 'log'} on:click={() => previewTab.set('log')}>Log</button>
@@ -936,63 +936,10 @@
               <div class="preview-content">
                 <PdfViewer bind:this={pdfViewer} {pdfData} />
               </div>
-            {:else if $previewTab === 'errors'}
-              <div class="errors-content">
-                {#if $compileErrors.filter(e => e.type === 'error').length === 0}
-                  <div class="preview-empty"><p>No errors</p></div>
-                {:else}
-                  {#each $compileErrors.filter(e => e.type === 'error') as err}
-                    <div class="error-item is-error">
-                      <span class="error-type-badge err-badge">E</span>
-                      <span class="error-msg">{err.message}</span>
-                      {#if err.file || err.line}
-                        <span class="error-line">{errorLocation(err)}</span>
-                      {/if}
-                    </div>
-                  {/each}
-                {/if}
-              </div>
-            {:else if $previewTab === 'warnings'}
-              <div class="errors-content">
-                {#if $compileErrors.filter(e => e.type === 'warning').length === 0}
-                  <div class="preview-empty"><p>No warnings</p></div>
-                {:else}
-                  {#each $compileErrors.filter(e => e.type === 'warning') as warn}
-                    <div class="error-item is-warning">
-                      <span class="error-type-badge warn-badge">W</span>
-                      <span class="error-msg">{warn.message}</span>
-                      {#if warn.file || warn.line}
-                        <span class="error-line">{errorLocation(warn)}</span>
-                      {/if}
-                    </div>
-                  {/each}
-                {/if}
-              </div>
+            {:else if $previewTab === 'problems'}
+              <ProblemsPanel problems={$compileProblems} compiled={$compileStatus !== 'idle'} mainFile={$entryPoint || $activeFile?.name || 'document'} onJump={jumpToProblem} />
             {:else}
-              <div class="log-content">
-                <div class="log-toolbar">
-                  <button class="log-btn" class:active={fullLog} on:click={() => (fullLog = !fullLog)} aria-pressed={fullLog} title="Everything the engine printed, nothing filtered">Full log</button>
-                  <div style="flex:1"></div>
-                  <button class="log-btn" on:click={copyLog} disabled={!$compileRawLog} title="Copy the full log to the clipboard">Copy</button>
-                  <button class="log-btn" on:click={downloadLog} disabled={!$compileRawLog} title="Download the full log as a file">Download</button>
-                </div>
-                {#if fullLog}
-                  {#if $compileRawLog}
-                    <pre class="log-raw">{$compileRawLog}</pre>
-                  {:else}
-                    <div class="preview-empty"><p>No compilation log yet</p></div>
-                  {/if}
-                {:else}
-                  <div class="log-entries">
-                    {#each $compileLog as entry}
-                      <div class="log-entry" class:error={entry.includes('[Error]') || entry.includes('!')} class:success={entry.includes('successful')}>{entry}</div>
-                    {/each}
-                  </div>
-                  {#if $compileLog.length === 0}
-                    <div class="preview-empty"><p>No compilation log yet</p></div>
-                  {/if}
-                {/if}
-              </div>
+              <LogPanel raw={$compileRawLog} cleaned={$compileLog} fileName={logFileName()} />
             {/if}
           </div>
         {/if}
@@ -1137,17 +1084,6 @@
   .preview-tab.active { color: var(--text-primary); background: var(--bg-hover); }
   .preview-content { flex: 1; overflow: hidden; display: flex; }
 
-  .log-content { flex: 1; overflow-y: auto; font-family: var(--font-editor); font-size: 11px; display: flex; flex-direction: column; }
-  .log-toolbar { display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg-elevated); flex-shrink: 0; }
-  .log-btn { font-size: 10.5px; padding: 2px 8px; color: var(--text-secondary); border: 1px solid var(--border); }
-  .log-btn:hover:not(:disabled) { background: var(--bg-hover); color: var(--text-primary); }
-  .log-btn:disabled { opacity: 0.4; cursor: default; }
-  .log-btn.active { color: var(--accent); border-color: var(--accent); }
-  .log-entries { padding: 8px; }
-  .log-raw { margin: 0; padding: 8px; white-space: pre-wrap; word-break: break-all; color: var(--text-secondary); line-height: 1.45; }
-  .log-entry { padding: 2px 6px; color: var(--text-secondary); margin-bottom: 1px; white-space: pre-wrap; word-break: break-all; }
-  .log-entry.error { color: var(--error); }
-  .log-entry.success { color: var(--success); }
 
   .welcome-state { flex: 1; display: flex; align-items: center; justify-content: center; overflow-y: auto; padding: 32px 20px; }
   .welcome-content { text-align: center; max-width: 560px; }
@@ -1200,40 +1136,6 @@
     color: white;
   }
 
-  .errors-content { flex: 1; overflow-y: auto; padding: 6px; }
-  .error-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 6px;
-    padding: 6px 8px;
-    margin-bottom: 2px;
-    font-size: 11.5px;
-    font-family: var(--font-editor);
-    line-height: 1.5;
-  }
-  .error-item.is-error { background: rgba(224, 108, 117, 0.06); }
-  .error-item.is-warning { background: rgba(229, 192, 123, 0.06); }
-  .error-type-badge {
-    flex-shrink: 0;
-    width: 16px;
-    height: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 9px;
-    font-weight: 700;
-  }
-  .err-badge { background: var(--error); color: white; }
-  .warn-badge { background: var(--warning); color: #000; }
-  .error-msg { flex: 1; color: var(--text-primary); word-break: break-word; }
-  .error-line {
-    flex-shrink: 0;
-    font-size: 10px;
-    color: var(--text-muted);
-    padding: 0 4px;
-    background: var(--bg-hover);
-  }
-  .preview-empty { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); font-size: 12px; }
 
   @media (max-width: 600px) { .logo-text { display: none; } }
 

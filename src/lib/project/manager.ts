@@ -391,6 +391,12 @@ function findFileByPath(tree: TreeEntry[], path: string): TreeEntry | null {
   return null;
 }
 
+// a path as the compiler printed it, or just a file name, to a tree entry
+export function findProjectFile(path: string): TreeEntry | null {
+  const tree = get(projectTree);
+  return findFileByPath(tree, path) || findFileInTree(tree, path.split('/').pop() || path);
+}
+
 function findFileInTree(tree: TreeEntry[], name: string): TreeEntry | null {
   for (const entry of tree) {
     if (entry.type === 'file' && entry.name === name) return entry;

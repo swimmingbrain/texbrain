@@ -27,6 +27,7 @@ jobs:
           cache: pnpm
       - run: pnpm install
       - run: pnpm check
+      - run: pnpm test
       - run: pnpm build
       - uses: actions/upload-pages-artifact@v3
         with:

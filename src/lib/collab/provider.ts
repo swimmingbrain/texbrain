@@ -259,7 +259,7 @@ export function setCompileResult(result: {
   status: 'success' | 'error';
   pdf: Uint8Array | null;
   log: string[];
-  errors: Array<{ type: string; message: string; line?: number; file?: string }>;
+  errors: unknown[];
   pageCount: number;
 }) {
   if (!ydoc) return;

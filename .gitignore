@@ -6,4 +6,6 @@ build/
 .DS_Store
 *.local
 *.log
+# real engine transcripts the parser tests run against
+!src/lib/compiler/fixtures/*.log
 *.tgz

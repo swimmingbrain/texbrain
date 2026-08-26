@@ -53,6 +53,14 @@ There's no magic and no backend.
 
 **Frontend.** [SvelteKit](https://kit.svelte.dev/) with the static adapter. The entire app is pre-built to static HTML/CSS/JS and deployed to GitHub Pages. No SSR, no API routes, no server. [Tailwind CSS](https://tailwindcss.com/) handles styling.
 
+## When something doesn't compile
+
+LaTeX errors are famous for being unreadable, so TeXbrain does the reading for you. The Problems tab turns the log into cards: a headline in plain words ("Unknown command \foo", "Math outside math mode", "Package doesnotexist not found"), what it means, what to try, the file and line, and the source line exactly as TeX read it with a bar where it stopped. Click a card and the editor jumps there, opening the file if it has to. Errors that TeX can't place, a missing package for example, are placed by searching your sources for them.
+
+Warnings get the same treatment (undefined labels, citations, hyperref bookmarks). Notes about margins and stretched lines are there too, hidden until you switch them on. Every card can be copied as text, "Copy all" gives you a report to paste anywhere, and problems that look like TeXbrain's fault rather than your document's have a link that opens a prefilled issue.
+
+The Log tab still has everything the engine printed, with colors, line numbers, search, a full/clean toggle, copy and download.
+
 ## Git, step by step
 
 Git in TeXbrain works on the folder you opened, the same way a terminal would. A hidden `.git` directory sits next to your `.tex` files, so you can switch between TeXbrain, the command line and any other editor without anything getting out of sync. Folders that already are repositories are picked up as they are, history included.

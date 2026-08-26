@@ -2,12 +2,28 @@ import { get } from 'svelte/store';
 import { openFileTab, activeFile, markFileSaved, projectTree, projectName, projectHandle, entryPoint, pendingTexFiles, files, closeFileTab } from './store';
 import { openLocalFile, saveLocalFile, saveLocalFileAs, openDirectory, readFileFromHandle } from '../fs/local-fs';
 import { openFileFallback, saveFileFallback } from '../fs/fallback-fs';
+import { getVirtualRoot, supportsVirtualProjects } from '../fs/virtual-fs';
 import { addToast } from '../stores/app';
 import { initFs as gitInitFs, cloneRepo, readAllFilesFromGit, checkAndLoadGit } from '../git/engine';
 import type { TreeEntry } from './types';
 
-function supportsFileSystemAccess(): boolean {
+export function supportsFileSystemAccess(): boolean {
   return 'showOpenFilePicker' in window;
+}
+
+// browsers without the file system access api keep their projects in the
+// origin private file system. the handles behave like the real ones, the
+// files just live inside the browser instead of a folder on disk
+const VIRTUAL_PROJECT_KEY = 'texbrain-virtual-project';
+
+async function pickProjectRoot(): Promise<FileSystemDirectoryHandle> {
+  if (supportsFileSystemAccess()) {
+    return (window as any).showDirectoryPicker({ mode: 'readwrite' });
+  }
+  if (!supportsVirtualProjects()) {
+    throw new Error('Your browser can\'t store projects. Chrome, Edge or Firefox can.');
+  }
+  return getVirtualRoot();
 }
 
 const DEFAULT_TEX = `\\documentclass{article}
@@ -26,12 +42,14 @@ Hello, world!
 `;
 
 export async function handleNewProject() {
-  if (!supportsFileSystemAccess()) {
-    addToast('This feature requires Chrome or Edge (File System Access API).', 'error');
+  if (!supportsFileSystemAccess() && !supportsVirtualProjects()) {
+    // nowhere to write to, but an unsaved tab is still a working document
+    openFileTab('main.tex', DEFAULT_TEX, null);
+    addToast('Your browser can\'t store projects, this document lives in the tab until you save it.', 'warning', 6000);
     return;
   }
   try {
-    const dirHandle = await (window as any).showDirectoryPicker({ mode: 'readwrite' });
+    const dirHandle = await pickProjectRoot();
     const name = prompt('Project name:', 'my-document');
     if (!name) return;
 
@@ -47,6 +65,7 @@ export async function handleNewProject() {
     projectHandle.set(projectDir);
     entryPoint.set('main.tex');
     await handleOpenFileFromTree(mainFile, 'main.tex');
+    rememberVirtualProject(name);
     addToast(`Created project: ${name}`, 'success', 2000);
   } catch (e: any) {
     if (e.name !== 'AbortError') {
@@ -56,11 +75,7 @@ export async function handleNewProject() {
 }
 
 export async function cloneProject(url: string, name: string): Promise<void> {
-  if (!supportsFileSystemAccess()) {
-    throw new Error('This feature requires Chrome or Edge (File System Access API).');
-  }
-
-  const dirHandle = await (window as any).showDirectoryPicker({ mode: 'readwrite' });
+  const dirHandle = await pickProjectRoot();
   const projectDir = await dirHandle.getDirectoryHandle(name, { create: true });
 
   addToast('Cloning repository...', 'info', 3000);
@@ -89,7 +104,14 @@ export async function cloneProject(url: string, name: string): Promise<void> {
   projectHandle.set(projectDir);
 
   await checkAndLoadGit();
+  await pickEntryPoint(tree);
+  rememberVirtualProject(name);
 
+  addToast(`Cloned: ${name}`, 'success', 2000);
+}
+
+// a single tex file is the main file, more than one asks the user
+async function pickEntryPoint(tree: TreeEntry[]) {
   const texPaths = collectTexPaths(tree);
   if (texPaths.length === 1) {
     entryPoint.set(texPaths[0]);
@@ -100,8 +122,33 @@ export async function cloneProject(url: string, name: string): Promise<void> {
   } else if (texPaths.length > 1) {
     pendingTexFiles.set(texPaths);
   }
+}
 
-  addToast(`Cloned: ${name}`, 'success', 2000);
+function rememberVirtualProject(name: string) {
+  if (!supportsFileSystemAccess()) localStorage.setItem(VIRTUAL_PROJECT_KEY, name);
+}
+
+// without folder access the only place a project can be is the origin
+// private file system, so open folder brings the last one back
+async function openVirtualProject() {
+  const name = localStorage.getItem(VIRTUAL_PROJECT_KEY);
+  if (!name || !supportsVirtualProjects()) {
+    addToast('Opening folders needs Chrome or Edge. New Project creates a project inside the browser instead.', 'info', 6000);
+    return;
+  }
+  try {
+    const root = await getVirtualRoot();
+    const projectDir = await root.getDirectoryHandle(name);
+    const tree = await readTreeFromHandle(projectDir);
+    projectTree.set(tree);
+    projectName.set(name);
+    projectHandle.set(projectDir);
+    addToast(`Opened project: ${name}`, 'success', 2000);
+    await pickEntryPoint(tree);
+  } catch (e: any) {
+    if (e.name === 'NotFoundError') localStorage.removeItem(VIRTUAL_PROJECT_KEY);
+    addToast(`Failed to open project: ${e.message}`, 'error');
+  }
 }
 
 export async function handleOpenFile() {
@@ -126,7 +173,7 @@ export async function handleOpenFile() {
 
 export async function handleOpenDirectory() {
   if (!supportsFileSystemAccess()) {
-    addToast('This feature requires Chrome or Edge (File System Access API).', 'error');
+    await openVirtualProject();
     return;
   }
   try {
@@ -136,17 +183,7 @@ export async function handleOpenDirectory() {
       projectName.set(result.name);
       projectHandle.set(result.dirHandle);
       addToast(`Opened project: ${result.name}`, 'success', 2000);
-
-      const texPaths = collectTexPaths(result.tree);
-      if (texPaths.length === 1) {
-        entryPoint.set(texPaths[0]);
-        const entry = findFileInTree(result.tree, texPaths[0].split('/').pop()!);
-        if (entry?.handle) {
-          await handleOpenFileFromTree(entry.handle, entry.path);
-        }
-      } else if (texPaths.length > 1) {
-        pendingTexFiles.set(texPaths);
-      }
+      await pickEntryPoint(result.tree);
     }
   } catch (e: any) {
     if (e.name !== 'AbortError') {

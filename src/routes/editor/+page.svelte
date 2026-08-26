@@ -5,7 +5,7 @@
   import { get } from 'svelte/store';
   import { sidebarOpen, previewOpen, snippetPickerOpen, commandPaletteOpen, compileStatus, compileLog, compileErrors, previewTab, addToast } from '$lib/stores/app';
   import { files, activeFile, activeFileId, updateFileContent, projectHandle, entryPoint, openFileTab } from '$lib/project/store';
-  import { handleOpenFile, handleSaveFile, handleSaveFileAs, handleDroppedFiles, handleOpenDirectory, handleNewProject, cloneProject, reopenEntryPointPicker } from '$lib/project/manager';
+  import { handleOpenFile, handleSaveFile, handleSaveFileAs, handleDroppedFiles, handleOpenDirectory, handleNewProject, cloneProject, reopenEntryPointPicker, supportsFileSystemAccess } from '$lib/project/manager';
   import { insertAtCursor, createEditor, replaceEditorContent } from '$lib/editor/setup';
   import type { EditorView } from '@codemirror/view';
   import type { Snippet as SnippetDef } from '$lib/snippets/index';
@@ -111,6 +111,7 @@
   let cloneUrl = '';
   let cloneName = '';
   let cloning = false;
+  const hasFolderAccess = browser && supportsFileSystemAccess();
 
   $: isMobile = windowWidth < 900;
 
@@ -1239,7 +1240,7 @@
                     </button>
                     <button class="welcome-btn secondary" on:click={handleCancelClone} disabled={cloning}>Back</button>
                   </div>
-                  <p class="clone-hint">You'll pick a folder where the project will be saved. Auth and CORS proxy can be configured in Git > Remote after cloning.</p>
+                  <p class="clone-hint">{hasFolderAccess ? 'You\'ll pick a folder where the project will be saved.' : 'The project is stored inside your browser.'} Auth and CORS proxy can be configured in Git > Remote after cloning.</p>
                 </div>
               {:else}
                 <div class="welcome-icon"><Logo size={44} /></div>

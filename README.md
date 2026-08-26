@@ -55,7 +55,7 @@ There's no magic and no backend.
 
 ## Known limitations
 
-- **pdfTeX only.** No XeTeX or LuaTeX, so `fontspec`, `polyglossia` and anything else that needs them won't compile.
+- **pdfTeX only.** No XeTeX or LuaTeX, so `fontspec`, `polyglossia`, the TikZ `graphdrawing` library and anything else that needs them won't compile.
 - **No bibtex or biber.** The engine doesn't ship either. Documents using `biblatex` get a plain `thebibliography` generated from the `.bib` file, so references show up but the citation style is ignored. Classic `bibtex` workflows need a `.bbl` in the project. A real bibtex in WASM is next on the list.
 - **TeX Live 2020 era.** Packages are pinned to the same era as the engine's format file, so newer package versions aren't available.
 - **Git remotes need a CORS proxy.** Browsers can't speak the git protocol directly. The default proxy is configurable, see below.

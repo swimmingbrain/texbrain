@@ -102,6 +102,10 @@ Open `http://localhost:5173` in Chrome or Edge.
 
 Full functionality requires the File System Access API, which is available in Chromium-based browsers (Chrome, Edge, Arc, Brave, Opera). Firefox and Safari can still use the editor with the virtual filesystem fallback, but won't be able to read/write directly to local folders.
 
+## Contributing
+
+There is no formal process. Fork, change, open a pull request. [CONTRIBUTING.md](CONTRIBUTING.md) has the layout of the code and what kind of help matters most right now.
+
 ## License
 
 MIT

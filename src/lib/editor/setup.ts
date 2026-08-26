@@ -2,8 +2,9 @@ import { EditorState, type Extension } from '@codemirror/state';
 import { EditorView, lineNumbers, highlightActiveLine, highlightActiveLineGutter, drawSelection, dropCursor, rectangularSelection, crosshairCursor, keymap } from '@codemirror/view';
 import { defaultKeymap as _defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 
-// filter out Mod-/ (toggleComment), reserved for the snippet picker
-const defaultKeymap = _defaultKeymap.filter(k => k.key !== 'Mod-/');
+// Mod-/ (toggleComment) belongs to the snippet picker and Mod-Enter
+// (insertBlankLine) to compile, so codemirror doesn't get to see them
+const defaultKeymap = _defaultKeymap.filter(k => k.key !== 'Mod-/' && k.key !== 'Mod-Enter');
 
 import { foldGutter, foldKeymap, bracketMatching, indentOnInput } from '@codemirror/language';
 import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';

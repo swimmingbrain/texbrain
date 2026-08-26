@@ -11,6 +11,8 @@ export interface Preferences {
   autoSave: boolean;
   autoSaveDelay: number;
   previewDelay: number;
+  // compile on its own a moment after typing stops
+  autoCompile: boolean;
   // remote mirror for latex packages not bundled with the app,
   // empty string disables remote fetching entirely
   texliveMirror: string;
@@ -26,6 +28,7 @@ const defaults: Preferences = {
   autoSave: true,
   autoSaveDelay: 2000,
   previewDelay: 500,
+  autoCompile: true,
   texliveMirror: 'https://texlive.texlyre.org/'
 };
 

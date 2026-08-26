@@ -881,7 +881,7 @@
         <span>{compiling ? 'Compiling...' : 'Compile'}</span>
       </button>
       <button class="action-btn" class:auto-on={$preferences.autoCompile} on:click={toggleAutoCompile} aria-pressed={$preferences.autoCompile} title={$preferences.autoCompile ? 'The PDF follows your typing. Click to compile only on Ctrl+Enter' : 'Compile only on Ctrl+Enter. Click to let the PDF follow your typing'}>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13 8A5 5 0 113.6 5.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M3 2.5v3.5h3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M9 1.5L3.5 9h4l-1 5.5L12.5 7h-4L9 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
         <span>Auto</span>
       </button>
       {#if $entryPoint}

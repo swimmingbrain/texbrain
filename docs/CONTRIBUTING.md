@@ -21,8 +21,8 @@ Open `http://localhost:5173` in Chrome or Edge. Firefox and Safari work too, the
 - `src/lib/git` wraps isomorphic-git. `handle-fs.ts` is the file system adapter that lets it run on the project folder, `engine.ts` the operations, `errors.ts` turns its errors into something readable. The panel lives in `src/lib/ui/git`, one file per tab.
 - `src/lib/project` holds the open files, the project tree and everything the toolbar calls.
 - `src/lib/ui` are the Svelte components, `src/routes/editor` is the editor page itself.
-- `static/sw.js` is the service worker that resolves TeX Live files on demand: cache first, then the bundled subset, then the jsDelivr mirror, then the fallback server.
-- `static/texlive/cache` is the bundled package subset. If you change anything in there, bump `BUNDLE_VERSION` in `static/sw.js` and `WARMED_VERSION` in `src/lib/compiler/offline-cache.ts`, otherwise users keep the old files in their cache.
+- `src/service-worker.ts` is the service worker. It keeps every file of the current build in a cache of its own, so a page that was open before a deploy still gets its chunks, and it resolves TeX Live files on demand: cache first, then the bundled subset, then the jsDelivr mirror, then the fallback server.
+- `static/texlive/cache` is the bundled package subset. If you change anything in there, bump `BUNDLE_VERSION` in `src/service-worker.ts` and `WARMED_VERSION` in `src/lib/compiler/offline-cache.ts`, otherwise users keep the old files in their cache.
 - `static/swiftlatex` is the engine. It is a build artifact, not something to edit by hand.
 
 ## What helps most

@@ -6,7 +6,7 @@ import { base } from '$app/paths';
 // down (the cache writes compete with compile i/o otherwise).
 
 const FLAG = 'texbrain-texlive-warmed';
-// matches BUNDLE_VERSION in sw.js: when the bundle changes, the warm set
+// matches BUNDLE_VERSION in service-worker.ts: when the bundle changes, the warm set
 // is evicted and needs one fresh run
 const WARMED_VERSION = '4';
 const CONCURRENCY = 2;

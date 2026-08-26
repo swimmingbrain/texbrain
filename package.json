@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "type": "module",
   "devDependencies": {
@@ -23,16 +27,12 @@
   "dependencies": {
     "@codemirror/autocomplete": "^6.18.0",
     "@codemirror/commands": "^6.7.0",
-    "@codemirror/lang-javascript": "^6.2.0",
     "@codemirror/language": "^6.10.0",
-    "@codemirror/lint": "^6.8.0",
     "@codemirror/search": "^6.5.0",
     "@codemirror/state": "^6.5.0",
     "@codemirror/view": "^6.35.0",
     "@lezer/highlight": "^1.2.0",
-    "@lezer/lr": "^1.4.0",
     "buffer": "^6.0.3",
-    "idb-keyval": "^6.2.1",
     "isomorphic-git": "^1.27.1",
     "pdfjs-dist": "^4.9.155",
     "y-codemirror.next": "^0.3.5",

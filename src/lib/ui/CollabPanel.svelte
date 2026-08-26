@@ -100,7 +100,7 @@
     <div class="collab-panel">
       <div class="panel-header">
         <h3>Collaboration</h3>
-        <button class="close-btn" on:click={close}>
+        <button class="close-btn" on:click={close} aria-label="Close">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         </button>
       </div>
@@ -118,7 +118,7 @@
           </div>
 
           <div class="field">
-            <label>Share Code</label>
+            <span class="field-label">Share Code</span>
             <div class="copy-row">
               <code class="room-code">{$collabRoom?.shareCode ?? ''}</code>
               <button class="copy-btn" on:click={copyShareCode} title="Copy share code">
@@ -133,7 +133,7 @@
 
           {#if $collabRoom?.password}
             <div class="field">
-              <label>Password</label>
+              <span class="field-label">Password</span>
               <code class="room-code">{$collabRoom.password}</code>
               <p class="security-hint">
                 Collaborators also need this password. Share it separately from the code for extra security.
@@ -143,7 +143,7 @@
 
           {#if $collabPeers.length > 0}
             <div class="field">
-              <label>Collaborators ({$collabPeers.length})</label>
+              <span class="field-label">Collaborators ({$collabPeers.length})</span>
               <div class="peer-list">
                 {#each $collabPeers as peer}
                   <div class="peer-item">
@@ -255,7 +255,7 @@
     flex-direction: column;
     gap: 3px;
   }
-  .field label {
+  .field label, .field-label {
     font-size: 10px;
     font-weight: 600;
     color: var(--text-muted);

@@ -5,8 +5,8 @@
   "description": "LaTeX editor that runs in your browser. Compile to PDF with live preview, git integration, and offline support. No account needed.",
   "start_url": "/editor",
   "display": "standalone",
-  "background_color": "#0c0d12",
-  "theme_color": "#4a6cf7",
+  "background_color": "#111113",
+  "theme_color": "#111113",
   "icons": [
     {
       "src": "/favicon.svg",

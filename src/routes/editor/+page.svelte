@@ -11,7 +11,9 @@
   import type { EditorView } from '@codemirror/view';
   import type { Snippet as SnippetDef } from '$lib/snippets/index';
   import { compileLaTeX, warmup } from '$lib/compiler/latex-engine';
-  import { placeholderImage } from '$lib/compiler/placeholder-image';
+  import { injectImagePlaceholders, findMissingIncludes, buildIncludeMap } from '$lib/compiler/scan';
+  import { readProjectFiles } from '$lib/fs/read-project';
+  import { parseLog, capLogLines } from '$lib/compiler/log';
   import welcomeTex from '$lib/templates/welcome.tex?raw';
   import { yCollab } from 'y-codemirror.next';
   import { collabActive, collabPanelOpen, collabPeers, collabConnected } from '$lib/collab/store';
@@ -224,14 +226,8 @@
     const projectFiles = new Map<string, string>();
     const binaryFiles = new Map<string, ArrayBuffer>();
     const handle = get(projectHandle);
-
-    if (handle !== fileReadCacheHandle) {
-      fileReadCache = new Map();
-      fileReadCacheHandle = handle;
-    }
-
     if (handle) {
-      await readDirRecursive(handle, '', projectFiles, binaryFiles);
+      await readProjectFiles(handle, projectFiles, binaryFiles);
     }
 
     // override with open tab contents (may have unsaved edits), skip non-tex files
@@ -247,98 +243,6 @@
     }
 
     return { projectFiles, binaryFiles };
-  }
-
-  // scan all tex files for \includegraphics targets no project file satisfies
-  // and inject a placeholder image so the compile behaves like overleaf:
-  // the pdf still builds, the missing image shows as a gray box
-  function injectImagePlaceholders(projectFiles: Map<string, string>, binaryFiles: Map<string, ArrayBuffer>): string[] {
-    const imageExts = ['.png', '.pdf', '.jpg', '.jpeg', '.eps'];
-    const known = [...projectFiles.keys(), ...binaryFiles.keys()];
-    const satisfied = (candidate: string) =>
-      known.some(k => k === candidate || k.endsWith('/' + candidate));
-
-    const missing: string[] = [];
-    const re = /^[^%\n]*?\\includegraphics\s*(?:\[[^\]]*\])?\s*\{([^}]+)\}/gm;
-    for (const [path, content] of projectFiles) {
-      if (!path.toLowerCase().endsWith('.tex')) continue;
-      let m;
-      while ((m = re.exec(content)) !== null) {
-        const name = m[1].trim().replace(/^\.\//, '');
-        if (!name || name.includes('\\')) continue; // built from a macro
-        const hasExt = imageExts.some(e => name.toLowerCase().endsWith(e));
-        const candidates = hasExt ? [name] : imageExts.map(e => name + e);
-        if (candidates.some(satisfied)) continue;
-        if (!missing.includes(name)) missing.push(name);
-        // pdftex picks the decoder by extension, so the png placeholder can
-        // only stand in for png and extension-less references
-        const target = hasExt ? name : `${name}.png`;
-        if (target.toLowerCase().endsWith('.png') && !binaryFiles.has(target)) {
-          binaryFiles.set(target, placeholderImage());
-        }
-      }
-    }
-    return missing;
-  }
-
-  // \include/\input targets in the entry file that no project file satisfies
-  function findMissingIncludes(projectFiles: Map<string, string>, entryPointPath: string): string[] {
-    const epContent = projectFiles.get(entryPointPath);
-    if (!epContent) return [];
-
-    const missing: string[] = [];
-    const re = /^[^%\n]*?\\(?:input|include)\{([^}]+)\}/gm;
-    let m;
-    while ((m = re.exec(epContent)) !== null) {
-      let name = m[1].trim();
-      if (name.includes('\\')) continue; // built from a macro, can't check statically
-      if (!name.toLowerCase().endsWith('.tex')) name += '.tex';
-      name = name.replace(/^\.\//, '');
-      if (!projectFiles.has(name) && !missing.includes(name)) missing.push(name);
-    }
-    return missing;
-  }
-
-  // build a flattened include map for multi-file fraction calculation
-  function updateIncludeMap(projectFiles: Map<string, string>, entryPointPath: string) {
-    const epContent = projectFiles.get(entryPointPath);
-    if (!epContent) { includeOrder = []; totalDocLines = 0; return; }
-
-    const docStart = epContent.indexOf('\\begin{document}');
-    const contentPart = docStart >= 0 ? epContent.substring(docStart) : epContent;
-
-    includeOrder = [];
-    const visited = new Set<string>();
-    const re = /\\(?:input|include)\{([^}]+)\}/g;
-    let m;
-    while ((m = re.exec(contentPart)) !== null) {
-      let name = m[1];
-      if (!name.endsWith('.tex')) name += '.tex';
-      collectLeafFiles(name, projectFiles, visited);
-    }
-    totalDocLines = includeOrder.reduce((s, f) => s + f.lines, 0);
-  }
-
-  function collectLeafFiles(filePath: string, projectFiles: Map<string, string>, visited: Set<string>) {
-    if (visited.has(filePath)) return;
-    visited.add(filePath);
-
-    const content = projectFiles.get(filePath);
-    if (!content) { includeOrder.push({ path: filePath, lines: 100 }); return; }
-
-    const re = /\\(?:input|include)\{([^}]+)\}/g;
-    let m;
-    let hasIncludes = false;
-    while ((m = re.exec(content)) !== null) {
-      hasIncludes = true;
-      let name = m[1];
-      if (!name.endsWith('.tex')) name += '.tex';
-      collectLeafFiles(name, projectFiles, visited);
-    }
-
-    if (!hasIncludes) {
-      includeOrder.push({ path: filePath, lines: content.split('\n').length });
-    }
   }
 
   // map cursor position to a fraction of the overall document (0-1) for pdf scrolling
@@ -422,7 +326,7 @@
         const handle = get(projectHandle);
         if (handle) {
           try {
-            await readDirRecursive(handle, '', new Map(), binaryFiles);
+            await readProjectFiles(handle, new Map(), binaryFiles);
           } catch {}
         }
       } else {
@@ -433,7 +337,9 @@
 
       const mainFile = get(entryPoint) || af.path || af.name;
 
-      updateIncludeMap(projectFiles, mainFile);
+      const includeMap = buildIncludeMap(projectFiles, mainFile);
+      includeOrder = includeMap.order;
+      totalDocLines = includeMap.totalLines;
 
       // included files that aren't part of the project would silently drop
       // content (or worse, resolve against texlive), so warn upfront
@@ -515,137 +421,6 @@
 
   function ts() { return new Date().toLocaleTimeString(); }
 
-  // the log panel renders one element per line, huge logs freeze the ui
-  function capLogLines(lines: string[], max = 800): string[] {
-    if (lines.length <= max) return lines;
-    const half = max / 2;
-    return [
-      ...lines.slice(0, half),
-      `... ${lines.length - max} lines omitted ...`,
-      ...lines.slice(-half)
-    ];
-  }
-
-  // parse latex log into structured errors/warnings
-  function parseLog(rawLog: string): {
-    errors: Array<{ type: 'error' | 'warning'; message: string; line?: number; file?: string }>;
-    cleanedLines: string[];
-  } {
-    const errors: Array<{ type: 'error' | 'warning'; message: string; line?: number; file?: string }> = [];
-    const lines = rawLog.split('\n');
-    const cleanedLines: string[] = [];
-
-    const noisePatterns = [
-      /^\s*\(\/tex\//,
-      /^\s*\(\/tex\/[^)]*$/,
-      /^\s*\)\s*$/,
-      /^\s*\)+\s*$/,
-      /^\s*\(\/?tex\//,
-      /^pdfTeX warning:.*fontmap entry/,
-      /^\s*exists, duplicates ignored$/,
-      /^ABD: Every/,
-      /^\*geometry\*/,
-      /^1773\d+/,
-      /^\s*$/,
-    ];
-
-    const suppressedWarningPatterns = [
-      /shell escape.*disabled/i,
-      /You have requested package/,
-      /You have requested, on input line.*version/,
-      /^(Underfull|Overfull)\s+\\[hv]box/,
-      /pdfTeX warning:.*PDF inclusion: found PDF/,
-      /ABD: EveryShipout/,
-    ];
-
-    function isSuppressedWarning(msg: string): boolean {
-      return suppressedWarningPatterns.some(p => p.test(msg));
-    }
-
-    // pdftex prints "(<path>" when it opens a file and ")" when it closes it
-    // again. following that gives every error the file it happened in, which
-    // is the difference between "line 39" and "line 39 of hyperref.sty". the
-    // log wraps long lines, so this stays a best effort
-    const openFiles: string[] = [];
-    function trackOpenFiles(text: string) {
-      let skipped = 0;
-      const re = /\(([^\s()]*)|\)/g;
-      let m;
-      while ((m = re.exec(text)) !== null) {
-        if (m[0] === ')') {
-          if (skipped > 0) skipped--;
-          else openFiles.pop();
-        } else if (/^(\.{1,2}\/|\/)?[^\s()]*\.[a-z0-9]{1,5}$/i.test(m[1])) {
-          openFiles.push(m[1]);
-        } else {
-          skipped++; // parenthesised prose, not a file
-        }
-      }
-    }
-    function currentFile(): string | undefined {
-      const path = openFiles[openFiles.length - 1];
-      return path?.replace(/^(\.\/|\/work\/|\/tex\/)/, '');
-    }
-    let afterContext = false;
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const trimmed = line.trim();
-
-      if (trimmed.startsWith('! ')) {
-        const msg = trimmed.slice(2);
-        let lineNum: number | undefined;
-        for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
-          const m = lines[j].match(/^l\.(\d+)/);
-          if (m) { lineNum = parseInt(m[1], 10); break; }
-        }
-        errors.push({ type: 'error', message: msg, line: lineNum, file: currentFile() });
-        cleanedLines.push(line);
-        continue;
-      }
-
-      if (/LaTeX Warning:/i.test(trimmed) || /Package \w+ Warning:/i.test(trimmed)) {
-        const warnMatch = trimmed.match(/Warning:\s*(.+)/i);
-        const msg = warnMatch ? warnMatch[1] : trimmed;
-        if (!isSuppressedWarning(trimmed) && !isSuppressedWarning(msg)) {
-          let lineNum: number | undefined;
-          const lm = trimmed.match(/on input line (\d+)/);
-          if (lm) lineNum = parseInt(lm[1], 10);
-          errors.push({ type: 'warning', message: msg.replace(/\s+$/, ''), line: lineNum, file: currentFile() });
-        }
-        cleanedLines.push(line);
-        continue;
-      }
-
-      if (/pdfTeX warning:/i.test(trimmed) && !/fontmap entry/.test(trimmed)) {
-        if (!isSuppressedWarning(trimmed)) {
-          errors.push({ type: 'warning', message: trimmed });
-        }
-        cleanedLines.push(line);
-        continue;
-      }
-
-      if (/^(Underfull|Overfull)\s+\\[hv]box/.test(trimmed)) {
-        cleanedLines.push(line);
-        continue;
-      }
-
-      // the "l.39 ..." context after an error quotes source, which can
-      // contain parentheses of its own, so it is left out of the tracking
-      const isContext = /^l\.\d+/.test(trimmed);
-      if (!isContext && !afterContext) trackOpenFiles(line);
-      afterContext = isContext;
-
-      if (noisePatterns.some(p => p.test(trimmed))) continue;
-      if (/^[\s()]*$/.test(trimmed)) continue;
-      if (/^[\s()]*(\([^)]*\)[\s)]*)+[\s)]*$/.test(trimmed)) continue;
-
-      cleanedLines.push(line);
-    }
-
-    return { errors, cleanedLines };
-  }
-
   function errorLocation(e: { line?: number; file?: string }): string {
     return [e.file, e.line ? `line ${e.line}` : ''].filter(Boolean).join(', ');
   }
@@ -653,64 +428,6 @@
   async function saveAndCompile() {
     await handleSaveFile();
     doCompile();
-  }
-
-  // re-reading every file from disk on each compile is wasteful, especially
-  // for images. metadata (mtime + size) decides whether the cached copy is
-  // still current. reusing the same objects also lets the compiler skip
-  // re-uploading unchanged files to the engine.
-  let fileReadCache = new Map<string, { lastModified: number; size: number; text?: string; buffer?: ArrayBuffer }>();
-  let fileReadCacheHandle: FileSystemDirectoryHandle | null = null;
-
-  async function readDirRecursive(
-    dirHandle: FileSystemDirectoryHandle,
-    prefix: string,
-    fileMap: Map<string, string>,
-    binaryMap?: Map<string, ArrayBuffer>
-  ): Promise<void> {
-    const textExts = new Set([
-      'tex', 'sty', 'cls', 'bib', 'bst', 'def', 'cfg', 'fd',
-      'dtx', 'ins', 'ltx', 'txt', 'bbx', 'cbx', 'lbx'
-    ]);
-    const binaryExts = new Set([
-      'png', 'jpg', 'jpeg', 'pdf', 'eps', 'svg', 'gif', 'bmp',
-      'tfm', 'pfb', 'vf', 'map', 'enc', 'otf', 'ttf'
-    ]);
-    for await (const entry of (dirHandle as any).values()) {
-      const path = prefix ? `${prefix}/${entry.name}` : entry.name;
-      if (entry.kind === 'file') {
-        const ext = entry.name.split('.').pop()?.toLowerCase() || '';
-        if (textExts.has(ext)) {
-          try {
-            const file = await entry.getFile();
-            const cached = fileReadCache.get(path);
-            if (cached && cached.lastModified === file.lastModified && cached.size === file.size && cached.text !== undefined) {
-              fileMap.set(path, cached.text);
-            } else {
-              const content = await file.text();
-              fileReadCache.set(path, { lastModified: file.lastModified, size: file.size, text: content });
-              fileMap.set(path, content);
-            }
-          } catch {}
-        } else if (binaryMap && binaryExts.has(ext)) {
-          try {
-            const file = await entry.getFile();
-            const cached = fileReadCache.get(path);
-            if (cached && cached.lastModified === file.lastModified && cached.size === file.size && cached.buffer !== undefined) {
-              binaryMap.set(path, cached.buffer);
-            } else {
-              const data = await file.arrayBuffer();
-              fileReadCache.set(path, { lastModified: file.lastModified, size: file.size, buffer: data });
-              binaryMap.set(path, data);
-            }
-          } catch {}
-        }
-      } else if (entry.kind === 'directory') {
-        if (!entry.name.startsWith('.') && entry.name !== 'node_modules' && entry.name !== '__pycache__') {
-          await readDirRecursive(entry, path, fileMap, binaryMap);
-        }
-      }
-    }
   }
 
   function handleEditorUpdate(content: string) {

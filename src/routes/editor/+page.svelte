@@ -146,6 +146,7 @@
             parent: editorContainer,
             dark: true,
             onUpdate: handleEditorUpdate,
+            onCursor: handleCursor,
             collab: yCollab(data.ytext, awareness, { undoManager: data.undoManager })
           });
           setCurrentFile(file.path);
@@ -155,7 +156,8 @@
           doc: file.content,
           parent: editorContainer,
           dark: true,
-          onUpdate: handleEditorUpdate
+          onUpdate: handleEditorUpdate,
+          onCursor: handleCursor
         });
       }
     } catch (err) {
@@ -438,15 +440,14 @@
   function handleEditorUpdate(content: string) {
     if (!$activeFile) return;
     updateFileContent($activeFile.id, content);
-    if (editorView) {
-      const pos = editorView.state.selection.main.head;
-      const line = editorView.state.doc.lineAt(pos);
-      cursorLine = line.number;
-      cursorCol = pos - line.from + 1;
-      charCount = editorView.state.doc.length;
-      const text = editorView.state.doc.toString();
-      wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
-    }
+    charCount = content.length;
+    wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
+  }
+
+  // the status bar follows the cursor, not only the edits
+  function handleCursor(line: number, col: number) {
+    cursorLine = line;
+    cursorCol = col;
   }
 
   // double-click in editor jumps pdf to approximate cursor position

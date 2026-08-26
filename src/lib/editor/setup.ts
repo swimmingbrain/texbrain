@@ -21,6 +21,8 @@ export interface EditorConfig {
   parent: HTMLElement;
   dark: boolean;
   onUpdate?: (content: string) => void;
+  // fires on every cursor move, edits included
+  onCursor?: (line: number, col: number) => void;
   // pass the result of yCollab(...) here to enable collaborative editing
   collab?: Extension;
 }
@@ -55,6 +57,11 @@ export function createEditor(config: EditorConfig): EditorView {
   const updateListener = EditorView.updateListener.of((update) => {
     if (update.docChanged && config.onUpdate) {
       config.onUpdate(update.state.doc.toString());
+    }
+    if ((update.selectionSet || update.docChanged) && config.onCursor) {
+      const pos = update.state.selection.main.head;
+      const line = update.state.doc.lineAt(pos);
+      config.onCursor(line.number, pos - line.from + 1);
     }
   });
 

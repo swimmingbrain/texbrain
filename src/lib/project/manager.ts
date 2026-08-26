@@ -4,7 +4,7 @@ import { openLocalFile, saveLocalFile, saveLocalFileAs, openDirectory, readFileF
 import { openFileFallback, saveFileFallback } from '../fs/fallback-fs';
 import { getVirtualRoot, supportsVirtualProjects } from '../fs/virtual-fs';
 import { addToast } from '../stores/app';
-import { initFs as gitInitFs, cloneRepo, readAllFilesFromGit, checkAndLoadGit } from '../git/engine';
+import { cloneInto, notifyFilesChanged } from '../git/engine';
 import type { TreeEntry } from './types';
 
 export function supportsFileSystemAccess(): boolean {
@@ -80,30 +80,14 @@ export async function cloneProject(url: string, name: string): Promise<void> {
 
   addToast('Cloning repository...', 'info', 3000);
 
-  gitInitFs(name);
-  await cloneRepo(url);
-
-  // write cloned files to real filesystem
-  const gitFiles = await readAllFilesFromGit();
-  for (const [path, content] of gitFiles) {
-    const parts = path.split('/');
-    const fileName = parts.pop()!;
-    let currentDir = projectDir;
-    for (const part of parts) {
-      currentDir = await currentDir.getDirectoryHandle(part, { create: true });
-    }
-    const fileHandle = await currentDir.getFileHandle(fileName, { create: true });
-    const writable = await fileHandle.createWritable();
-    await writable.write(content);
-    await writable.close();
-  }
+  // git writes the checkout straight into the folder, images included
+  await cloneInto(projectDir, url);
 
   const tree = await readTreeFromHandle(projectDir);
   projectTree.set(tree);
   projectName.set(name);
   projectHandle.set(projectDir);
 
-  await checkAndLoadGit();
   await pickEntryPoint(tree);
   rememberVirtualProject(name);
 
@@ -325,6 +309,7 @@ export async function handleSaveFile() {
     if (file.handle) {
       await saveLocalFile(file.handle, file.content);
       markFileSaved(file.id);
+      notifyFilesChanged();
       addToast('File saved', 'success', 1500);
     } else if (supportsFileSystemAccess()) {
       const handle = await saveLocalFileAs(file.content, file.name);
@@ -473,6 +458,7 @@ export async function refreshProjectTree() {
   if (!handle) return;
   const tree = await readTreeFromHandle(handle);
   projectTree.set(tree);
+  notifyFilesChanged();
 }
 
 async function readTreeFromHandle(dirHandle: FileSystemDirectoryHandle): Promise<TreeEntry[]> {

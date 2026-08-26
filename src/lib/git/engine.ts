@@ -1,18 +1,28 @@
 import git from 'isomorphic-git';
 import http from 'isomorphic-git/http/web';
-import LightningFS from '@isomorphic-git/lightning-fs';
 import { get } from 'svelte/store';
+import { HandleFs } from './handle-fs';
 import {
   gitEnabled, gitCurrentBranch, gitBranches,
   gitStagedFiles, gitUnstagedFiles, gitFileStatuses,
-  gitCommitLog, gitLoading,
-  gitAuthorName, gitAuthorEmail, gitAuthToken, gitCorsProxy
+  gitCommitLog, gitLoading, gitSync, gitProgress,
+  gitAuthorName, gitAuthorEmail, gitAuthUsername, gitAuthToken, gitCorsProxy
 } from './store';
 import type { GitFileChange, GitCommitInfo, GitFileDiff, GitDiffLine, GitAuth, MergeResult } from './types';
 
-const DIR = '/project';
-let fs: LightningFS | null = null;
-let currentProjectId: string | null = null;
+// git works straight on the project folder, the .git directory lives next
+// to the tex files like it would with a terminal
+const DIR = '/';
+
+interface Repo {
+  fs: HandleFs;
+  handle: FileSystemDirectoryHandle;
+}
+
+let repo: Repo | null = null;
+// isomorphic-git keeps parsed packfiles and the index in here, dropped
+// whenever something outside a single command may have changed the repo
+let cache: object = {};
 let bufferPolyfilled = false;
 
 async function ensureBuffer() {
@@ -24,129 +34,32 @@ async function ensureBuffer() {
   bufferPolyfilled = true;
 }
 
-function getFs(): LightningFS {
-  if (!fs) {
-    fs = new LightningFS('texbrain-git-default');
-  }
-  return fs;
+function getFs(): HandleFs {
+  if (!repo) throw new Error('No project folder is open');
+  return repo.fs;
 }
 
-export function initFs(projectId: string) {
-  if (currentProjectId === projectId && fs) return;
-  fs = new LightningFS('texbrain-git-' + projectId);
-  currentProjectId = projectId;
+function base() {
+  return { fs: getFs(), dir: DIR, cache };
 }
 
-async function ensureDir(path: string) {
-  const parts = path.split('/').filter(Boolean);
-  let current = '';
-  for (const part of parts) {
-    current += '/' + part;
-    try {
-      await getFs().promises.mkdir(current);
-    } catch (e: any) {
-      if (e.code !== 'EEXIST') throw e;
-    }
-  }
-}
-
-export async function syncFilesToGit(projectFiles: Map<string, string>) {
-  const pfs = getFs().promises;
-  await ensureDir(DIR);
-
-  // remove old working tree files but keep .git
-  try {
-    const entries = await pfs.readdir(DIR);
-    for (const entry of entries) {
-      if (entry === '.git') continue;
-      await removeRecursive(DIR + '/' + entry);
-    }
-  } catch { /* dir may not exist yet */ }
-
-  for (const [path, content] of projectFiles) {
-    const fullPath = DIR + '/' + path;
-    const dir = fullPath.substring(0, fullPath.lastIndexOf('/'));
-    if (dir && dir !== DIR) await ensureDir(dir);
-    await pfs.writeFile(fullPath, content, 'utf8');
-  }
-}
-
-async function removeRecursive(path: string) {
-  const pfs = getFs().promises;
-  try {
-    const stat = await pfs.stat(path);
-    if (stat.isDirectory()) {
-      const entries = await pfs.readdir(path);
-      for (const entry of entries) {
-        await removeRecursive(path + '/' + entry);
-      }
-      await pfs.rmdir(path);
-    } else {
-      await pfs.unlink(path);
-    }
-  } catch { /* ignore */ }
-}
-
-export async function writeFileToGit(path: string, content: string) {
-  const pfs = getFs().promises;
-  const fullPath = DIR + '/' + path;
-  const dir = fullPath.substring(0, fullPath.lastIndexOf('/'));
-  if (dir && dir !== DIR) await ensureDir(dir);
-  await pfs.writeFile(fullPath, content, 'utf8');
-}
-
-export async function deleteFileFromGit(path: string) {
-  try {
-    await getFs().promises.unlink(DIR + '/' + path);
-  } catch { /* file may not exist */ }
-}
-
-export async function readAllFilesFromGit(): Promise<Map<string, string>> {
-  const result = new Map<string, string>();
-  const pfs = getFs().promises;
-
-  async function walk(dirPath: string, prefix: string) {
-    let entries: string[];
-    try {
-      entries = await pfs.readdir(dirPath);
-    } catch { return; }
-    for (const entry of entries) {
-      if (entry === '.git') continue;
-      const fullPath = dirPath + '/' + entry;
-      try {
-        const stat = await pfs.stat(fullPath);
-        if (stat.isDirectory()) {
-          await walk(fullPath, prefix ? prefix + '/' + entry : entry);
-        } else {
-          const content = await pfs.readFile(fullPath, 'utf8') as string;
-          result.set(prefix ? prefix + '/' + entry : entry, content);
-        }
-      } catch { /* skip unreadable */ }
-    }
-  }
-
-  await walk(DIR, '');
-  return result;
-}
-
-export async function isGitRepo(): Promise<boolean> {
-  try {
-    await getFs().promises.stat(DIR + '/.git');
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-export async function initRepo(): Promise<void> {
-  await ensureBuffer();
-  await ensureDir(DIR);
-  await git.init({ fs: getFs(), dir: DIR, defaultBranch: 'main' });
-  gitEnabled.set(true);
+function resetStores() {
+  gitEnabled.set(false);
   gitCurrentBranch.set('main');
+  gitBranches.set([]);
+  gitStagedFiles.set([]);
+  gitUnstagedFiles.set([]);
+  gitFileStatuses.set(new Map());
+  gitCommitLog.set([]);
+  gitSync.set({ remoteBranch: null, ahead: 0, behind: 0, fetchedAt: null });
 }
 
-export async function checkAndLoadGit(): Promise<boolean> {
+// bind git to a project folder. returns whether it already is a repository
+export async function openRepo(handle: FileSystemDirectoryHandle): Promise<boolean> {
+  await ensureBuffer();
+  repo = { fs: new HandleFs(handle), handle };
+  cache = {};
+  resetStores();
   if (await isGitRepo()) {
     gitEnabled.set(true);
     await refreshGitState();
@@ -155,8 +68,77 @@ export async function checkAndLoadGit(): Promise<boolean> {
   return false;
 }
 
+export function closeRepo() {
+  repo = null;
+  cache = {};
+  resetStores();
+}
+
+export async function isGitRepo(): Promise<boolean> {
+  if (!repo) return false;
+  try {
+    const stat = await repo.fs.stat('/.git');
+    return stat.isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+// the files latex leaves behind while compiling. the pdf is left out on
+// purpose, plenty of people want it in the repository
+export const LATEX_GITIGNORE = `# latex build files
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lot
+*.nav
+*.out
+*.run.xml
+*.snm
+*.synctex.gz
+*.toc
+*.vrb
+*.xdv
+
+# uncomment to keep the pdf out as well
+# *.pdf
+`;
+
+// creates the gitignore, or adds the latex block to the one that is there
+export async function addLatexGitignore(): Promise<void> {
+  const fs = getFs();
+  let existing = '';
+  try {
+    existing = await fs.readFile('/.gitignore', 'utf8') as string;
+  } catch { /* none yet */ }
+  if (existing.includes('*.aux')) return;
+  await fs.writeFile('/.gitignore', existing ? existing.replace(/\s*$/, '\n\n') + LATEX_GITIGNORE : LATEX_GITIGNORE);
+  cache = {};
+}
+
+export async function initRepo(options: { gitignore?: boolean } = {}): Promise<void> {
+  await ensureBuffer();
+  await git.init({ ...base(), defaultBranch: 'main' });
+  if (options.gitignore) {
+    const fs = getFs();
+    try {
+      await fs.stat('/.gitignore');
+    } catch {
+      await fs.writeFile('/.gitignore', LATEX_GITIGNORE);
+    }
+  }
+  cache = {};
+  gitEnabled.set(true);
+  gitCurrentBranch.set('main');
+}
+
 export async function getStatus(): Promise<{ staged: GitFileChange[]; unstaged: GitFileChange[] }> {
-  const matrix = await git.statusMatrix({ fs: getFs(), dir: DIR });
+  const matrix = await git.statusMatrix(base());
   const staged: GitFileChange[] = [];
   const unstaged: GitFileChange[] = [];
   const statusMap = new Map<string, string>();
@@ -211,21 +193,32 @@ export async function getStatus(): Promise<{ staged: GitFileChange[]; unstaged: 
 
 export async function stageFile(filepath: string): Promise<void> {
   try {
-    await getFs().promises.stat(DIR + '/' + filepath);
-    await git.add({ fs: getFs(), dir: DIR, filepath });
+    await getFs().stat(DIR + filepath);
+    await git.add({ ...base(), filepath });
   } catch {
     // file deleted, stage the deletion
-    await git.remove({ fs: getFs(), dir: DIR, filepath });
+    await git.remove({ ...base(), filepath });
   }
 }
 
 export async function unstageFile(filepath: string): Promise<void> {
   try {
-    await git.resetIndex({ fs: getFs(), dir: DIR, filepath });
+    await git.resetIndex({ ...base(), filepath });
   } catch {
     // file is new (not in HEAD), remove from index
-    await git.remove({ fs: getFs(), dir: DIR, filepath });
+    await git.remove({ ...base(), filepath });
   }
+}
+
+// throw away the local edits to one file: tracked files go back to what is
+// committed, files git never saw are deleted
+export async function discardChanges(filepath: string, status: string): Promise<void> {
+  if (status === 'untracked') {
+    await getFs().unlink(DIR + filepath);
+  } else {
+    await git.checkout({ ...base(), ref: await getCurrentBranch(), filepaths: [filepath], force: true });
+  }
+  cache = {};
 }
 
 export async function stageAll(): Promise<void> {
@@ -242,19 +235,22 @@ export async function unstageAll(): Promise<void> {
   }
 }
 
+export function hasAuthor(): boolean {
+  return !!get(gitAuthorName).trim() && !!get(gitAuthorEmail).trim();
+}
+
+// every commit carries a name and an email, a made up placeholder would end
+// up in the history of every repository forever
+function author() {
+  if (!hasAuthor()) {
+    throw Object.assign(new Error('Git needs your name and email before it can commit'), { code: 'MissingNameError' });
+  }
+  return { name: get(gitAuthorName).trim(), email: get(gitAuthorEmail).trim() };
+}
+
 export async function commit(message: string): Promise<string> {
   await ensureBuffer();
-  const name = get(gitAuthorName) || 'TeXbrain User';
-  const email = get(gitAuthorEmail) || 'user@texbrain.local';
-
-  const sha = await git.commit({
-    fs: getFs(),
-    dir: DIR,
-    message,
-    author: { name, email }
-  });
-
-  return sha;
+  return git.commit({ ...base(), message, author: author() });
 }
 
 export async function getLog(depth: number = 50): Promise<GitCommitInfo[]> {
@@ -264,7 +260,7 @@ export async function getLog(depth: number = 50): Promise<GitCommitInfo[]> {
     const branchToSha = new Map<string, string[]>();
     for (const branch of branches) {
       try {
-        const sha = await git.resolveRef({ fs: getFs(), dir: DIR, ref: branch });
+        const sha = await git.resolveRef({ ...base(), ref: branch });
         if (!branchToSha.has(sha)) branchToSha.set(sha, []);
         branchToSha.get(sha)!.push(branch);
       } catch { /* skip */ }
@@ -275,7 +271,7 @@ export async function getLog(depth: number = 50): Promise<GitCommitInfo[]> {
     const allCommits: Array<{ oid: string; commit: any }> = [];
     for (const branch of branches) {
       try {
-        const branchCommits = await git.log({ fs: getFs(), dir: DIR, ref: branch, depth });
+        const branchCommits = await git.log({ ...base(), ref: branch, depth });
         for (const c of branchCommits) {
           if (!seen.has(c.oid)) {
             seen.add(c.oid);
@@ -287,7 +283,7 @@ export async function getLog(depth: number = 50): Promise<GitCommitInfo[]> {
 
     // fallback if no branches resolved
     if (allCommits.length === 0) {
-      const commits = await git.log({ fs: getFs(), dir: DIR, depth });
+      const commits = await git.log({ ...base(), depth });
       for (const c of commits) {
         if (!seen.has(c.oid)) {
           seen.add(c.oid);
@@ -321,7 +317,7 @@ export async function getBranchTips(): Promise<Map<string, GitCommitInfo>> {
     const branches = await listBranches();
     for (const branch of branches) {
       try {
-        const commits = await git.log({ fs: getFs(), dir: DIR, ref: branch, depth: 1 });
+        const commits = await git.log({ ...base(), ref: branch, depth: 1 });
         if (commits.length > 0) {
           const c = commits[0];
           result.set(branch, {
@@ -345,7 +341,7 @@ export async function getBranchTips(): Promise<Map<string, GitCommitInfo>> {
 
 export async function getCurrentBranch(): Promise<string> {
   try {
-    const branch = await git.currentBranch({ fs: getFs(), dir: DIR });
+    const branch = await git.currentBranch(base());
     return branch || 'HEAD';
   } catch {
     return 'main';
@@ -354,37 +350,31 @@ export async function getCurrentBranch(): Promise<string> {
 
 export async function listBranches(): Promise<string[]> {
   try {
-    return await git.listBranches({ fs: getFs(), dir: DIR });
+    return await git.listBranches(base());
   } catch {
     return [];
   }
 }
 
 export async function createBranch(name: string): Promise<void> {
-  await git.branch({ fs: getFs(), dir: DIR, ref: name });
+  await git.branch({ ...base(), ref: name });
 }
 
 export async function switchBranch(name: string): Promise<void> {
-  await git.checkout({ fs: getFs(), dir: DIR, ref: name });
+  await git.checkout({ ...base(), ref: name });
+  cache = {};
 }
 
 export async function deleteBranch(name: string): Promise<void> {
-  await git.deleteBranch({ fs: getFs(), dir: DIR, ref: name });
+  await git.deleteBranch({ ...base(), ref: name });
 }
 
 export async function merge(branchName: string): Promise<MergeResult> {
-  const name = get(gitAuthorName) || 'TeXbrain User';
-  const email = get(gitAuthorEmail) || 'user@texbrain.local';
-
   try {
-    const result = await git.merge({
-      fs: getFs(),
-      dir: DIR,
-      ours: await getCurrentBranch(),
-      theirs: branchName,
-      author: { name, email }
-    });
-    await git.checkout({ fs: getFs(), dir: DIR, ref: await getCurrentBranch() });
+    const current = await getCurrentBranch();
+    const result = await git.merge({ ...base(), ours: current, theirs: branchName, author: author() });
+    await git.checkout({ ...base(), ref: current });
+    cache = {};
     return { success: true, conflicts: [], sha: result.oid };
   } catch (err: any) {
     if (err.code === 'MergeConflictError' || err.code === 'MergeNotSupportedError') {
@@ -395,27 +385,29 @@ export async function merge(branchName: string): Promise<MergeResult> {
 }
 
 export async function addRemote(name: string, url: string): Promise<void> {
-  await git.addRemote({ fs: getFs(), dir: DIR, remote: name, url });
+  await git.addRemote({ ...base(), remote: name, url });
 }
 
 export async function listRemotes(): Promise<Array<{ remote: string; url: string }>> {
   try {
-    return await git.listRemotes({ fs: getFs(), dir: DIR });
+    return await git.listRemotes(base());
   } catch {
     return [];
   }
 }
 
 export async function removeRemote(name: string): Promise<void> {
-  await git.deleteRemote({ fs: getFs(), dir: DIR, remote: name });
+  await git.deleteRemote({ ...base(), remote: name });
 }
 
 function getAuth(): GitAuth {
   const token = get(gitAuthToken);
-  if (token) {
-    return { username: token, password: 'x-oauth-basic' };
-  }
-  return { username: '', password: '' };
+  const username = get(gitAuthUsername);
+  if (!token) return { username: '', password: '' };
+  // github accepts the token in the username slot, gitlab, bitbucket and
+  // friends want it as the password next to a username
+  if (username) return { username, password: token };
+  return { username: token, password: 'x-oauth-basic' };
 }
 
 function getCorsProxy(): string | undefined {
@@ -423,72 +415,101 @@ function getCorsProxy(): string | undefined {
   return proxy || undefined;
 }
 
+// everything that talks to a remote shares these. a refused login is not
+// retried, it comes back as one clear error instead of a loop
+function remoteOptions() {
+  const auth = getAuth();
+  return {
+    http,
+    corsProxy: getCorsProxy(),
+    onAuth: () => auth,
+    onAuthFailure: () => ({ cancel: true }),
+    onProgress: (p: { phase: string; loaded: number; total?: number }) => {
+      gitProgress.set({ phase: p.phase, loaded: p.loaded, total: p.total || 0 });
+    }
+  };
+}
+
+// keeps the progress store honest around a remote operation
+async function withProgress<T>(phase: string, fn: () => Promise<T>): Promise<T> {
+  gitProgress.set({ phase, loaded: 0, total: 0 });
+  try {
+    return await fn();
+  } finally {
+    gitProgress.set(null);
+  }
+}
+
 export async function push(remoteName: string = 'origin', branch?: string): Promise<void> {
   await ensureBuffer();
   const ref = branch || await getCurrentBranch();
-  const auth = getAuth();
-  await git.push({
-    fs: getFs(),
-    http,
-    dir: DIR,
-    remote: remoteName,
-    ref,
-    corsProxy: getCorsProxy(),
-    onAuth: () => auth
-  });
+  await withProgress('Pushing', () => git.push({ ...base(), ...remoteOptions(), remote: remoteName, ref }));
+  cache = {};
+}
+
+export async function fetchRemote(remoteName: string = 'origin'): Promise<void> {
+  await ensureBuffer();
+  await withProgress('Fetching', () => git.fetch({ ...base(), ...remoteOptions(), remote: remoteName, prune: true }));
+  cache = {};
+  gitSync.update(s => ({ ...s, fetchedAt: Date.now() }));
+  await getSyncStatus(remoteName);
+}
+
+// where the branch stands compared to its copy on the remote. the counts
+// stop at 100 either way, enough to say "you are behind"
+export async function getSyncStatus(remoteName: string = 'origin'): Promise<void> {
+  const branch = await getCurrentBranch();
+  const remoteRef = `refs/remotes/${remoteName}/${branch}`;
+  let local: Array<{ oid: string }> = [];
+  let remote: Array<{ oid: string }> = [];
+  try {
+    remote = await git.log({ ...base(), ref: remoteRef, depth: 100 });
+  } catch {
+    gitSync.update(s => ({ ...s, remoteBranch: null, ahead: 0, behind: 0 }));
+    return;
+  }
+  try {
+    local = await git.log({ ...base(), ref: branch, depth: 100 });
+  } catch { /* branch without commits */ }
+
+  const localSet = new Set(local.map(c => c.oid));
+  const remoteSet = new Set(remote.map(c => c.oid));
+  gitSync.update(s => ({
+    ...s,
+    remoteBranch: `${remoteName}/${branch}`,
+    ahead: local.filter(c => !remoteSet.has(c.oid)).length,
+    behind: remote.filter(c => !localSet.has(c.oid)).length
+  }));
 }
 
 export async function pull(remoteName: string = 'origin', branch?: string): Promise<void> {
   await ensureBuffer();
   const ref = branch || await getCurrentBranch();
-  const auth = getAuth();
-  const name = get(gitAuthorName) || 'TeXbrain User';
-  const email = get(gitAuthorEmail) || 'user@texbrain.local';
-
-  await git.pull({
-    fs: getFs(),
-    http,
-    dir: DIR,
-    remote: remoteName,
-    ref,
-    corsProxy: getCorsProxy(),
-    onAuth: () => auth,
-    author: { name, email }
-  });
+  await withProgress('Pulling', () => git.pull({ ...base(), ...remoteOptions(), remote: remoteName, ref, author: author() }));
+  cache = {};
 }
 
-export async function cloneRepo(url: string): Promise<void> {
+// clone into a folder that is not the open project (yet)
+export async function cloneInto(handle: FileSystemDirectoryHandle, url: string): Promise<void> {
   await ensureBuffer();
-  await ensureDir(DIR);
-  const auth = getAuth();
-  await git.clone({
-    fs: getFs(),
-    http,
-    dir: DIR,
-    url,
-    corsProxy: getCorsProxy(),
-    onAuth: () => auth,
-    singleBranch: false
-  });
+  const fs = new HandleFs(handle);
+  const entries = await fs.readdir('/');
+  if (entries.length > 0) {
+    throw new Error('That folder is not empty. Pick a new name or an empty folder.');
+  }
+  await withProgress('Cloning', () => git.clone({ fs, dir: DIR, ...remoteOptions(), url, singleBranch: false }));
 }
 
 export async function getFileDiff(filepath: string): Promise<GitFileDiff> {
-  const pfs = getFs().promises;
-
   let newContent = '';
   try {
-    newContent = await pfs.readFile(DIR + '/' + filepath, 'utf8') as string;
+    newContent = await getFs().readFile(DIR + filepath, 'utf8') as string;
   } catch { /* file deleted */ }
 
   let oldContent = '';
   try {
-    const sha = await git.resolveRef({ fs: getFs(), dir: DIR, ref: 'HEAD' });
-    const { blob } = await git.readBlob({
-      fs: getFs(),
-      dir: DIR,
-      oid: sha,
-      filepath
-    });
+    const sha = await git.resolveRef({ ...base(), ref: 'HEAD' });
+    const { blob } = await git.readBlob({ ...base(), oid: sha, filepath });
     oldContent = new TextDecoder().decode(blob);
   } catch { /* new file, no HEAD version */ }
 
@@ -559,8 +580,7 @@ async function listTreeFiles(commitSha: string): Promise<Map<string, string>> {
   const files = new Map<string, string>();
   try {
     await git.walk({
-      fs: getFs(),
-      dir: DIR,
+      ...base(),
       trees: [git.TREE({ ref: commitSha })],
       map: async (filepath, [entry]) => {
         if (!entry || filepath === '.') return;
@@ -578,7 +598,7 @@ async function listTreeFiles(commitSha: string): Promise<Map<string, string>> {
 // list all files changed in a commit compared to its parent
 export async function getCommitChangedFiles(sha: string): Promise<Array<{ path: string; status: 'added' | 'modified' | 'deleted' }>> {
   try {
-    const commit = await git.readCommit({ fs: getFs(), dir: DIR, oid: sha });
+    const commit = await git.readCommit({ ...base(), oid: sha });
     const parentSha = commit.commit.parent.length > 0 ? commit.commit.parent[0] : null;
 
     const currentFiles = await listTreeFiles(sha);
@@ -609,18 +629,13 @@ export async function getCommitChangedFiles(sha: string): Promise<Array<{ path: 
 
 // read file content at a specific commit
 export async function readFileAtCommit(sha: string, filepath: string): Promise<string> {
-  const { blob } = await git.readBlob({
-    fs: getFs(),
-    dir: DIR,
-    oid: sha,
-    filepath
-  });
+  const { blob } = await git.readBlob({ ...base(), oid: sha, filepath });
   return new TextDecoder().decode(blob);
 }
 
 // diff a specific file between a commit and its parent
 export async function getCommitFileDiff(sha: string, filepath: string): Promise<GitFileDiff> {
-  const commit = await git.readCommit({ fs: getFs(), dir: DIR, oid: sha });
+  const commit = await git.readCommit({ ...base(), oid: sha });
   const parentSha = commit.commit.parent.length > 0 ? commit.commit.parent[0] : null;
 
   let newContent = '';
@@ -642,10 +657,26 @@ export async function getCommitFileDiff(sha: string, filepath: string): Promise<
   return { path: filepath, lines, additions, deletions };
 }
 
+// the editor and the file tree call this after writing to the folder, and
+// the window when it regains focus, so the status keeps up without polling
+let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+export function notifyFilesChanged(delay = 400) {
+  if (!repo || !get(gitEnabled)) return;
+  if (refreshTimer) clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(() => {
+    refreshTimer = null;
+    refreshGitState();
+  }, delay);
+}
+
 export async function refreshGitState(): Promise<void> {
+  if (!repo) return;
   await ensureBuffer();
   gitLoading.set(true);
   try {
+    // something else may have touched the folder since the last look
+    repo.fs.invalidate();
+
     const branch = await getCurrentBranch();
     gitCurrentBranch.set(branch);
 
@@ -656,21 +687,11 @@ export async function refreshGitState(): Promise<void> {
 
     const log = await getLog();
     gitCommitLog.set(log);
+
+    await getSyncStatus();
   } catch (err) {
     console.error('refreshGitState:', err);
   } finally {
     gitLoading.set(false);
   }
-}
-
-export function destroyGitFs() {
-  fs = null;
-  currentProjectId = null;
-  gitEnabled.set(false);
-  gitCurrentBranch.set('main');
-  gitBranches.set([]);
-  gitStagedFiles.set([]);
-  gitUnstagedFiles.set([]);
-  gitFileStatuses.set(new Map());
-  gitCommitLog.set([]);
 }

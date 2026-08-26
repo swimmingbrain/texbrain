@@ -28,7 +28,7 @@ You can open a local project folder, edit your files, see the PDF update, commit
 - **LaTeX compilation in the browser.** Uses a WebAssembly port of pdfTeX (SwiftLaTeX). Your `.tex` files are compiled to PDF without ever leaving your machine. Packages are loaded on demand and cached locally, so the first compile only downloads what your document actually uses. Recompilations take 1 to 5 seconds depending on project complexity.
 - **Most of CTAN, loaded on demand.** Common packages ship with the app. Anything else (`memoir`, `abntex2`, KOMA-Script, you name it) is resolved automatically from a TeX Live mirror the first time a document needs it, then cached locally for offline use.
 - **Live PDF preview.** Rendered with pdf.js. Multi-page, zoomable, with text selection.
-- **Full git integration.** Clone repos, create branches, stage files, commit, push, pull, merge. All powered by isomorphic-git running in the browser. No CLI needed.
+- **Full git integration.** Clone repos, create branches, stage files, commit, push, pull, merge. All powered by isomorphic-git running in the browser, directly on your project folder, so a terminal and TeXbrain see the same repository. No CLI needed. See [Git, step by step](#git-step-by-step).
 - **Local file system access.** Uses the File System Access API to read and write directly to your project folder on disk (Chrome/Edge).
 - **Multi-file projects.** File tree, tabs, drag-and-drop. Supports `.tex`, `.bib`, `.sty`, `.cls` and more.
 - **CodeMirror 6 editor.** Syntax highlighting, autocomplete for 70+ LaTeX commands, bracket matching, code folding, snippets, dark/light theme.
@@ -45,7 +45,7 @@ There's no magic and no backend.
 
 **Compiler.** LaTeX compilation uses [SwiftLaTeX](https://github.com/SwiftLaTeX/SwiftLaTeX)'s pdfTeX engine compiled to WebAssembly. The engine runs in a memory filesystem (MEMFS), where your project files are written before each compilation. When the engine asks for a file it doesn't have (a class, package, font, ...), the service worker resolves it through a chain: previously cached files first, then the package subset bundled with the app, then a TeX Live mirror (a texmf-dist mirror on jsDelivr, with a community SwiftLaTeX server as fallback). Every resolved file is stored in the browser's cache storage, so each package is downloaded at most once. After the first successful compile, the bundled subset is also prefetched in the background so the core package set works offline.
 
-**Git.** All git operations use [isomorphic-git](https://isomorphic-git.org/), a pure JavaScript implementation of git. The repository lives in an in-memory filesystem ([LightningFS](https://github.com/isomorphic-git/lightning-fs)) backed by IndexedDB. Your project files are synced between the local filesystem and the git working tree. Remote operations (push/pull/clone) go through a CORS proxy since browsers can't speak the git protocol directly.
+**Git.** All git operations use [isomorphic-git](https://isomorphic-git.org/), a pure JavaScript implementation of git. It runs straight on your project folder through a small adapter around the File System Access API, so the `.git` directory lives next to your `.tex` files like it would with a terminal, and a folder that already is a repository is picked up as is. Remote operations (push/pull/clone) go through a CORS proxy since browsers can't speak the git protocol directly.
 
 **PDF viewer.** Rendered with [pdf.js](https://mozilla.github.io/pdf.js/), Mozilla's PDF rendering library. Supports multi-page rendering with a text layer for selection and search.
 
@@ -53,12 +53,29 @@ There's no magic and no backend.
 
 **Frontend.** [SvelteKit](https://kit.svelte.dev/) with the static adapter. The entire app is pre-built to static HTML/CSS/JS and deployed to GitHub Pages. No SSR, no API routes, no server. [Tailwind CSS](https://tailwindcss.com/) handles styling.
 
+## Git, step by step
+
+Git in TeXbrain works on the folder you opened, the same way a terminal would. A hidden `.git` directory sits next to your `.tex` files, so you can switch between TeXbrain, the command line and any other editor without anything getting out of sync. Folders that already are repositories are picked up as they are, history included.
+
+1. **Start tracking a project.** Open a folder, press the Git button (or Ctrl+G), fill in your name and email once and hit Start. TeXbrain offers a `.gitignore` for the files LaTeX leaves behind while compiling.
+2. **Commit.** Save your files, open the Changes tab, stage what you want in the commit (or stage all), write a line about what you did and press Commit. Every file has a diff view and a discard button.
+3. **Put it online.** The Sync tab walks you through it: create an empty repository on GitHub (or GitLab, Codeberg, ...), paste its HTTPS address, add a personal access token, push. From then on the tab shows how many commits you have to push or pull, and Fetch, Pull and Push are one click each.
+4. **Clone.** Clone Repository on the welcome screen or in the sidebar. Private repository? Open "Private repository? Add a token" in the dialog first, the token is what lets the browser in.
+5. **Branches.** Create one for a rewrite, switch, merge back. Switching writes the other branch's files into your folder, so what you see in the editor is always what is on disk. Unsaved edits are kept and you are told about them.
+
+A few things to know:
+
+- Browsers can't speak the git protocol directly, so clone, fetch, pull and push go through a CORS proxy. The default is `cors.isomorphic-git.org`, run by the isomorphic-git project, and your token passes through it. You can point TeXbrain at your own proxy in the git settings, it is a [tiny node app](https://github.com/isomorphic-git/cors-proxy).
+- The token is stored in your browser's localStorage and nowhere else. Remove it in the settings when you are on a shared computer.
+- When both sides changed the same lines, nothing is touched and you get told which files, so you can sort it out in a terminal. Conflict resolution inside the editor is on the list.
+
 ## Known limitations
 
 - **pdfTeX only.** No XeTeX or LuaTeX, so `fontspec`, `polyglossia`, the TikZ `graphdrawing` library and anything else that needs them won't compile.
 - **No bibtex or biber.** The engine doesn't ship either. Documents using `biblatex` get a plain `thebibliography` generated from the `.bib` file, so references show up but the citation style is ignored. Classic `bibtex` workflows need a `.bbl` in the project. A real bibtex in WASM is next on the list.
 - **TeX Live 2020 era.** Packages are pinned to the same era as the engine's format file, so newer package versions aren't available.
 - **Git remotes need a CORS proxy.** Browsers can't speak the git protocol directly. The default proxy is configurable, see below.
+- **No merge conflict resolution in the editor.** A pull or merge that conflicts is aborted and tells you which files, the rest is a job for a terminal. Submodules, symlinks and git LFS are not supported either.
 - **Direct folder access is Chromium only.** Firefox and Safari fall back to a virtual filesystem, see [Browser support](#browser-support).
 
 ## Security and privacy

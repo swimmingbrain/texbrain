@@ -4,8 +4,9 @@
   import { browser } from '$app/environment';
   import { get } from 'svelte/store';
   import { sidebarOpen, previewOpen, snippetPickerOpen, commandPaletteOpen, cloneDialogOpen, compileStatus, compileLog, compileErrors, previewTab, addToast } from '$lib/stores/app';
-  import { files, activeFile, activeFileId, updateFileContent, projectHandle, entryPoint, openFileTab, closeFileTab } from '$lib/project/store';
-  import { handleOpenFile, handleSaveFile, handleSaveFileAs, handleDroppedFiles, handleOpenDirectory, handleNewProject, cloneProject, reopenEntryPointPicker, supportsFileSystemAccess } from '$lib/project/manager';
+  import { files, activeFile, activeFileId, updateFileContent, markFileSaved, projectHandle, entryPoint, openFileTab, closeFileTab } from '$lib/project/store';
+  import { readFileFromHandle } from '$lib/fs/local-fs';
+  import { handleOpenFile, handleSaveFile, handleSaveFileAs, handleDroppedFiles, handleOpenDirectory, handleNewProject, cloneProject, reopenEntryPointPicker, refreshProjectTree, supportsFileSystemAccess } from '$lib/project/manager';
   import { insertAtCursor, createEditor, replaceEditorContent } from '$lib/editor/setup';
   import type { EditorView } from '@codemirror/view';
   import type { Snippet as SnippetDef } from '$lib/snippets/index';
@@ -16,11 +17,11 @@
   import { collabActive, collabPanelOpen, collabPeers, collabConnected } from '$lib/collab/store';
   import { createRoom, joinRoom, leaveRoom, getYTextWithUndo, getAwareness, setCurrentFile, getSharedFileList, getSharedEntryPoint, isHost, requestCompile, setCompileStatus, setCompileResult, observeCompileState, readCompileState, collectFilesFromYjs } from '$lib/collab/provider';
   import { collabRoom } from '$lib/collab/store';
-  import { gitPanelOpen, gitEnabled, gitChangeCount } from '$lib/git/store';
+  import { gitPanelOpen, gitEnabled, gitChangeCount, gitAuthToken, gitAuthUsername, gitProgress } from '$lib/git/store';
+  import { describeGitError, troubleText } from '$lib/git/errors';
   import {
-    initFs as gitInitFs, initRepo as gitInitRepo, syncFilesToGit,
-    writeFileToGit, checkAndLoadGit, refreshGitState,
-    readAllFilesFromGit, stageAll as gitStageAll, commit as gitCommit
+    openRepo as gitOpenRepo, initRepo as gitInitRepo, refreshGitState, notifyFilesChanged,
+    stageAll as gitStageAll, commit as gitCommit, hasAuthor as gitHasAuthor
   } from '$lib/git/engine';
 
   import Logo from '$lib/ui/Logo.svelte';
@@ -87,6 +88,7 @@
         await writable.write(data);
       }
       await writable.close();
+      notifyFilesChanged();
       addToast(`Exported ${exportName}`, 'success', 1500);
     } catch (err: any) {
       addToast(`Export failed: ${err.message}`, 'error');
@@ -723,7 +725,6 @@
       const text = editorView.state.doc.toString();
       wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
     }
-    scheduleSyncToGit();
   }
 
   // double-click in editor jumps pdf to approximate cursor position
@@ -782,8 +783,14 @@
     { id: 'snippet', label: 'Insert Snippet', shortcut: 'Ctrl+/', action: () => snippetPickerOpen.set(true), category: 'edit' },
     { id: 'preview', label: 'Show Preview', shortcut: '', action: () => previewTab.set('preview'), category: 'view' },
     { id: 'log', label: 'Show Log', shortcut: '', action: () => previewTab.set('log'), category: 'view' },
-    { id: 'git', label: 'Toggle Git Panel', shortcut: 'Ctrl+G', action: () => gitPanelOpen.update(v => !v), category: 'view' },
+    { id: 'git', label: 'Toggle Git Panel', shortcut: 'Ctrl+G', action: toggleGitPanel, category: 'view' },
   ];
+
+  // git works on the project folder, single files have nothing to track
+  function toggleGitPanel() {
+    if (get(projectHandle)) gitPanelOpen.update(v => !v);
+    else addToast('Git needs a project folder. Open one, or create a new project, and the git button wakes up.', 'info', 5000);
+  }
 
   function handleGlobalKeydown(e: KeyboardEvent) {
     const mod = e.ctrlKey || e.metaKey;
@@ -794,7 +801,7 @@
     else if (mod && e.key === 'Enter') { e.preventDefault(); compilePreview(); }
     else if (mod && e.key === 'b') { e.preventDefault(); sidebarOpen.update(v => !v); }
     else if (mod && e.key === '/') { e.preventDefault(); snippetPickerOpen.update(v => !v); }
-    else if (mod && e.key === 'g') { e.preventDefault(); if (get(projectHandle)) gitPanelOpen.update(v => !v); }
+    else if (mod && e.key === 'g') { e.preventDefault(); toggleGitPanel(); }
     else if (mod && e.key === 'p') { e.preventDefault(); previewOpen.update(v => !v); }
     else if (e.key === 'Escape') { commandPaletteOpen.set(false); snippetPickerOpen.set(false); if (!cloning) cloneDialogOpen.set(false); }
   }
@@ -849,40 +856,40 @@
     buildEditor();
   }
 
-  async function handleGitInit() {
-    let projectFiles = new Map<string, string>();
-    try {
-      const collected = await collectProjectFiles();
-      projectFiles = collected.projectFiles;
-    } catch {
-      for (const tab of get(files)) {
-        if (tab.content) projectFiles.set(tab.path, tab.content);
-      }
+  // a first commit right away when we know who to sign it with, otherwise
+  // the files wait in the changes tab
+  async function handleGitInit(options: { gitignore: boolean }) {
+    await gitInitRepo(options);
+    await refreshProjectTree();
+    if (gitHasAuthor()) {
+      await gitStageAll();
+      await gitCommit('initial commit');
     }
-
-    const handle = get(projectHandle);
-    const projectId = handle?.name || 'default';
-    gitInitFs(projectId);
-
-    await syncFilesToGit(projectFiles);
-    await gitInitRepo();
-    await gitStageAll();
-    await gitCommit('initial commit');
     await refreshGitState();
   }
 
+  // checkouts, pulls and merges write to the folder, so the tree and the
+  // open tabs are read again. tabs with unsaved edits keep them
   async function handleGitBranchSwitch() {
-    const gitFiles = await readAllFilesFromGit();
-    const currentFiles = get(files);
-
-    for (const tab of currentFiles) {
-      const newContent = gitFiles.get(tab.path);
-      if (newContent !== undefined) {
-        updateFileContent(tab.id, newContent);
+    await refreshProjectTree();
+    const kept: string[] = [];
+    for (const tab of get(files)) {
+      if (!tab.handle) continue;
+      if (tab.dirty) { kept.push(tab.name); continue; }
+      try {
+        const content = await readFileFromHandle(tab.handle);
+        if (content !== tab.content) {
+          markFileSaved(tab.id, content);
+          if (tab.id === get(activeFileId) && editorView) replaceEditorContent(editorView, content);
+        }
+      } catch {
+        // the file does not exist on this branch
+        closeFileTab(tab.id);
       }
     }
-
-    buildEditor();
+    if (kept.length > 0) {
+      addToast(`Kept your unsaved changes in ${kept.join(', ')}. Save or discard them to see the checked out version.`, 'warning', 8000);
+    }
   }
 
   function handleShowCloneForm() {
@@ -918,34 +925,11 @@
       buildEditor();
     } catch (err: any) {
       if (err.name !== 'AbortError') {
-        const msg = err?.message || String(err);
-        if (msg.includes('CORS') || msg.includes('Failed to fetch')) {
-          addToast('clone failed: CORS error - check proxy in git > remote after cloning', 'error');
-        } else {
-          addToast('clone failed: ' + msg, 'error');
-        }
+        addToast(troubleText(describeGitError(err, 'Clone')), 'error', 8000);
       }
     } finally {
       cloning = false;
     }
-  }
-
-  // sync editor content to lightning-fs for git operations
-  async function syncEditorToGit() {
-    if (!get(gitEnabled)) return;
-    for (const tab of get(files)) {
-      if (tab.content) {
-        await writeFileToGit(tab.path, tab.content);
-      }
-    }
-    await refreshGitState();
-  }
-
-  let gitSyncTimer: ReturnType<typeof setTimeout> | null = null;
-  function scheduleSyncToGit() {
-    if (!get(gitEnabled)) return;
-    if (gitSyncTimer) clearTimeout(gitSyncTimer);
-    gitSyncTimer = setTimeout(() => syncEditorToGit(), 1000);
   }
 
   // observe collab compile state for host/peer coordination
@@ -1008,28 +992,11 @@
     unobserveCompile = null;
   }
 
-  // detect git repo when project handle changes
+  // a folder that already has a .git directory is picked up as is
   let lastGitProjectHandle: FileSystemDirectoryHandle | null = null;
   $: if (browser && $projectHandle && $projectHandle !== lastGitProjectHandle) {
     lastGitProjectHandle = $projectHandle;
-    gitInitFs($projectHandle.name);
-    (async () => {
-      try {
-        let projectFiles = new Map<string, string>();
-        try {
-          const collected = await collectProjectFiles();
-          projectFiles = collected.projectFiles;
-        } catch {
-          for (const tab of get(files)) {
-            if (tab.content) projectFiles.set(tab.path, tab.content);
-          }
-        }
-        await syncFilesToGit(projectFiles);
-        await checkAndLoadGit();
-      } catch (err) {
-        console.error('git init check:', err);
-      }
-    })();
+    gitOpenRepo($projectHandle).catch((err) => console.error('git open:', err));
   }
 
   // an empty editor is a poor first impression, so a small document is opened
@@ -1037,7 +1004,7 @@
   // unless it was edited
   let welcomeId: string | null = null;
 
-  $: if (welcomeId && $files.length > 1) {
+  $: if (welcomeId && ($files.length > 1 || $projectHandle)) {
     const welcome = $files.find(f => f.id === welcomeId);
     if (welcome && !welcome.dirty) closeFileTab(welcomeId);
     welcomeId = null;
@@ -1059,10 +1026,14 @@
     }
     window.addEventListener('beforeunload', onBeforeUnload);
 
+    // a terminal or another editor may have touched the folder meanwhile
+    function onFocus() { notifyFilesChanged(0); }
+    window.addEventListener('focus', onFocus);
+
     return () => {
       unobserveCompile?.();
-      if (gitSyncTimer) clearTimeout(gitSyncTimer);
       window.removeEventListener('beforeunload', onBeforeUnload);
+      window.removeEventListener('focus', onFocus);
     };
   });
 </script>
@@ -1117,7 +1088,7 @@
         <button class="entry-point-label" title="Main file for compilation - click to change" on:click={reopenEntryPointPicker}>{$entryPoint}</button>
       {/if}
       <div class="separator"></div>
-      <button class="action-btn" class:git-active={$gitEnabled} on:click={() => gitPanelOpen.update(v => !v)} title="Git (Ctrl+G)" disabled={!$projectHandle}>
+      <button class="action-btn" class:git-active={$gitEnabled} on:click={toggleGitPanel} title={$projectHandle ? ($gitEnabled ? 'Git (Ctrl+G)' : 'Git (Ctrl+G), this folder is not tracked yet') : 'Git needs a project folder, open one first'} aria-disabled={!$projectHandle}>
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15 5.5a3.5 3.5 0 01-5.55 2.83L6.83 11H5v1.5H3.5V14H1v-2.5l5.17-5.17A3.5 3.5 0 1115 5.5zm-2 0a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z" fill="currentColor"/></svg>
         <span>Git</span>
         {#if $gitChangeCount > 0}<span class="git-change-badge">{$gitChangeCount}</span>{/if}
@@ -1314,11 +1285,28 @@
             <label for="clone-name">Project Name</label>
             <input id="clone-name" type="text" bind:value={cloneName} placeholder="my-project" class="clone-input" />
           </div>
+          <details class="clone-private">
+            <summary>Private repository? Add a token</summary>
+            <p class="clone-hint left">
+              GitHub: Settings, Developer settings, Fine grained tokens, Generate new token. Pick the repository and give it
+              Contents: read and write. Copy the token, it only shows once.
+              <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Open the token page &#8599;</a>
+            </p>
+            <div class="clone-field">
+              <label for="clone-token">Token</label>
+              <input id="clone-token" type="password" bind:value={$gitAuthToken} placeholder="github_pat_..." class="clone-input" autocomplete="off" />
+            </div>
+            <div class="clone-field">
+              <label for="clone-username">Username (GitLab, Bitbucket, ...)</label>
+              <input id="clone-username" type="text" bind:value={$gitAuthUsername} placeholder="not needed for GitHub" class="clone-input" autocomplete="off" />
+            </div>
+            <p class="clone-hint left">Stored in this browser only, never on a server.</p>
+          </details>
           <div class="clone-actions">
             <button class="welcome-btn primary" on:click={handleClone} disabled={cloning || !cloneUrl.trim() || !cloneName.trim()}>
               {#if cloning}
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3" stroke-dasharray="8 4" class="spin"/></svg>
-                Cloning...
+                {$gitProgress && $gitProgress.total > 0 ? `${$gitProgress.phase} ${Math.round(($gitProgress.loaded / $gitProgress.total) * 100)}%` : 'Cloning...'}
               {:else}
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 12V3M4 7l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 {hasFolderAccess ? 'Choose Location & Clone' : 'Clone'}
@@ -1326,7 +1314,7 @@
             </button>
             <button class="welcome-btn secondary" on:click={handleCancelClone} disabled={cloning}>Cancel</button>
           </div>
-          <p class="clone-hint">{hasFolderAccess ? 'You\'ll pick a folder where the project will be saved.' : 'The project is stored inside your browser.'} Auth and CORS proxy can be configured in Git > Remote after cloning.</p>
+          <p class="clone-hint">{hasFolderAccess ? 'You\'ll pick a folder where the project will be saved.' : 'The project is stored inside your browser.'} The proxy can be changed in the git settings afterwards.</p>
         </div>
       </div>
     </div>
@@ -1416,6 +1404,12 @@
   .clone-actions { display: flex; gap: 6px; margin-top: 4px; }
   .clone-actions .welcome-btn { flex: 1; justify-content: center; }
   .clone-hint { font-size: 10.5px; color: var(--text-muted); line-height: 1.5; text-align: center; margin-top: 4px; }
+  .clone-hint.left { text-align: left; margin: 6px 0; }
+  .clone-hint a { color: var(--accent); text-decoration: none; }
+  .clone-hint a:hover { color: var(--accent-hover); }
+  .clone-private summary { cursor: pointer; font-size: 11.5px; color: var(--accent); }
+  .clone-private[open] summary { margin-bottom: 4px; }
+  .clone-private .clone-field { margin-bottom: 8px; }
   .save-pdf { display: flex; align-items: center; gap: 2px; }
 
   .error-badge {
@@ -1476,6 +1470,7 @@
 
   .action-btn.git-active { color: var(--accent); }
   .action-btn.git-active:hover { color: var(--accent); }
+  .action-btn[aria-disabled="true"] { opacity: 0.35; }
   .git-change-badge {
     font-size: 9px;
     font-weight: 700;

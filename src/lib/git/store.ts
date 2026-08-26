@@ -2,7 +2,7 @@ import { writable, derived } from 'svelte/store';
 import type { GitFileChange, GitCommitInfo } from './types';
 
 export const gitPanelOpen = writable(false);
-export const gitPanelTab = writable<'changes' | 'history' | 'branches' | 'remote'>('changes');
+export const gitPanelTab = writable<'changes' | 'history' | 'branches' | 'sync' | 'settings'>('changes');
 
 export const gitEnabled = writable(false);
 export const gitCurrentBranch = writable<string>('main');
@@ -17,6 +17,24 @@ export const gitCommitLog = writable<GitCommitInfo[]>([]);
 export const gitDiffFile = writable<string | null>(null);
 
 export const gitLoading = writable(false);
+
+// where the current branch stands compared to its copy on the remote,
+// null remoteBranch means the remote has never been fetched
+export interface GitSyncState {
+  remoteBranch: string | null;
+  ahead: number;
+  behind: number;
+  fetchedAt: number | null;
+}
+export const gitSync = writable<GitSyncState>({ remoteBranch: null, ahead: 0, behind: 0, fetchedAt: null });
+
+// what a clone, fetch, pull or push is doing right now, null when idle
+export interface GitProgress {
+  phase: string;
+  loaded: number;
+  total: number;
+}
+export const gitProgress = writable<GitProgress | null>(null);
 
 export const gitChangeCount = derived(
   [gitStagedFiles, gitUnstagedFiles],
@@ -36,5 +54,8 @@ function persisted(key: string, fallback: string) {
 
 export const gitAuthorName = persisted('texbrain-git-name', '');
 export const gitAuthorEmail = persisted('texbrain-git-email', '');
+// github takes the token as the username, most other hosts want a real
+// username next to it, so it is optional
+export const gitAuthUsername = persisted('texbrain-git-username', '');
 export const gitAuthToken = persisted('texbrain-git-token', '');
 export const gitCorsProxy = persisted('texbrain-git-proxy', 'https://cors.isomorphic-git.org');

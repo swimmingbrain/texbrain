@@ -41,7 +41,7 @@ You can open a local project folder, edit your files, see the PDF update, commit
 
 There's no magic and no backend.
 
-**Editor.** Built on [CodeMirror 6](https://codemirror.net/) with a custom LaTeX grammar (Lezer parser), autocomplete provider, and theme system. The editor supports multiple open files via tabs and syncs content with both the local filesystem and the in-memory git working tree.
+**Editor.** Built on [CodeMirror 6](https://codemirror.net/) with a custom LaTeX grammar (Lezer parser), autocomplete provider, and theme system. The editor supports multiple open files via tabs and writes straight to the files on disk, which is also where git looks.
 
 **Compiler.** LaTeX compilation uses [SwiftLaTeX](https://github.com/SwiftLaTeX/SwiftLaTeX)'s pdfTeX engine compiled to WebAssembly. The engine runs in a memory filesystem (MEMFS), where your project files are written before each compilation. When the engine asks for a file it doesn't have (a class, package, font, ...), the service worker resolves it through a chain: previously cached files first, then the package subset bundled with the app, then a TeX Live mirror (a texmf-dist mirror on jsDelivr, with a community SwiftLaTeX server as fallback). Every resolved file is stored in the browser's cache storage, so each package is downloaded at most once. After the first successful compile, the bundled subset is also prefetched in the background so the core package set works offline.
 

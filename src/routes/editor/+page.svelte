@@ -22,6 +22,7 @@
   import { createRoom, joinRoom, leaveRoom, getYTextWithUndo, getAwareness, setCurrentFile, getSharedFileList, getSharedEntryPoint, isHost, requestCompile, setCompileStatus, setCompileResult, observeCompileState, readCompileState, collectFilesFromYjs } from '$lib/collab/provider';
   import { collabRoom } from '$lib/collab/store';
   import { gitPanelOpen, gitEnabled, gitChangeCount, gitAuthToken, gitAuthUsername, gitProgress } from '$lib/git/store';
+  import { preferences } from '$lib/stores/preferences';
   import { describeGitError, troubleText } from '$lib/git/errors';
   import {
     openRepo as gitOpenRepo, initRepo as gitInitRepo, refreshGitState, notifyFilesChanged,
@@ -278,9 +279,13 @@
     return cumLines / totalDocLines;
   }
 
-  async function doCompile() {
+  // the same warning after every pause in typing would be noise, so a
+  // missing file is mentioned once until the list changes
+  let lastMissingNote = '';
+
+  async function doCompile(auto = false) {
     const af = get(activeFile);
-    if (!af) return;
+    if (!af || isDrawioFile(af.name)) return;
 
     // safety valve: force-reset if stuck for >30s
     if (compiling) {
@@ -350,15 +355,18 @@
       // included files that aren't part of the project would silently drop
       // content (or worse, resolve against texlive), so warn upfront
       const missingIncludes = findMissingIncludes(projectFiles, mainFile);
-      if (missingIncludes.length > 0) {
-        const hint = get(projectHandle) ? '' : ' Open the project folder so all files can be compiled.';
-        addToast(`Referenced but not found: ${missingIncludes.join(', ')}.${hint}`, 'warning', 8000);
-      }
-
       // missing images get a gray placeholder so the compile still succeeds
       const missingImages = injectImagePlaceholders(projectFiles, binaryFiles);
-      if (missingImages.length > 0) {
-        addToast(`Missing images (compiled with placeholders): ${missingImages.join(', ')}`, 'warning', 8000);
+      const missingNote = missingIncludes.join(',') + '|' + missingImages.join(',');
+      if (missingNote !== lastMissingNote) {
+        lastMissingNote = missingNote;
+        if (missingIncludes.length > 0) {
+          const hint = get(projectHandle) ? '' : ' Open the project folder so all files can be compiled.';
+          addToast(`Referenced but not found: ${missingIncludes.join(', ')}.${hint}`, 'warning', 8000);
+        }
+        if (missingImages.length > 0) {
+          addToast(`Missing images (compiled with placeholders): ${missingImages.join(', ')}`, 'warning', 8000);
+        }
       }
 
       let compileContext = '';
@@ -399,7 +407,8 @@
         compileStatus.set('success');
         compileLog.set([`[${ts()}] compilation successful (${pdfPageCount} pages)`, ...capLogLines(cleanedLines)]);
 
-        if (problems.some(p => p.severity === 'error')) {
+        // an automatic compile mid sentence must not yank the tab around
+        if (!auto && problems.some(p => p.severity === 'error')) {
           previewTab.set('problems');
         }
 
@@ -409,7 +418,7 @@
       } else {
         compileStatus.set('error');
         compileLog.set([`[${ts()}] compilation failed (status ${result.status})`, ...capLogLines(cleanedLines)]);
-        previewTab.set('problems');
+        if (!auto) previewTab.set('problems');
 
         if (isCollabMode) {
           setCompileResult({ status: 'error', pdf: null, log: cleanedLines, errors: problems, pageCount: pdfPageCount });
@@ -425,15 +434,45 @@
     } finally {
       compiling = false;
       compileStuckTimer = 0;
+      // typing went on while this one ran, one more pass picks it up
+      if (compileQueued) {
+        compileQueued = false;
+        scheduleAutoCompile();
+      }
     }
   }
 
   function compilePreview() { doCompile(); }
 
+  // the pdf follows the text on its own: a second after typing stops the
+  // document compiles, unless one is running, then it goes right after
+  let autoTimer: ReturnType<typeof setTimeout> | null = null;
+  let compileQueued = false;
+
+  function scheduleAutoCompile() {
+    if (!get(preferences).autoCompile) return;
+    if (autoTimer) clearTimeout(autoTimer);
+    autoTimer = setTimeout(() => {
+      autoTimer = null;
+      if (compiling) { compileQueued = true; return; }
+      doCompile(true);
+    }, 1000);
+  }
+
+  function toggleAutoCompile() {
+    const on = !get(preferences).autoCompile;
+    preferences.update(p => ({ ...p, autoCompile: on }));
+    if (!on && autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
+    addToast(on ? 'The PDF follows your typing again' : 'Auto compile is off, Ctrl+Enter compiles', 'info', 2500);
+  }
+
   function ts() { return new Date().toLocaleTimeString(); }
 
+  // ctrl+s saves when the file lives somewhere and compiles either way. a
+  // document that was never saved doesn't get a save dialog thrown at it,
+  // the save button and ctrl+shift+s are there for that
   async function saveAndCompile() {
-    await handleSaveFile();
+    if (get(activeFile)?.handle) await handleSaveFile();
     doCompile();
   }
 
@@ -442,6 +481,7 @@
     updateFileContent($activeFile.id, content);
     charCount = content.length;
     wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
+    scheduleAutoCompile();
   }
 
   // the status bar follows the cursor, not only the edits
@@ -834,6 +874,10 @@
         {/if}
         <span>{compiling ? 'Compiling...' : 'Compile'}</span>
       </button>
+      <button class="action-btn" class:auto-on={$preferences.autoCompile} on:click={toggleAutoCompile} aria-pressed={$preferences.autoCompile} title={$preferences.autoCompile ? 'The PDF follows your typing. Click to compile only on Ctrl+Enter' : 'Compile only on Ctrl+Enter. Click to let the PDF follow your typing'}>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13 8A5 5 0 113.6 5.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M3 2.5v3.5h3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Auto</span>
+      </button>
       {#if $entryPoint}
         <button class="entry-point-label" title="Main file for compilation - click to change" on:click={reopenEntryPointPicker}>{$entryPoint}</button>
       {/if}
@@ -1139,6 +1183,7 @@
 
   @media (max-width: 600px) { .logo-text { display: none; } }
 
+  .action-btn.auto-on { color: var(--accent); }
   .action-btn.git-active { color: var(--accent); }
   .action-btn.git-active:hover { color: var(--accent); }
   .action-btn[aria-disabled="true"] { opacity: 0.35; }

@@ -3,7 +3,7 @@
   import { base } from '$app/paths';
   import { browser } from '$app/environment';
   import { get } from 'svelte/store';
-  import { sidebarOpen, previewOpen, snippetPickerOpen, commandPaletteOpen, cloneDialogOpen, compileStatus, compileLog, compileErrors, previewTab, addToast } from '$lib/stores/app';
+  import { sidebarOpen, previewOpen, snippetPickerOpen, commandPaletteOpen, cloneDialogOpen, compileStatus, compileLog, compileRawLog, compileErrors, previewTab, addToast } from '$lib/stores/app';
   import { files, activeFile, activeFileId, updateFileContent, markFileSaved, projectHandle, entryPoint, openFileTab, closeFileTab } from '$lib/project/store';
   import { readFileFromHandle } from '$lib/fs/local-fs';
   import { handleOpenFile, handleSaveFile, handleSaveFileAs, handleDroppedFiles, handleOpenDirectory, handleNewProject, cloneProject, reopenEntryPointPicker, refreshProjectTree, supportsFileSystemAccess } from '$lib/project/manager';
@@ -376,6 +376,7 @@
 
       const { errors: parsedErrors, cleanedLines } = parseLog(result.log || '');
       compileErrors.set(parsedErrors);
+      compileRawLog.set(result.log || '');
 
       if (result.status === 0 && result.pdf) {
         const pageMatch = result.log?.match(/\((\d+)\s+pages?,/);
@@ -472,6 +473,34 @@
   function handleResizeDelta(delta: number) {
     const cw = windowWidth - ($sidebarOpen ? 260 : 0);
     editorWidth = Math.max(25, Math.min(75, editorWidth + (delta / cw) * 100));
+  }
+
+  // the log tab shows a cleaned version by default. the full transcript is
+  // what you want when something fails deep inside a package
+  let fullLog = false;
+
+  function logFileName(): string {
+    const ep = get(entryPoint);
+    return (ep ? ep.replace(/^.*[\\/]/, '').replace(/\.tex$/, '') : 'document') + '.log';
+  }
+
+  async function copyLog() {
+    try {
+      await navigator.clipboard.writeText(get(compileRawLog));
+      addToast('Log copied', 'success', 1500);
+    } catch {
+      addToast('Could not copy, use download instead', 'error');
+    }
+  }
+
+  function downloadLog() {
+    const blob = new Blob([get(compileRawLog)], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = logFileName();
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   function savePdf() {
@@ -941,11 +970,27 @@
               </div>
             {:else}
               <div class="log-content">
-                {#each $compileLog as entry}
-                  <div class="log-entry" class:error={entry.includes('[Error]') || entry.includes('!')} class:success={entry.includes('successful')}>{entry}</div>
-                {/each}
-                {#if $compileLog.length === 0}
-                  <div class="preview-empty"><p>No compilation log yet</p></div>
+                <div class="log-toolbar">
+                  <button class="log-btn" class:active={fullLog} on:click={() => (fullLog = !fullLog)} aria-pressed={fullLog} title="Everything the engine printed, nothing filtered">Full log</button>
+                  <div style="flex:1"></div>
+                  <button class="log-btn" on:click={copyLog} disabled={!$compileRawLog} title="Copy the full log to the clipboard">Copy</button>
+                  <button class="log-btn" on:click={downloadLog} disabled={!$compileRawLog} title="Download the full log as a file">Download</button>
+                </div>
+                {#if fullLog}
+                  {#if $compileRawLog}
+                    <pre class="log-raw">{$compileRawLog}</pre>
+                  {:else}
+                    <div class="preview-empty"><p>No compilation log yet</p></div>
+                  {/if}
+                {:else}
+                  <div class="log-entries">
+                    {#each $compileLog as entry}
+                      <div class="log-entry" class:error={entry.includes('[Error]') || entry.includes('!')} class:success={entry.includes('successful')}>{entry}</div>
+                    {/each}
+                  </div>
+                  {#if $compileLog.length === 0}
+                    <div class="preview-empty"><p>No compilation log yet</p></div>
+                  {/if}
                 {/if}
               </div>
             {/if}
@@ -1092,7 +1137,14 @@
   .preview-tab.active { color: var(--text-primary); background: var(--bg-hover); }
   .preview-content { flex: 1; overflow: hidden; display: flex; }
 
-  .log-content { flex: 1; overflow-y: auto; padding: 8px; font-family: var(--font-editor); font-size: 11px; }
+  .log-content { flex: 1; overflow-y: auto; font-family: var(--font-editor); font-size: 11px; display: flex; flex-direction: column; }
+  .log-toolbar { display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg-elevated); flex-shrink: 0; }
+  .log-btn { font-size: 10.5px; padding: 2px 8px; color: var(--text-secondary); border: 1px solid var(--border); }
+  .log-btn:hover:not(:disabled) { background: var(--bg-hover); color: var(--text-primary); }
+  .log-btn:disabled { opacity: 0.4; cursor: default; }
+  .log-btn.active { color: var(--accent); border-color: var(--accent); }
+  .log-entries { padding: 8px; }
+  .log-raw { margin: 0; padding: 8px; white-space: pre-wrap; word-break: break-all; color: var(--text-secondary); line-height: 1.45; }
   .log-entry { padding: 2px 6px; color: var(--text-secondary); margin-bottom: 1px; white-space: pre-wrap; word-break: break-all; }
   .log-entry.error { color: var(--error); }
   .log-entry.success { color: var(--success); }

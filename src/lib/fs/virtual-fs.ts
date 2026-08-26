@@ -9,6 +9,21 @@ export async function getVirtualRoot(): Promise<FileSystemDirectoryHandle> {
   return root;
 }
 
+// the projects that live inside the browser, newest first is not known,
+// so alphabetical
+export async function listVirtualProjects(): Promise<string[]> {
+  try {
+    const root = await getVirtualRoot();
+    const names: string[] = [];
+    for await (const entry of root.values()) {
+      if (entry.kind === 'directory') names.push(entry.name);
+    }
+    return names.sort((a, b) => a.localeCompare(b));
+  } catch {
+    return [];
+  }
+}
+
 // whole projects can live there when the real file system is out of reach
 // (firefox, safari). writing needs createWritable on file handles, which not
 // every browser exposes on the main thread

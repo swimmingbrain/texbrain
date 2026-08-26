@@ -6,7 +6,8 @@
   import { sidebarOpen, previewOpen, snippetPickerOpen, commandPaletteOpen, cloneDialogOpen, compileStatus, compileLog, compileRawLog, compileProblems, previewTab, addToast } from '$lib/stores/app';
   import { files, activeFile, activeFileId, updateFileContent, markFileSaved, projectHandle, entryPoint, openFileTab, closeFileTab, setActiveTab } from '$lib/project/store';
   import { readFileFromHandle } from '$lib/fs/local-fs';
-  import { handleOpenFile, handleSaveFile, handleSaveFileAs, handleDroppedFiles, handleOpenDirectory, handleNewProject, cloneProject, reopenEntryPointPicker, refreshProjectTree, supportsFileSystemAccess, findProjectFile, handleOpenFileFromTree } from '$lib/project/manager';
+  import { handleOpenFile, handleSaveFile, handleSaveFileAs, handleDroppedFiles, handleOpenDirectory, handleNewProject, cloneProject, reopenEntryPointPicker, refreshProjectTree, supportsFileSystemAccess, findProjectFile, handleOpenFileFromTree, openBrowserProject } from '$lib/project/manager';
+  import { listVirtualProjects } from '$lib/fs/virtual-fs';
   import { insertAtCursor, createEditor, replaceEditorContent, gotoLine } from '$lib/editor/setup';
   import { tick } from 'svelte';
   import { locateByNeedle, type Problem } from '$lib/compiler/log';
@@ -121,6 +122,11 @@
   let cloneName = '';
   let cloning = false;
   const hasFolderAccess = browser && supportsFileSystemAccess();
+
+  // projects stored inside the browser, for the browsers that can't open a
+  // folder on disk. refreshed whenever a project comes or goes
+  let browserProjects: string[] = [];
+  $: if (browser && !hasFolderAccess && $projectHandle !== undefined) listVirtualProjects().then(names => { browserProjects = names; });
 
   $: isMobile = windowWidth < 900;
 
@@ -1012,6 +1018,14 @@
                   Clone Repository
                 </button>
               </div>
+              {#if browserProjects.length > 0}
+                <p class="welcome-desc">Projects in this browser</p>
+                <div class="welcome-actions">
+                  {#each browserProjects as name (name)}
+                    <button class="welcome-btn secondary" on:click={() => openBrowserProject(name)}>{name}</button>
+                  {/each}
+                </div>
+              {/if}
             </div>
           </div>
         {/if}

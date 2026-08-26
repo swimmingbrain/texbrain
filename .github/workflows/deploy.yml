@@ -3,6 +3,8 @@ name: deploy to github pages
 on:
   push:
     branches: [main]
+  # for the days github's push events don't make it to actions
+  workflow_dispatch:
 
 permissions:
   contents: read

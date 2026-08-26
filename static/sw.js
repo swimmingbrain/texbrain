@@ -125,6 +125,25 @@ function looksLikeHtml(buf) {
   return head.includes('<!doctype') || head.includes('<html');
 }
 
+// font files carry fixed signatures. a body that fails them (an error page
+// from a mirror, a truncated download) must never be cached, or the engine
+// keeps reporting "Bad metric (TFM) file" for a font that is perfectly fine
+function looksValid(buf, name, isPk) {
+  if (buf.byteLength === 0 || looksLikeHtml(buf)) return false;
+  const b = new Uint8Array(buf);
+  if (isPk) return b.length > 2 && b[0] === 0xf7 && b[1] === 0x59;
+  const ext = name.slice(name.lastIndexOf('.')).toLowerCase();
+  // a tfm starts with its own length in 4-byte words (some are padded to
+  // 512 byte blocks, so the file may be longer than that, never shorter)
+  if (ext === '.tfm') {
+    const words = (b[0] << 8) | b[1];
+    return words > 6 && words * 4 <= b.length;
+  }
+  if (ext === '.vf') return b.length > 2 && b[0] === 0xf7 && b[1] === 0xca;
+  if (ext === '.pfb') return b.length > 2 && b[0] === 0x80 && b[1] === 0x01;
+  return true;
+}
+
 function fetchWithTimeout(url, ms) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), ms);
@@ -223,11 +242,17 @@ function texliveResponse(buf, id, isPk) {
 // 4. swiftlatex-compatible texlive server
 async function handleTexlive(request, url) {
   const cache = await caches.open(TEXLIVE_CACHE);
-  const hit = await cache.match(request);
-  if (hit) return hit;
-
   const isPk = url.pathname.includes('/pdftex/pk/');
   const name = decodeURIComponent(url.pathname.split('/').pop() || '');
+
+  const hit = await cache.match(request);
+  if (hit) {
+    // copies cached before the checks existed are looked at once more,
+    // a bad one would otherwise break every compile from here on
+    const id = hit.headers.get(isPk ? 'pkid' : 'fileid') || name;
+    if (looksValid(await hit.clone().arrayBuffer(), id, isPk)) return hit;
+    await cache.delete(request);
+  }
 
   // format files exist as real static assets under /texlive/pdftex/
   if (name.endsWith('.fmt')) {
@@ -252,7 +277,7 @@ async function handleTexlive(request, url) {
         const resp = (await caches.match(bundledUrl)) || (await fetch(bundledUrl));
         if (resp && resp.ok) {
           const buf = await resp.arrayBuffer();
-          if (!looksLikeHtml(buf)) {
+          if (looksValid(buf, resolved, false)) {
             await cache.put(request, texliveResponse(buf.slice(0), resolved, false));
             return texliveResponse(buf, resolved, false);
           }
@@ -269,7 +294,7 @@ async function handleTexlive(request, url) {
         const resp = await fetchWithTimeout(encodeURI(`${STATIC_MIRROR}/${resolved.path}`), 30000);
         if (resp.ok) {
           const buf = await resp.arrayBuffer();
-          if (buf.byteLength > 0 && !looksLikeHtml(buf)) {
+          if (looksValid(buf, resolved.filename, false)) {
             await cache.put(request, texliveResponse(buf.slice(0), resolved.filename, false));
             return texliveResponse(buf, resolved.filename, false);
           }
@@ -286,8 +311,8 @@ async function handleTexlive(request, url) {
       const resp = await fetchWithTimeout(remoteUrl, 30000);
       if (resp.ok) {
         const buf = await resp.arrayBuffer();
-        if (buf.byteLength > 0 && !looksLikeHtml(buf)) {
-          const id = resp.headers.get(isPk ? 'pkid' : 'fileid') || name;
+        const id = resp.headers.get(isPk ? 'pkid' : 'fileid') || name;
+        if (looksValid(buf, id, isPk)) {
           await cache.put(request, texliveResponse(buf.slice(0), id, isPk));
           return texliveResponse(buf, id, isPk);
         }

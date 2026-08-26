@@ -4,13 +4,14 @@
   import { browser } from '$app/environment';
   import { get } from 'svelte/store';
   import { sidebarOpen, previewOpen, snippetPickerOpen, commandPaletteOpen, cloneDialogOpen, compileStatus, compileLog, compileErrors, previewTab, addToast } from '$lib/stores/app';
-  import { files, activeFile, activeFileId, updateFileContent, projectHandle, entryPoint, openFileTab } from '$lib/project/store';
+  import { files, activeFile, activeFileId, updateFileContent, projectHandle, entryPoint, openFileTab, closeFileTab } from '$lib/project/store';
   import { handleOpenFile, handleSaveFile, handleSaveFileAs, handleDroppedFiles, handleOpenDirectory, handleNewProject, cloneProject, reopenEntryPointPicker, supportsFileSystemAccess } from '$lib/project/manager';
   import { insertAtCursor, createEditor, replaceEditorContent } from '$lib/editor/setup';
   import type { EditorView } from '@codemirror/view';
   import type { Snippet as SnippetDef } from '$lib/snippets/index';
   import { compileLaTeX, warmup } from '$lib/compiler/latex-engine';
   import { placeholderImage } from '$lib/compiler/placeholder-image';
+  import welcomeTex from '$lib/templates/welcome.tex?raw';
   import { yCollab } from 'y-codemirror.next';
   import { collabActive, collabPanelOpen, collabPeers, collabConnected } from '$lib/collab/store';
   import { createRoom, joinRoom, leaveRoom, getYTextWithUndo, getAwareness, setCurrentFile, getSharedFileList, getSharedEntryPoint, isHost, requestCompile, setCompileStatus, setCompileResult, observeCompileState, readCompileState, collectFilesFromYjs } from '$lib/collab/provider';
@@ -996,8 +997,27 @@
     })();
   }
 
+  // an empty editor is a poor first impression, so a small document is opened
+  // and compiled right away. it makes way for whatever gets opened next
+  // unless it was edited
+  let welcomeId: string | null = null;
+
+  $: if (welcomeId && $files.length > 1) {
+    const welcome = $files.find(f => f.id === welcomeId);
+    if (welcome && !welcome.dirty) closeFileTab(welcomeId);
+    welcomeId = null;
+  }
+
   onMount(() => {
-    warmup().catch(() => {});
+    if (get(files).length === 0) {
+      welcomeId = openFileTab('welcome.tex', welcomeTex, null);
+    }
+
+    warmup()
+      .then(() => {
+        if (welcomeId && get(activeFileId) === welcomeId && get(compileStatus) === 'idle') doCompile();
+      })
+      .catch(() => {});
 
     function onBeforeUnload(e: BeforeUnloadEvent) {
       if ($files.some(f => f.dirty)) { e.preventDefault(); e.returnValue = ''; }
@@ -1243,7 +1263,7 @@
   <StatusBar {cursorLine} {cursorCol} {charCount} {wordCount} />
 
   {#if $cloneDialogOpen}
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
     <div class="dialog-backdrop" on:click={handleCancelClone}>
       <!-- svelte-ignore a11y_click_events_have_key_events -->
       <!-- svelte-ignore a11y_no_static_element_interactions -->

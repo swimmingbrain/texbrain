@@ -157,6 +157,13 @@ export async function warmup(): Promise<void> {
   if (!onDemandAvailable) await preloadFallback(eng);
 }
 
+// the next compile starts from an empty work directory. the editor asks for
+// it when the main file moves to another folder, so the aux files of one
+// document never feed the other
+export function resetWorkDir(): void {
+  if (engine?.isReady()) flushWorkDir(engine);
+}
+
 export interface CompileResult {
   pdf: Uint8Array | undefined;
   status: number;

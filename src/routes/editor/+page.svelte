@@ -13,8 +13,9 @@
   import { locateByNeedle, type Problem } from '$lib/compiler/log';
   import type { EditorView } from '@codemirror/view';
   import type { Snippet as SnippetDef } from '$lib/snippets/index';
-  import { compileLaTeX, warmup } from '$lib/compiler/latex-engine';
+  import { compileLaTeX, resetWorkDir, warmup } from '$lib/compiler/latex-engine';
   import { injectImagePlaceholders, findMissingIncludes, buildIncludeMap } from '$lib/compiler/scan';
+  import { viewFromWorkDir, projectPath } from '$lib/compiler/work-dir';
   import { readProjectFiles } from '$lib/fs/read-project';
   import { parseLog, capLogLines } from '$lib/compiler/log';
   import welcomeTex from '$lib/templates/welcome.tex?raw';
@@ -293,6 +294,8 @@
   // the same warning after every pause in typing would be noise, so a
   // missing file is mentioned once until the list changes
   let lastMissingNote = '';
+  // the folder the last compile ran in, null before the first one
+  let lastWorkDir: string | null = null;
 
   async function doCompile(auto = false) {
     const af = get(activeFile);
@@ -359,15 +362,25 @@
 
       const mainFile = get(entryPoint) || af.path || af.name;
 
-      const includeMap = buildIncludeMap(projectFiles, mainFile);
-      includeOrder = includeMap.order;
+      // the compiler runs in the folder of the main file, as it would on a
+      // desktop, so the project goes over relative to that folder
+      const view = viewFromWorkDir(mainFile, projectFiles, binaryFiles);
+      // aux files and leftovers of a main file in another folder must not
+      // meet this one
+      if (view.dir !== lastWorkDir) {
+        resetWorkDir();
+        lastWorkDir = view.dir;
+      }
+
+      const includeMap = buildIncludeMap(view.files, view.mainFile);
+      includeOrder = includeMap.order.map(inc => ({ ...inc, path: projectPath(view.dir, inc.path) }));
       totalDocLines = includeMap.totalLines;
 
       // included files that aren't part of the project would silently drop
       // content (or worse, resolve against texlive), so warn upfront
-      const missingIncludes = findMissingIncludes(projectFiles, mainFile);
+      const missingIncludes = findMissingIncludes(view.files, view.mainFile);
       // missing images get a gray placeholder so the compile still succeeds
-      const missingImages = injectImagePlaceholders(projectFiles, binaryFiles);
+      const missingImages = injectImagePlaceholders(view.files, view.binaryFiles);
       const missingNote = missingIncludes.join(',') + '|' + missingImages.join(',');
       if (missingNote !== lastMissingNote) {
         lastMissingNote = missingNote;
@@ -395,15 +408,20 @@
       pdfViewer?.setScrollTarget(computeDocumentFraction(), compileContext);
 
       const result = await Promise.race([
-        compileLaTeX(mainFile, projectFiles, binaryFiles),
+        compileLaTeX(view.mainFile, view.files, view.binaryFiles),
         new Promise<never>((_, reject) => setTimeout(() => reject(new Error('compilation timed out after 180s')), 180_000))
       ]);
 
       const { problems, cleanedLines } = parseLog(result.log || '');
       // tex gives no line for a missing package or a runaway argument, the
       // sources usually do
-      locateByNeedle(problems, projectFiles);
-      for (const p of problems) if (!p.file) { p.file = mainFile; p.inPackage = false; }
+      locateByNeedle(problems, view.files);
+      // the compiler named files relative to its folder, the editor wants
+      // them as they are in the project
+      for (const p of problems) {
+        if (!p.file) { p.file = mainFile; p.inPackage = false; }
+        else if (!p.inPackage) p.file = projectPath(view.dir, p.file);
+      }
       compileProblems.set(problems);
       compileRawLog.set(result.log || '');
 

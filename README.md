@@ -104,6 +104,7 @@ The bridge connects TeXbrain to [brainBRIDGE](https://github.com/swimmingbrain/b
 - **Git remotes need a CORS proxy.** Browsers can't speak the git protocol directly. The default proxy is configurable, see below.
 - **No merge conflict resolution in the editor.** A pull or merge that conflicts is aborted and tells you which files, the rest is a job for a terminal. Submodules, symlinks and git LFS are not supported either.
 - **Direct folder access is Chromium only.** Firefox and Safari fall back to a virtual filesystem, see [Browser support](#browser-support).
+- **The compiler runs in the folder of the main file.** Like `cd thesis && pdflatex main.tex` would, so one repository can hold several documents in folders of their own and `\input{chapters/intro}` means the folder next to the main file. Files above that folder, as in `\input{../shared/macros}`, are out of the compiler's reach.
 
 ## Security and privacy
 

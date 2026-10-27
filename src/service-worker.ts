@@ -8,6 +8,7 @@
 // server), and resolve tex live files on demand for the engine
 
 import { build, files, prerendered, version } from '$service-worker';
+import { candidateNames } from './lib/compiler/kpse';
 
 const sw = self as unknown as ServiceWorkerGlobalScope;
 
@@ -45,10 +46,6 @@ const PRECACHE = [
   ...prerendered,
   ...files.filter(f => /^\/(favicon\.svg|manifest\.json|texbrain-logo-readme\.svg)$/.test(f))
 ];
-
-// extensions kpathsea probes when a request comes without one,
-// same order as the engine uses for its local lookups
-const TEX_EXTENSIONS = ['', '.tfm', '.pfb', '.vf', '.sty', '.cls', '.fd', '.def', '.cfg', '.clo', '.tex', '.ltx', '.map', '.enc', '.dfu', '.ldf'];
 
 let mirrorOverride: string | null = null; // null = not set, '' = disabled, string = url
 let manifestPromise: Promise<Set<string>> | null = null;
@@ -203,10 +200,10 @@ function loadManifest(): Promise<Set<string>> {
   return manifestPromise;
 }
 
-async function resolveBundled(name: string): Promise<string | null> {
+async function resolveBundled(name: string, format: string): Promise<string | null> {
   const names = await loadManifest();
-  for (const ext of TEX_EXTENSIONS) {
-    if (names.has(name + ext)) return name + ext;
+  for (const candidate of candidateNames(name, format)) {
+    if (names.has(candidate)) return candidate;
   }
   return null;
 }
@@ -247,11 +244,11 @@ function loadLsr(): Promise<Map<string, string>> {
   return lsrPromise;
 }
 
-async function resolveStatic(name: string): Promise<{ path: string; filename: string } | null> {
+async function resolveStatic(name: string, format: string): Promise<{ path: string; filename: string } | null> {
   const map = await loadLsr();
-  for (const ext of TEX_EXTENSIONS) {
-    const dir = map.get(name + ext);
-    if (dir) return { path: dir + '/' + name + ext, filename: name + ext };
+  for (const candidate of candidateNames(name, format)) {
+    const dir = map.get(candidate);
+    if (dir) return { path: dir + '/' + candidate, filename: candidate };
   }
   return null;
 }
@@ -274,14 +271,20 @@ function texliveResponse(buf: ArrayBuffer, id: string, isPk: boolean): Response 
 async function handleTexlive(request: Request, url: URL): Promise<Response> {
   const cache = await openCache(TEXLIVE_CACHE);
   const isPk = url.pathname.includes('/pdftex/pk/');
-  const name = decodeURIComponent(url.pathname.split('/').pop() || '');
+  const parts = url.pathname.split('/');
+  const name = decodeURIComponent(parts.pop() || '');
+  // the kpathsea format number sits in front of the name, a pk request
+  // carries its resolution there instead
+  const format = isPk ? '' : parts.pop() || '';
 
   const hit = cache ? await cache.match(request) : undefined;
   if (hit) {
     // copies cached before the checks existed are looked at once more,
-    // a bad one would otherwise break every compile from here on
+    // a bad one would otherwise break every compile from here on. that
+    // includes a file of the wrong kind an older lookup settled on
     const id = hit.headers.get(isPk ? 'pkid' : 'fileid') || name;
-    if (looksValid(await hit.clone().arrayBuffer(), id, isPk)) return hit;
+    const rightKind = isPk || candidateNames(name, format).includes(id);
+    if (rightKind && looksValid(await hit.clone().arrayBuffer(), id, isPk)) return hit;
     await cache!.delete(request);
   }
 
@@ -305,7 +308,7 @@ async function handleTexlive(request: Request, url: URL): Promise<Response> {
 
   // bundled subset (pk fonts are never bundled)
   if (!isPk) {
-    const resolved = await resolveBundled(name);
+    const resolved = await resolveBundled(name, format);
     if (resolved) {
       try {
         const bundledUrl = `/texlive/cache/${encodeURIComponent(resolved)}`;
@@ -320,7 +323,7 @@ async function handleTexlive(request: Request, url: URL): Promise<Response> {
 
   // static mirror, matches the texlive version of the bundled subset
   if (!isPk) {
-    const resolved = await resolveStatic(name);
+    const resolved = await resolveStatic(name, format);
     if (resolved) {
       try {
         const resp = await fetchWithTimeout(encodeURI(`${STATIC_MIRROR}/${resolved.path}`), 30000);
